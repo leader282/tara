@@ -6,15 +6,43 @@ import {
   processLock,
   type SupabaseClientOptions,
 } from "@supabase/supabase-js";
-import { AppState, type AppStateStatus } from "react-native";
+import * as SecureStore from "expo-secure-store";
+import { AppState, Platform, type AppStateStatus } from "react-native";
 
 import { env } from "@/lib/env";
 import type { Database } from "@/lib/supabase/database.types";
 
 type AuthOptions = NonNullable<SupabaseClientOptions<"public">["auth"]>;
+type AuthStorage = NonNullable<AuthOptions["storage"]>;
+
+const authStorage: AuthStorage = {
+  getItem: (key) => {
+    if (Platform.OS === "web") {
+      return AsyncStorage.getItem(key);
+    }
+
+    return SecureStore.getItemAsync(key);
+  },
+  removeItem: async (key) => {
+    if (Platform.OS === "web") {
+      await AsyncStorage.removeItem(key);
+      return;
+    }
+
+    await SecureStore.deleteItemAsync(key);
+  },
+  setItem: async (key, value) => {
+    if (Platform.OS === "web") {
+      await AsyncStorage.setItem(key, value);
+      return;
+    }
+
+    await SecureStore.setItemAsync(key, value);
+  },
+};
 
 const authOptions: AuthOptions = {
-  storage: AsyncStorage,
+  storage: authStorage,
   autoRefreshToken: true,
   persistSession: true,
   detectSessionInUrl: false,
