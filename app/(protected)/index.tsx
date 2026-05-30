@@ -1,3 +1,5 @@
-import { AuthenticatedPlaceholderScreen } from "@/features/auth/screens/AuthenticatedPlaceholderScreen";
+import { Redirect } from "expo-router";
 
-export default AuthenticatedPlaceholderScreen;
+export default function ProtectedIndexScreen() {
+  return <Redirect href="/" />;
+}

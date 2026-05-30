@@ -33,7 +33,7 @@ export default function OnboardingLayout() {
   }
 
   if (!needsOnboarding) {
-    return <Redirect href="/(protected)" />;
+    return <Redirect href="/" />;
   }
 
   return <Stack screenOptions={{ headerShown: false }} />;

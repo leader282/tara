@@ -1,46 +1,5 @@
-import { Redirect, Stack } from "expo-router";
-import { StyleSheet } from "react-native";
-
-import { ErrorState, LoadingState, Screen } from "@/components/ui";
-import { useAuth } from "@/features/auth/hooks/useAuth";
-import { useOnboardingGate } from "@/features/onboarding/hooks/useOnboardingGate";
+import { Redirect } from "expo-router";
 
 export default function ProtectedLayout() {
-  const { isAuthenticated } = useAuth();
-  const { isLoading, needsOnboarding, error } = useOnboardingGate();
-
-  if (isLoading) {
-    return (
-      <Screen contentContainerStyle={styles.loading}>
-        <LoadingState label="Preparing your space..." />
-      </Screen>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <Redirect href="/(auth)/sign-in" />;
-  }
-
-  if (needsOnboarding) {
-    return <Redirect href="/(onboarding)/profile" />;
-  }
-
-  if (error) {
-    return (
-      <Screen contentContainerStyle={styles.loading}>
-        <ErrorState
-          message="We couldn't prepare your space right now. Please try again."
-          title="Still getting things ready"
-        />
-      </Screen>
-    );
-  }
-
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return <Redirect href="/" />;
 }
-
-const styles = StyleSheet.create({
-  loading: {
-    justifyContent: "center",
-  },
-});

@@ -22,7 +22,7 @@ export function OnboardingCompleteScreen() {
     try {
       setSubmitError(null);
       await completeOnboardingMutation.mutateAsync();
-      router.replace("/(protected)");
+      router.replace("/");
     } catch {
       setSubmitError(toFriendlySubmitError());
     }

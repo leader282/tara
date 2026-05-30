@@ -1,4 +1,4 @@
-import { Redirect } from "expo-router";
+import { Redirect, Stack } from "expo-router";
 import { StyleSheet } from "react-native";
 
 import { ErrorState, LoadingState, Screen } from "@/components/ui";
@@ -6,29 +6,21 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useActiveCoupleState } from "@/features/couple/hooks/useActiveCoupleState";
 import { useOnboardingGate } from "@/features/onboarding/hooks/useOnboardingGate";
 
-export default function IndexScreen() {
+export default function CoupleLayout() {
   const { isAuthenticated, isInitializing } = useAuth();
   const onboardingGate = useOnboardingGate();
   const coupleGate = useActiveCoupleState();
 
-  if (isInitializing) {
+  if (isInitializing || onboardingGate.isLoading) {
     return (
       <Screen contentContainerStyle={styles.loading}>
-        <LoadingState label="Loading Tara..." />
+        <LoadingState label="Preparing your couple space..." />
       </Screen>
     );
   }
 
   if (!isAuthenticated) {
     return <Redirect href="/(auth)/sign-in" />;
-  }
-
-  if (onboardingGate.isLoading) {
-    return (
-      <Screen contentContainerStyle={styles.loading}>
-        <LoadingState label="Loading your profile..." />
-      </Screen>
-    );
   }
 
   if (onboardingGate.error) {
@@ -73,7 +65,7 @@ export default function IndexScreen() {
     return <Redirect href="/(invite)/waiting" />;
   }
 
-  return <Redirect href="/(couple)" />;
+  return <Stack screenOptions={{ headerShown: false }} />;
 }
 
 const styles = StyleSheet.create({

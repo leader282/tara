@@ -1,4 +1,4 @@
-import { Redirect } from "expo-router";
+import { Redirect, Stack, useSegments } from "expo-router";
 import { StyleSheet } from "react-native";
 
 import { ErrorState, LoadingState, Screen } from "@/components/ui";
@@ -6,15 +6,19 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useActiveCoupleState } from "@/features/couple/hooks/useActiveCoupleState";
 import { useOnboardingGate } from "@/features/onboarding/hooks/useOnboardingGate";
 
-export default function IndexScreen() {
+export default function InviteLayout() {
+  const segments = useSegments();
+  const currentSegment = segments[segments.length - 1];
+  const isWaitingRoute = currentSegment === "waiting";
+
   const { isAuthenticated, isInitializing } = useAuth();
   const onboardingGate = useOnboardingGate();
   const coupleGate = useActiveCoupleState();
 
-  if (isInitializing) {
+  if (isInitializing || onboardingGate.isLoading) {
     return (
       <Screen contentContainerStyle={styles.loading}>
-        <LoadingState label="Loading Tara..." />
+        <LoadingState label="Preparing your private invite space..." />
       </Screen>
     );
   }
@@ -23,20 +27,12 @@ export default function IndexScreen() {
     return <Redirect href="/(auth)/sign-in" />;
   }
 
-  if (onboardingGate.isLoading) {
-    return (
-      <Screen contentContainerStyle={styles.loading}>
-        <LoadingState label="Loading your profile..." />
-      </Screen>
-    );
-  }
-
   if (onboardingGate.error) {
     return (
       <Screen contentContainerStyle={styles.loading}>
         <ErrorState
-          message="We couldn't open your profile setup right now. Please try again."
-          title="Still getting things ready"
+          message="We couldn't open invite setup right now. Please try again."
+          title="Couldn’t open invite flow"
         />
       </Screen>
     );
@@ -49,7 +45,7 @@ export default function IndexScreen() {
   if (coupleGate.isLoading || coupleGate.state.status === "loading") {
     return (
       <Screen contentContainerStyle={styles.loading}>
-        <LoadingState label="Preparing your couple space..." />
+        <LoadingState label="Preparing your private invite space..." />
       </Screen>
     );
   }
@@ -59,21 +55,25 @@ export default function IndexScreen() {
       <Screen contentContainerStyle={styles.loading}>
         <ErrorState
           message="We couldn't load your couple status right now. Please try again."
-          title="Still preparing your space"
+          title="Still preparing your invite space"
         />
       </Screen>
     );
   }
 
-  if (coupleGate.state.status === "none") {
-    return <Redirect href="/(invite)" />;
+  if (coupleGate.state.status === "paired") {
+    return <Redirect href="/(couple)" />;
   }
 
-  if (coupleGate.state.status === "waiting") {
+  if (coupleGate.state.status === "waiting" && !isWaitingRoute) {
     return <Redirect href="/(invite)/waiting" />;
   }
 
-  return <Redirect href="/(couple)" />;
+  if (coupleGate.state.status === "none" && isWaitingRoute) {
+    return <Redirect href="/(invite)" />;
+  }
+
+  return <Stack screenOptions={{ headerShown: false }} />;
 }
 
 const styles = StyleSheet.create({
