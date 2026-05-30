@@ -8,6 +8,7 @@ export const queryKeys = {
   couple: {
     all: ["couple"] as const,
     activeState: (userId: string) => ["couple", "activeState", userId] as const,
+    home: (userId: string) => ["couple", "home", userId] as const,
   },
   invite: {
     all: ["invite"] as const,

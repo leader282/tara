@@ -1,3 +1,3 @@
-import { CouplePlaceholderScreen } from "@/features/couple/screens/CouplePlaceholderScreen";
+import { CoupleHomeScreen } from "@/features/couple/screens/CoupleHomeScreen";
 
-export default CouplePlaceholderScreen;
+export default CoupleHomeScreen;

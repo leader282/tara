@@ -77,3 +77,32 @@ export function getTimezoneOffsetMinutes(timeZone: string, date = new Date()): n
     return 0;
   }
 }
+
+export function formatTimeInTimeZone(
+  date: Date,
+  timeZone: string | null | undefined,
+  locale = "en-US"
+): string {
+  if (Number.isNaN(date.getTime())) {
+    return "Unknown time";
+  }
+
+  const fallbackTime = new Intl.DateTimeFormat(locale, {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+
+  if (!timeZone || !isValidTimeZone(timeZone)) {
+    return fallbackTime;
+  }
+
+  try {
+    return new Intl.DateTimeFormat(locale, {
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone,
+    }).format(date);
+  } catch {
+    return fallbackTime;
+  }
+}
