@@ -9,7 +9,13 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit --ignoreDeprecations 6.0",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "supabase:start": "supabase start",
+    "supabase:stop": "supabase stop",
+    "supabase:status": "supabase status",
+    "supabase:reset": "supabase db reset",
+    "supabase:lint": "supabase db lint --local",
+    "supabase:types": "supabase gen types typescript --local --schema public | awk 'NF{last=NR} {lines[NR]=$0} END{for(i=1;i<=last;i++) print lines[i]}' > src/lib/supabase/database.types.ts"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -35,6 +41,7 @@
     "babel-preset-expo": "^56.0.14",
     "eslint": "^9.39.4",
     "eslint-config-expo": "^56.0.4",
+    "supabase": "^2.102.0",
     "typescript": "~6.0.3"
   }
 }
