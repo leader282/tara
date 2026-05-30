@@ -27,9 +27,9 @@ export function AuthenticatedPlaceholderScreen() {
     <Screen contentContainerStyle={styles.content}>
       <Card>
         <View style={styles.cardContent}>
-          <AppText variant="subtitle">You&apos;re signed in to Tara.</AppText>
+          <AppText variant="subtitle">You&apos;re ready to create your private couple space.</AppText>
           <AppText color="textSecondary" variant="bodyMuted">
-            Profile setup comes next.
+            Invite pairing comes next. This is the final placeholder before couple creation.
           </AppText>
 
           {submitError ? (

@@ -5,14 +5,14 @@ import { ErrorState, LoadingState, Screen } from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useOnboardingGate } from "@/features/onboarding/hooks/useOnboardingGate";
 
-export default function ProtectedLayout() {
+export default function OnboardingLayout() {
   const { isAuthenticated } = useAuth();
   const { isLoading, needsOnboarding, error } = useOnboardingGate();
 
   if (isLoading) {
     return (
       <Screen contentContainerStyle={styles.loading}>
-        <LoadingState label="Preparing your space..." />
+        <LoadingState label="Setting up your Tara onboarding..." />
       </Screen>
     );
   }
@@ -21,19 +21,19 @@ export default function ProtectedLayout() {
     return <Redirect href="/(auth)/sign-in" />;
   }
 
-  if (needsOnboarding) {
-    return <Redirect href="/(onboarding)/profile" />;
-  }
-
   if (error) {
     return (
       <Screen contentContainerStyle={styles.loading}>
         <ErrorState
-          message="We couldn't prepare your space right now. Please try again."
-          title="Still getting things ready"
+          message="We couldn't load your onboarding details right now. Please try again."
+          title="Couldn’t open onboarding"
         />
       </Screen>
     );
+  }
+
+  if (!needsOnboarding) {
+    return <Redirect href="/(protected)" />;
   }
 
   return <Stack screenOptions={{ headerShown: false }} />;
