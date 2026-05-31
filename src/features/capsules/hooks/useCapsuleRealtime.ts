@@ -38,7 +38,7 @@ export function useCapsuleRealtime(
           queryKey: queryKeys.capsules.detailList(capsuleId),
         }),
         queryClient.invalidateQueries({
-          queryKey: queryKeys.timeline.all,
+          queryKey: queryKeys.timeline.listPrefix(coupleId),
         }),
       ]);
 

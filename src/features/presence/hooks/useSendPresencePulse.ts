@@ -20,7 +20,7 @@ export function useSendPresencePulse() {
           queryKey: queryKeys.presence.recentList(presenceEvent.couple_id),
         }),
         queryClient.invalidateQueries({
-          queryKey: queryKeys.timeline.all,
+          queryKey: queryKeys.timeline.listPrefix(presenceEvent.couple_id),
         }),
         user?.id
           ? queryClient.invalidateQueries({

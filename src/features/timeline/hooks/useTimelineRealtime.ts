@@ -4,20 +4,25 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { coupleRitualRowSchema } from "@/features/rituals/schemas";
+import { TIMELINE_REALTIME_PUBLICATION_ENABLED } from "@/features/timeline/constants";
 import { queryKeys } from "@/lib/query/queryKeys";
 import { supabase } from "@/lib/supabase/client";
 
-export function useRitualRealtime(
+export function useTimelineRealtime(
   coupleId: string | null | undefined,
-  enabled = true
+  enabled: boolean = true
 ): void {
   const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
   const channelRef = useRef<RealtimeChannel | null>(null);
 
   useEffect(() => {
-    if (!enabled || !isAuthenticated || !coupleId) {
+    if (
+      !enabled ||
+      !isAuthenticated ||
+      !coupleId ||
+      !TIMELINE_REALTIME_PUBLICATION_ENABLED
+    ) {
       if (channelRef.current) {
         void supabase.removeChannel(channelRef.current);
         channelRef.current = null;
@@ -31,42 +36,23 @@ export function useRitualRealtime(
     }
 
     const channel = supabase
-      .channel(`ritual-updates-${coupleId}`)
+      .channel(`timeline-items-${coupleId}`)
       .on(
         "postgres_changes",
         {
-          event: "UPDATE",
+          event: "INSERT",
           schema: "public",
-          table: "couple_rituals",
+          table: "timeline_items",
           filter: `couple_id=eq.${coupleId}`,
         },
-        (payload) => {
-          const parsedRitual = coupleRitualRowSchema.safeParse(payload.new);
-          if (!parsedRitual.success) {
-            return;
-          }
-
-          if (parsedRitual.data.couple_id !== coupleId) {
-            return;
-          }
-
-          void Promise.all([
-            queryClient.invalidateQueries({
-              queryKey: queryKeys.rituals.todayList(coupleId),
-            }),
-            queryClient.invalidateQueries({
-              queryKey: queryKeys.rituals.historyList(coupleId),
-            }),
-            queryClient.invalidateQueries({
-              queryKey: queryKeys.rituals.detailList(parsedRitual.data.id),
-            }),
-            queryClient.invalidateQueries({
-              queryKey: queryKeys.timeline.listPrefix(coupleId),
-            }),
-          ]);
+        () => {
+          void queryClient.invalidateQueries({
+            queryKey: queryKeys.timeline.listPrefix(coupleId),
+          });
         }
       )
       .subscribe();
+
     channelRef.current = channel;
 
     return () => {

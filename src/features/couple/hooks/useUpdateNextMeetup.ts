@@ -14,7 +14,7 @@ export function useUpdateNextMeetup() {
 
   const mutation = useMutation({
     mutationFn: (input: UpdateNextMeetupInput) => updateNextMeetup(input),
-    onSuccess: async () => {
+    onSuccess: async (_couple, input) => {
       if (!user?.id) {
         return;
       }
@@ -25,6 +25,9 @@ export function useUpdateNextMeetup() {
         }),
         queryClient.invalidateQueries({
           queryKey: queryKeys.couple.activeState(user.id),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.timeline.listPrefix(input.coupleId),
         }),
       ]);
     },

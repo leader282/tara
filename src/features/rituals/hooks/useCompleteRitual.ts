@@ -19,9 +19,6 @@ export function useCompleteRitual(coupleId: string | null | undefined) {
         queryClient.invalidateQueries({
           queryKey: queryKeys.rituals.detailList(input.coupleRitualId),
         }),
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.timeline.all,
-        }),
       ];
 
       if (coupleId) {
@@ -33,6 +30,17 @@ export function useCompleteRitual(coupleId: string | null | undefined) {
         invalidations.push(
           queryClient.invalidateQueries({
             queryKey: queryKeys.rituals.historyList(coupleId),
+          })
+        );
+        invalidations.push(
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.timeline.listPrefix(coupleId),
+          })
+        );
+      } else {
+        invalidations.push(
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.timeline.all,
           })
         );
       }

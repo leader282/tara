@@ -22,6 +22,8 @@ export const queryKeys = {
   },
   timeline: {
     all: ["timeline"] as const,
+    listPrefix: (coupleId: string) => ["timeline", "list", coupleId] as const,
+    list: (coupleId: string, pageSize = 20) => ["timeline", "list", coupleId, pageSize] as const,
     couple: (coupleId: string) => ["timeline", "couple", coupleId] as const,
   },
   rituals: {

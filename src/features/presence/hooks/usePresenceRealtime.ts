@@ -37,7 +37,7 @@ export function usePresenceRealtime(
           queryKey: queryKeys.presence.recentList(coupleId),
         });
         void queryClient.invalidateQueries({
-          queryKey: queryKeys.timeline.all,
+          queryKey: queryKeys.timeline.listPrefix(coupleId),
         });
 
         if (pulse.sender_id === currentUserId) {

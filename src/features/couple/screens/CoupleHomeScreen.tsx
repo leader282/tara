@@ -56,6 +56,10 @@ export function CoupleHomeScreen() {
     router.push("/(couple)/capsules");
   };
 
+  const handleOpenTimeline = () => {
+    router.push("/(couple)/timeline");
+  };
+
   const handleRetry = () => {
     if (!user?.id) {
       return;
@@ -175,6 +179,17 @@ export function CoupleHomeScreen() {
           <Button onPress={handleOpenCapsules} title="Open memory capsules" variant="secondary" />
         </View>
       </Card>
+      <Card>
+        <View style={styles.timelineEntryCard}>
+          <View style={styles.timelineEntryHeader}>
+            <AppText variant="subtitle">Timeline</AppText>
+            <AppText color="textSecondary" variant="bodyMuted">
+              Revisit pulses, rituals, capsules, and reunion updates in one calm feed.
+            </AppText>
+          </View>
+          <Button onPress={handleOpenTimeline} title="Open timeline" variant="secondary" />
+        </View>
+      </Card>
       <PresencePulsePanel partnerDisplayName={coupleHomeData.partnerProfile.display_name} />
       <RecentPulsesCard
         currentUserId={user?.id ?? ""}
@@ -219,6 +234,12 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   capsuleEntryHeader: {
+    gap: spacing.xs,
+  },
+  timelineEntryCard: {
+    gap: spacing.md,
+  },
+  timelineEntryHeader: {
     gap: spacing.xs,
   },
   signOutSection: {

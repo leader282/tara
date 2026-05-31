@@ -20,6 +20,22 @@ export function formatDateTime(date: Date, locale = "en-US"): string {
   );
 }
 
+export function formatTimelineDateTime(
+  isoString: string | null | undefined,
+  locale = "en-US"
+): string | null {
+  if (!isoString) {
+    return null;
+  }
+
+  const parsedDate = new Date(isoString);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return null;
+  }
+
+  return formatDateTime(parsedDate, locale);
+}
+
 export function formatWeekday(date: Date, locale = "en-US"): string {
   return formatDate(
     date,
