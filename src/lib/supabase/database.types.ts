@@ -628,6 +628,19 @@ export type Database = {
           couple_id: string
         }[]
       }
+      complete_ritual: {
+        Args: {
+          p_couple_ritual_id: string
+          p_media_asset_id?: string
+          p_text_response?: string
+        }
+        Returns: {
+          completed_count: number
+          couple_ritual_id: string
+          is_revealed: boolean
+          status: string
+        }[]
+      }
       create_couple_with_invite: {
         Args: {
           p_anniversary_date?: string
@@ -639,6 +652,12 @@ export type Database = {
           expires_at: string
           invite_code: string
           invite_id: string
+        }[]
+      }
+      ensure_daily_ritual: {
+        Args: { p_scheduled_for?: string }
+        Returns: {
+          couple_ritual_id: string
         }[]
       }
       open_memory_capsule: {

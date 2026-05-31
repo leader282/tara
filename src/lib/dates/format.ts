@@ -30,6 +30,34 @@ export function formatWeekday(date: Date, locale = "en-US"): string {
   );
 }
 
+export function formatUtcDateOnly(date: Date = new Date()): string {
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(
+    date.getUTCDate()
+  ).padStart(2, "0")}`;
+}
+
+export function formatDateOnly(dateString: string | null | undefined, locale = "en-US"): string | null {
+  if (!dateString) {
+    return null;
+  }
+
+  const parsedDateParts = parseDateOnlyToParts(dateString);
+  if (!parsedDateParts) {
+    return null;
+  }
+
+  const utcDate = new Date(
+    Date.UTC(parsedDateParts.year, parsedDateParts.month - 1, parsedDateParts.day, 0, 0, 0, 0)
+  );
+
+  return new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(utcDate);
+}
+
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const HH_MM_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 

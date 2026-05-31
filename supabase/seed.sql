@@ -42,7 +42,7 @@ values
     'photo',
     'Send a photo of something near you that tells the story of this moment.',
     'photo',
-    true
+    false
   ),
   (
     '10000000-0000-4000-8000-000000000005',
@@ -87,6 +87,24 @@ values
     'parallel_moment',
     'If you are having coffee, tea, or water, share a line or photo from that pause.',
     'text_or_photo',
+    true
+  ),
+  (
+    '10000000-0000-4000-8000-00000000000b',
+    'Daily tiny check-in',
+    'A simple text-first ritual for sharing where the day finds you.',
+    'daily_checkin',
+    'What is one sentence that captures your day right now?',
+    'text',
+    true
+  ),
+  (
+    '10000000-0000-4000-8000-00000000000c',
+    'Mood weather',
+    'Share the emotional weather of your day without needing to explain everything.',
+    'daily_checkin',
+    'If your mood were weather today, what would it be?',
+    'text',
     true
   ),
   (

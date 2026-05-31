@@ -24,4 +24,14 @@ export const queryKeys = {
     all: ["timeline"] as const,
     couple: (coupleId: string) => ["timeline", "couple", coupleId] as const,
   },
+  rituals: {
+    all: ["rituals"] as const,
+    todayList: (coupleId: string) => ["rituals", "today", coupleId] as const,
+    today: (coupleId: string, userId: string) => ["rituals", "today", coupleId, userId] as const,
+    detailList: (coupleRitualId: string) => ["rituals", "detail", coupleRitualId] as const,
+    detail: (coupleRitualId: string, userId: string) =>
+      ["rituals", "detail", coupleRitualId, userId] as const,
+    historyList: (coupleId: string) => ["rituals", "history", coupleId] as const,
+    history: (coupleId: string, limit = 30) => ["rituals", "history", coupleId, limit] as const,
+  },
 };

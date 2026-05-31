@@ -4,14 +4,13 @@ import { StyleSheet, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 
-import { AppText, Button, ErrorState, LoadingState, Screen } from "@/components/ui";
+import { AppText, Button, Card, ErrorState, LoadingState, Screen } from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { toAuthActionMessage } from "@/lib/errors/authErrorMessages";
 import { queryKeys } from "@/lib/query/queryKeys";
 import { spacing } from "@/theme/tokens";
 import { CoupleHomeEmptyState } from "@/features/couple/components/CoupleHomeEmptyState";
 import { CoupleHomeHeader } from "@/features/couple/components/CoupleHomeHeader";
-import { NextMeetupCard } from "@/features/couple/components/NextMeetupCard";
 import { PartnerCard } from "@/features/couple/components/PartnerCard";
 import { PartnerLocalTimeCard } from "@/features/couple/components/PartnerLocalTimeCard";
 import { ReunionCountdownCard } from "@/features/couple/components/ReunionCountdownCard";
@@ -47,6 +46,10 @@ export function CoupleHomeScreen() {
 
   const handleEditMeetup = () => {
     router.push("/(couple)/edit-meetup");
+  };
+
+  const handleOpenRituals = () => {
+    router.push("/(couple)/rituals");
   };
 
   const handleRetry = () => {
@@ -146,11 +149,17 @@ export function CoupleHomeScreen() {
         nextMeetupLocation={coupleHomeData.nextMeetupLocation}
         onEditMeetup={handleEditMeetup}
       />
-      <NextMeetupCard
-        nextMeetupAt={coupleHomeData.nextMeetupAt}
-        nextMeetupLocation={coupleHomeData.nextMeetupLocation}
-        onEditMeetup={handleEditMeetup}
-      />
+      <Card>
+        <View style={styles.ritualEntryCard}>
+          <View style={styles.ritualEntryHeader}>
+            <AppText variant="subtitle">Today&apos;s ritual</AppText>
+            <AppText color="textSecondary" variant="bodyMuted">
+              Open your shared prompt whenever it feels right.
+            </AppText>
+          </View>
+          <Button onPress={handleOpenRituals} title="Open today's ritual" variant="secondary" />
+        </View>
+      </Card>
       <PresencePulsePanel partnerDisplayName={coupleHomeData.partnerProfile.display_name} />
       <RecentPulsesCard
         currentUserId={user?.id ?? ""}
@@ -184,6 +193,12 @@ const styles = StyleSheet.create({
   },
   centered: {
     justifyContent: "center",
+  },
+  ritualEntryCard: {
+    gap: spacing.md,
+  },
+  ritualEntryHeader: {
+    gap: spacing.xs,
   },
   signOutSection: {
     gap: spacing.sm,
