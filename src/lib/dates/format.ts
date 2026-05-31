@@ -121,6 +121,27 @@ export function parseMeetupDateTimeFromFields(
   dateString: string | null | undefined,
   timeString?: string | null
 ): string | null {
+  return parseDateTimeFromFields(dateString, timeString, "12:00");
+}
+
+function parseTimeParts(timeValue: string): [number, number] | null {
+  if (!HH_MM_PATTERN.test(timeValue)) {
+    return null;
+  }
+
+  const [hours, minutes] = timeValue.split(":").map(Number);
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) {
+    return null;
+  }
+
+  return [hours, minutes];
+}
+
+export function parseDateTimeFromFields(
+  dateString: string | null | undefined,
+  timeString?: string | null,
+  fallbackTime: string = "12:00"
+): string | null {
   const normalizedDate = dateString?.trim();
   if (!normalizedDate) {
     return null;
@@ -132,17 +153,20 @@ export function parseMeetupDateTimeFromFields(
   }
 
   const normalizedTime = timeString?.trim();
-  const [hours, minutes] = normalizedTime && HH_MM_PATTERN.test(normalizedTime)
-    ? normalizedTime.split(":").map(Number)
-    : [12, 0];
-
-  if (
-    normalizedTime &&
-    (!HH_MM_PATTERN.test(normalizedTime) || !Number.isInteger(hours) || !Number.isInteger(minutes))
-  ) {
+  if (normalizedTime && !HH_MM_PATTERN.test(normalizedTime)) {
     return null;
   }
 
+  const normalizedFallbackTime = fallbackTime.trim();
+  const resolvedTime = normalizedTime && normalizedTime.length > 0
+    ? normalizedTime
+    : normalizedFallbackTime;
+  const parsedTimeParts = parseTimeParts(resolvedTime);
+  if (!parsedTimeParts) {
+    return null;
+  }
+
+  const [hours, minutes] = parsedTimeParts;
   const localMeetupDate = new Date(
     parsedDateParts.year,
     parsedDateParts.month - 1,
@@ -163,4 +187,82 @@ export function parseMeetupDateTimeFromFields(
   }
 
   return localMeetupDate.toISOString();
+}
+
+export function formatUnlockDateTime(
+  isoString: string | null | undefined,
+  locale = "en-US"
+): string | null {
+  if (!isoString) {
+    return null;
+  }
+
+  const parsedDate = new Date(isoString);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return null;
+  }
+
+  return formatDate(
+    parsedDate,
+    {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    },
+    locale
+  );
+}
+
+function startOfLocalDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+}
+
+function getLocalDayDifference(targetDate: Date, now: Date): number {
+  const targetDay = startOfLocalDay(targetDate);
+  const nowDay = startOfLocalDay(now);
+  const msInDay = 86_400_000;
+  return Math.round((targetDay.getTime() - nowDay.getTime()) / msInDay);
+}
+
+export function formatCapsuleCountdown(
+  unlockAtIso: string | null | undefined,
+  openedAtIso?: string | null,
+  now: Date = new Date()
+): string {
+  const openedAt = openedAtIso ? new Date(openedAtIso) : null;
+  if (openedAt && !Number.isNaN(openedAt.getTime())) {
+    return "Opened";
+  }
+
+  if (!unlockAtIso) {
+    return "Unavailable";
+  }
+
+  const unlockAt = new Date(unlockAtIso);
+  if (Number.isNaN(unlockAt.getTime())) {
+    return "Unavailable";
+  }
+
+  if (unlockAt.getTime() <= now.getTime()) {
+    return "Ready to open";
+  }
+
+  const dayDifference = getLocalDayDifference(unlockAt, now);
+  if (dayDifference === 0) {
+    return "Unlocks today";
+  }
+
+  if (dayDifference === 1) {
+    return "Unlocks tomorrow";
+  }
+
+  const unlockLabel = formatUnlockDateTime(unlockAtIso);
+  if (!unlockLabel) {
+    return "Locked for later";
+  }
+
+  return `Locked until ${unlockLabel}`;
 }

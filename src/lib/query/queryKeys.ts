@@ -34,4 +34,11 @@ export const queryKeys = {
     historyList: (coupleId: string) => ["rituals", "history", coupleId] as const,
     history: (coupleId: string, limit = 30) => ["rituals", "history", coupleId, limit] as const,
   },
+  capsules: {
+    all: ["capsules"] as const,
+    listPrefix: (coupleId: string) => ["capsules", "list", coupleId] as const,
+    list: (coupleId: string, userId: string) => ["capsules", "list", coupleId, userId] as const,
+    detailList: (capsuleId: string) => ["capsules", "detail", capsuleId] as const,
+    detail: (capsuleId: string, userId: string) => ["capsules", "detail", capsuleId, userId] as const,
+  },
 };

@@ -52,6 +52,10 @@ export function CoupleHomeScreen() {
     router.push("/(couple)/rituals");
   };
 
+  const handleOpenCapsules = () => {
+    router.push("/(couple)/capsules");
+  };
+
   const handleRetry = () => {
     if (!user?.id) {
       return;
@@ -160,6 +164,17 @@ export function CoupleHomeScreen() {
           <Button onPress={handleOpenRituals} title="Open today's ritual" variant="secondary" />
         </View>
       </Card>
+      <Card>
+        <View style={styles.capsuleEntryCard}>
+          <View style={styles.capsuleEntryHeader}>
+            <AppText variant="subtitle">Memory capsules</AppText>
+            <AppText color="textSecondary" variant="bodyMuted">
+              Save a note now and open it together on a future day.
+            </AppText>
+          </View>
+          <Button onPress={handleOpenCapsules} title="Open memory capsules" variant="secondary" />
+        </View>
+      </Card>
       <PresencePulsePanel partnerDisplayName={coupleHomeData.partnerProfile.display_name} />
       <RecentPulsesCard
         currentUserId={user?.id ?? ""}
@@ -198,6 +213,12 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   ritualEntryHeader: {
+    gap: spacing.xs,
+  },
+  capsuleEntryCard: {
+    gap: spacing.md,
+  },
+  capsuleEntryHeader: {
     gap: spacing.xs,
   },
   signOutSection: {

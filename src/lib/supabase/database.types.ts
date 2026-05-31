@@ -654,6 +654,27 @@ export type Database = {
           invite_id: string
         }[]
       }
+      create_memory_capsule: {
+        Args: {
+          p_emotional_context?: string
+          p_note: string
+          p_title: string
+          p_unlock_at: string
+        }
+        Returns: {
+          couple_id: string
+          created_at: string
+          creator_id: string
+          emotional_context: string
+          id: string
+          opened_at: string
+          opened_by: string
+          title: string
+          unlock_at: string
+          unlock_type: string
+          updated_at: string
+        }[]
+      }
       ensure_daily_ritual: {
         Args: { p_scheduled_for?: string }
         Returns: {
