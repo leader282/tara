@@ -5,6 +5,8 @@ import { StyleSheet, View } from "react-native";
 import { z } from "zod";
 
 import { AppText, Button, Card, TextField } from "@/components/ui";
+import { MediaAttachmentField } from "@/features/media/components/MediaAttachmentField";
+import type { MediaAsset } from "@/features/media/types";
 import { DEFAULT_CAPSULE_UNLOCK_TIME, CAPSULE_MAX_NOTE_LENGTH } from "@/features/capsules/constants";
 import { createCapsuleSchema } from "@/features/capsules/schemas";
 import type { CreateCapsuleInput } from "@/features/capsules/types";
@@ -32,9 +34,10 @@ export function CapsuleCreateForm({
   onSubmit,
   submitError = null,
 }: CapsuleCreateFormProps) {
+  const [attachedMediaAsset, setAttachedMediaAsset] = useState<MediaAsset | null>(null);
   const [noteLength, setNoteLength] = useState(0);
 
-  const { control, formState, handleSubmit } = useForm<
+  const { control, formState, handleSubmit, setValue } = useForm<
     CapsuleCreateFormValues,
     undefined,
     CreateCapsuleInput
@@ -42,6 +45,7 @@ export function CapsuleCreateForm({
     defaultValues: {
       title: "",
       note: "",
+      mediaAssetId: null,
       unlockDate: getTomorrowDateInputValue(),
       unlockTime: DEFAULT_CAPSULE_UNLOCK_TIME,
       emotionalContext: "",
@@ -89,7 +93,7 @@ export function CapsuleCreateForm({
                 autoCorrect
                 editable={!isSubmitting}
                 errorMessage={fieldState.error?.message}
-                label="Note"
+                label="Note (optional)"
                 maxLength={CAPSULE_MAX_NOTE_LENGTH}
                 multiline
                 onBlur={field.onBlur}
@@ -108,6 +112,27 @@ export function CapsuleCreateForm({
           <AppText color="textSecondary" variant="caption">
             {noteLength}/{CAPSULE_MAX_NOTE_LENGTH}
           </AppText>
+
+          <MediaAttachmentField
+            disabled={isSubmitting}
+            helperText="Add a private photo if you want this capsule to include media."
+            label="Photo attachment"
+            onChange={(nextMediaAsset) => {
+              setAttachedMediaAsset(nextMediaAsset);
+              setValue("mediaAssetId", nextMediaAsset?.id ?? null, {
+                shouldDirty: true,
+                shouldValidate: true,
+              });
+            }}
+            purpose="memory_capsule_content"
+            value={attachedMediaAsset}
+          />
+
+          {formState.errors.mediaAssetId?.message ? (
+            <AppText color="danger" variant="caption">
+              {formState.errors.mediaAssetId.message}
+            </AppText>
+          ) : null}
 
           <Controller
             control={control}

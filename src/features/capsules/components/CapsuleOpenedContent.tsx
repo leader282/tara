@@ -1,33 +1,36 @@
 import { StyleSheet, View } from "react-native";
 
 import { AppText, Button, Card } from "@/components/ui";
-import type { MemoryCapsule } from "@/features/capsules/types";
+import { PrivateImage } from "@/features/media/components/PrivateImage";
+import type { MemoryCapsule, MemoryCapsuleContent } from "@/features/capsules/types";
 import { formatUnlockDateTime } from "@/lib/dates/format";
-import { spacing } from "@/theme/tokens";
+import { radii, spacing } from "@/theme/tokens";
 
 type CapsuleOpenedContentProps = {
   capsule: MemoryCapsule;
-  note: string | null | undefined;
+  content: MemoryCapsuleContent | null;
   isRefreshing?: boolean;
   onRetry?: () => void;
 };
 
 export function CapsuleOpenedContent({
   capsule,
-  note,
+  content,
   isRefreshing = false,
   onRetry,
 }: CapsuleOpenedContentProps) {
   const openedLabel = formatUnlockDateTime(capsule.opened_at) ?? "Just now";
-  const normalizedNote = note?.trim();
+  const normalizedNote = content?.note?.trim() ?? null;
+  const mediaAssetId = content?.media_asset_id ?? null;
+  const hasVisibleContent = Boolean(normalizedNote || mediaAssetId);
 
-  if (!normalizedNote) {
+  if (!hasVisibleContent) {
     return (
       <Card>
         <View style={styles.container}>
-          <AppText variant="subtitle">Memory note</AppText>
+          <AppText variant="subtitle">Memory content</AppText>
           <AppText color="textSecondary" variant="bodyMuted">
-            We opened this capsule, but the note has not loaded yet.
+            We opened this capsule, but its content has not loaded yet.
           </AppText>
           <AppText color="textSecondary" variant="caption">
             Opened {openedLabel}
@@ -49,8 +52,15 @@ export function CapsuleOpenedContent({
   return (
     <Card>
       <View style={styles.container}>
-        <AppText variant="subtitle">Memory note</AppText>
-        <AppText variant="body">{normalizedNote}</AppText>
+        <AppText variant="subtitle">Memory content</AppText>
+        {normalizedNote ? <AppText variant="body">{normalizedNote}</AppText> : null}
+        {mediaAssetId ? (
+          <PrivateImage
+            accessibilityLabel="Capsule photo"
+            containerStyle={styles.media}
+            mediaAssetId={mediaAssetId}
+          />
+        ) : null}
         {capsule.emotional_context ? (
           <AppText color="textSecondary" variant="bodyMuted">
             {capsule.emotional_context}
@@ -67,5 +77,11 @@ export function CapsuleOpenedContent({
 const styles = StyleSheet.create({
   container: {
     gap: spacing.sm,
+  },
+  media: {
+    aspectRatio: 4 / 3,
+    borderRadius: radii.sm,
+    overflow: "hidden",
+    width: "100%",
   },
 });

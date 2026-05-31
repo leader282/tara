@@ -10,14 +10,14 @@ type RitualInputTypeNoticeProps = {
 
 function getInputTypeNotice(inputType: RitualInputType): string {
   if (inputType === "photo") {
-    return "Photo answers are coming later. For now, this ritual is unavailable in text-first mode.";
+    return "Add a private photo to complete this ritual.";
   }
 
   if (inputType === "text_or_photo") {
-    return "Text answers are available now. Photo replies arrive in a later phase.";
+    return "You can answer with text, a private photo, or both.";
   }
 
-  return "This ritual currently supports text answers.";
+  return "This ritual accepts text responses.";
 }
 
 export function RitualInputTypeNotice({ inputType }: RitualInputTypeNoticeProps) {

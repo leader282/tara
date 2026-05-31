@@ -7,6 +7,7 @@ export type CapsuleErrorCode =
   | "title_missing"
   | "note_missing"
   | "note_too_long"
+  | "media_invalid"
   | "unlock_date_in_past"
   | "capsule_locked"
   | "capsule_not_found"
@@ -18,8 +19,9 @@ const capsuleErrorMessages: Record<CapsuleErrorCode, string> = {
   no_active_couple: "Your couple space is not active yet.",
   not_paired_yet: "Memory capsules unlock after both partners have joined.",
   title_missing: "Add a short title for this memory capsule.",
-  note_missing: "Add your note before saving this memory capsule.",
+  note_missing: "Add a note or private photo before saving this memory capsule.",
   note_too_long: "Keep your note under 5000 characters.",
+  media_invalid: "This photo can't be used for this capsule. Please upload it again.",
   unlock_date_in_past: "Choose an unlock date and time in the future.",
   capsule_locked: "This memory capsule is still locked.",
   capsule_not_found: "We couldn't find that memory capsule.",
@@ -107,9 +109,20 @@ function getCapsuleErrorCodeFromPostgrest(error: PostgrestError): CapsuleErrorCo
       "note must be between 1 and 5000",
       "note is required",
       "add your note",
+      "requires a note or uploaded media",
     ])
   ) {
     return "note_missing";
+  }
+
+  if (
+    includesAny(searchableText, [
+      "memory capsule media asset not found",
+      "memory capsule media must be uploaded by you",
+      "memory capsule media does not belong to this couple",
+    ])
+  ) {
+    return "media_invalid";
   }
 
   if (
@@ -156,6 +169,10 @@ function getCapsuleErrorCodeFromZod(error: ZodError): CapsuleErrorCode {
     }
 
     return "note_missing";
+  }
+
+  if (path === "mediaassetid") {
+    return "media_invalid";
   }
 
   if (path === "unlockdate" || path === "unlocktime") {

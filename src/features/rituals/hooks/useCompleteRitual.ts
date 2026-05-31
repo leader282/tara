@@ -21,6 +21,14 @@ export function useCompleteRitual(coupleId: string | null | undefined) {
         }),
       ];
 
+      if (input.mediaAssetId) {
+        invalidations.push(
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.media.asset(input.mediaAssetId),
+          })
+        );
+      }
+
       if (coupleId) {
         invalidations.push(
           queryClient.invalidateQueries({

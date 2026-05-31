@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { Card, EmptyState, ErrorState, LoadingState } from "@/components/ui";
-import { RitualInputTypeNotice } from "@/features/rituals/components/RitualInputTypeNotice";
 import { RitualLockedState } from "@/features/rituals/components/RitualLockedState";
 import { RitualPromptCard } from "@/features/rituals/components/RitualPromptCard";
 import { RitualResponseForm } from "@/features/rituals/components/RitualResponseForm";
@@ -15,7 +14,11 @@ type TodayRitualCardProps = {
   partnerDisplayName?: string;
   isSubmitting?: boolean;
   submitError?: string | null;
-  onSubmitResponse?: (params: { coupleRitualId: string; textResponse: string }) => Promise<void> | void;
+  onSubmitResponse?: (params: {
+    coupleRitualId: string;
+    textResponse?: string | null;
+    mediaAssetId?: string | null;
+  }) => Promise<void> | void;
   onRetry?: () => void;
 };
 
@@ -72,30 +75,23 @@ export function TodayRitualCard({
     <View style={styles.container}>
       <RitualPromptCard coupleRitual={ritual.coupleRitual} template={ritual.template} />
       <StateCard>
-        {state.status === "unsupported_photo" ? (
-          <RitualInputTypeNotice inputType={ritual.template.input_type} />
-        ) : null}
-
         {state.status === "not_started" ? (
-          ritual.template.input_type === "photo" ? (
-            <RitualInputTypeNotice inputType={ritual.template.input_type} />
-          ) : (
-            <RitualResponseForm
-              inputType={ritual.template.input_type}
-              isSubmitting={isSubmitting}
-              onSubmit={async (textResponse) => {
-                if (!onSubmitResponse) {
-                  return;
-                }
+          <RitualResponseForm
+            inputType={ritual.template.input_type}
+            isSubmitting={isSubmitting}
+            onSubmit={async ({ textResponse, mediaAssetId }) => {
+              if (!onSubmitResponse) {
+                return;
+              }
 
-                await onSubmitResponse({
-                  coupleRitualId: ritual.coupleRitual.id,
-                  textResponse,
-                });
-              }}
-              submitError={submitError}
-            />
-          )
+              await onSubmitResponse({
+                coupleRitualId: ritual.coupleRitual.id,
+                textResponse,
+                mediaAssetId,
+              });
+            }}
+            submitError={submitError}
+          />
         ) : null}
 
         {state.status === "completed_by_me_waiting" ? <RitualLockedState /> : null}

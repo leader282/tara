@@ -43,4 +43,10 @@ export const queryKeys = {
     detailList: (capsuleId: string) => ["capsules", "detail", capsuleId] as const,
     detail: (capsuleId: string, userId: string) => ["capsules", "detail", capsuleId, userId] as const,
   },
+  media: {
+    all: ["media"] as const,
+    asset: (mediaAssetId: string) => ["media", "asset", mediaAssetId] as const,
+    signedUrl: (storagePath: string, expiresInSeconds = 300) =>
+      ["media", "signedUrl", storagePath, expiresInSeconds] as const,
+  },
 };

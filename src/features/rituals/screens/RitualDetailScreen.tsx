@@ -6,8 +6,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { AppText, Button, EmptyState, ErrorState, LoadingState, Screen } from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useCoupleHome } from "@/features/couple/hooks/useCoupleHome";
-import { isPhase8SupportedRitualInputType } from "@/features/rituals/constants";
-import { RitualInputTypeNotice } from "@/features/rituals/components/RitualInputTypeNotice";
 import { RitualLockedState } from "@/features/rituals/components/RitualLockedState";
 import { RitualPromptCard } from "@/features/rituals/components/RitualPromptCard";
 import { RitualResponseForm } from "@/features/rituals/components/RitualResponseForm";
@@ -56,7 +54,13 @@ export function RitualDetailScreen() {
     });
   };
 
-  const handleSubmitResponse = async (textResponse: string) => {
+  const handleSubmitResponse = async ({
+    textResponse,
+    mediaAssetId,
+  }: {
+    textResponse?: string | null;
+    mediaAssetId?: string | null;
+  }) => {
     if (!routeRitualId) {
       return;
     }
@@ -65,6 +69,7 @@ export function RitualDetailScreen() {
       await completeRitualMutation.mutateAsync({
         coupleRitualId: routeRitualId,
         textResponse,
+        mediaAssetId,
       });
     } catch {
       // Friendly message comes from mutation state.
@@ -156,7 +161,6 @@ export function RitualDetailScreen() {
   }
 
   const detail = ritualDetail.ritual;
-  const supportsTextResponse = isPhase8SupportedRitualInputType(detail.template.input_type);
 
   return (
     <Screen contentContainerStyle={styles.content} scroll>
@@ -170,9 +174,7 @@ export function RitualDetailScreen() {
       <RitualPromptCard coupleRitual={detail.coupleRitual} heading="Ritual detail" template={detail.template} />
 
       <View style={styles.stateSection}>
-        {!supportsTextResponse ? <RitualInputTypeNotice inputType={detail.template.input_type} /> : null}
-
-        {supportsTextResponse && !detail.revealState.hasCompleted ? (
+        {!detail.revealState.hasCompleted ? (
           <RitualResponseForm
             inputType={detail.template.input_type}
             isSubmitting={completeRitualMutation.isPending}
@@ -181,13 +183,11 @@ export function RitualDetailScreen() {
           />
         ) : null}
 
-        {supportsTextResponse &&
-        detail.revealState.hasCompleted &&
-        !detail.revealState.isRevealed ? (
+        {detail.revealState.hasCompleted && !detail.revealState.isRevealed ? (
           <RitualLockedState />
         ) : null}
 
-        {supportsTextResponse && detail.revealState.isRevealed ? (
+        {detail.revealState.isRevealed ? (
           <RitualRevealedResult
             completedAt={detail.coupleRitual.updated_at}
             myCompletion={detail.myCompletion}

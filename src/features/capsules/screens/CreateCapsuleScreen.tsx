@@ -132,10 +132,10 @@ export function CreateCapsuleScreen() {
       <View style={styles.header}>
         <AppText variant="title">Create memory capsule</AppText>
         <AppText color="textSecondary" variant="bodyMuted">
-          Write a note now and open it together later.
+          Save a note, photo, or both now and open it together later.
         </AppText>
         <AppText color="textSecondary" variant="bodyMuted">
-          Your partner can see that a capsule exists, but the note stays private until it unlocks.
+          Your partner can see that a capsule exists, but its content stays private until it unlocks.
         </AppText>
       </View>
 

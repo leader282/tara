@@ -63,30 +63,53 @@ const unlockTimeSchema = optionalTrimmedStringSchema.refine(
   }
 );
 
+const capsuleNoteSchema = optionalTrimmedStringSchema.refine(
+  (value) => value === null || value.length <= CAPSULE_MAX_NOTE_LENGTH,
+  {
+    message: `Keep the note under ${CAPSULE_MAX_NOTE_LENGTH} characters.`,
+  }
+);
+
+const mediaAssetIdSchema = z
+  .string()
+  .uuid("A valid media asset id is required.")
+  .nullable()
+  .optional()
+  .transform((value) => value ?? null);
+
 export const capsuleIdSchema = z.string().uuid("A valid capsule id is required.");
 export const capsuleCoupleIdSchema = z.string().uuid("A valid couple id is required.");
 export const capsuleCurrentUserIdSchema = z.string().uuid("A valid user id is required.");
 
-export const createCapsuleSchema = z.object({
-  title: z
-    .string()
-    .trim()
-    .min(1, "Add a short title for this memory capsule.")
-    .max(CAPSULE_MAX_TITLE_LENGTH, `Keep the title under ${CAPSULE_MAX_TITLE_LENGTH} characters.`),
-  note: z
-    .string()
-    .trim()
-    .min(1, "Add a note before saving this memory capsule.")
-    .max(CAPSULE_MAX_NOTE_LENGTH, `Keep the note under ${CAPSULE_MAX_NOTE_LENGTH} characters.`),
-  unlockDate: unlockDateSchema,
-  unlockTime: unlockTimeSchema,
-  emotionalContext: optionalTrimmedStringSchema.refine(
-    (value) => value === null || value.length <= CAPSULE_MAX_EMOTIONAL_CONTEXT_LENGTH,
-    {
-      message: `Keep emotional context under ${CAPSULE_MAX_EMOTIONAL_CONTEXT_LENGTH} characters.`,
+export const createCapsuleSchema = z
+  .object({
+    title: z
+      .string()
+      .trim()
+      .min(1, "Add a short title for this memory capsule.")
+      .max(CAPSULE_MAX_TITLE_LENGTH, `Keep the title under ${CAPSULE_MAX_TITLE_LENGTH} characters.`),
+    note: capsuleNoteSchema,
+    mediaAssetId: mediaAssetIdSchema,
+    unlockDate: unlockDateSchema,
+    unlockTime: unlockTimeSchema,
+    emotionalContext: optionalTrimmedStringSchema.refine(
+      (value) => value === null || value.length <= CAPSULE_MAX_EMOTIONAL_CONTEXT_LENGTH,
+      {
+        message: `Keep emotional context under ${CAPSULE_MAX_EMOTIONAL_CONTEXT_LENGTH} characters.`,
+      }
+    ),
+  })
+  .superRefine((value, context) => {
+    if (value.note !== null || value.mediaAssetId !== null) {
+      return;
     }
-  ),
-});
+
+    context.addIssue({
+      code: "custom",
+      message: "Add a note or private photo before saving this memory capsule.",
+      path: ["note"],
+    });
+  });
 
 export const openCapsuleSchema = z.object({
   capsuleId: capsuleIdSchema,

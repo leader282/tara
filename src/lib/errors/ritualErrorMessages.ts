@@ -5,6 +5,10 @@ export type RitualErrorCode =
   | "not_paired_yet"
   | "ritual_already_completed"
   | "text_response_missing"
+  | "text_or_photo_required"
+  | "photo_required"
+  | "media_not_allowed"
+  | "media_invalid"
   | "text_response_too_long"
   | "photo_not_supported_yet"
   | "network_error"
@@ -15,10 +19,14 @@ const ritualErrorMessages: Record<RitualErrorCode, string> = {
   not_paired_yet: "Today's ritual unlocks after both partners have joined the couple space.",
   ritual_already_completed: "Today's ritual is already complete.",
   text_response_missing: "Add a short response before completing this ritual.",
+  text_or_photo_required: "Add a response or private photo before completing this ritual.",
+  photo_required: "Add a private photo before completing this ritual.",
+  media_not_allowed: "This ritual accepts text responses only.",
+  media_invalid: "This photo can't be used for this ritual. Please upload a new one.",
   text_response_too_long: "Keep your response under 1000 characters.",
-  photo_not_supported_yet: "Photo rituals are not available yet. For now, use a text response.",
+  photo_not_supported_yet: "This ritual type isn't available yet.",
   network_error: "Connection looks unstable right now. Please try again in a moment.",
-  unknown: "We couldn't load this ritual right now. Please try again.",
+  unknown: "We couldn't complete this ritual right now. Please try again.",
 };
 
 export class RitualActionError extends Error {
@@ -83,6 +91,28 @@ function getRitualErrorCodeFromPostgrest(error: PostgrestError): RitualErrorCode
     ])
   ) {
     return "text_response_missing";
+  }
+
+  if (includesAny(searchableText, ["photo rituals require uploaded media"])) {
+    return "photo_required";
+  }
+
+  if (includesAny(searchableText, ["ritual response requires text or uploaded media"])) {
+    return "text_or_photo_required";
+  }
+
+  if (includesAny(searchableText, ["text rituals do not accept media"])) {
+    return "media_not_allowed";
+  }
+
+  if (
+    includesAny(searchableText, [
+      "ritual media asset not found",
+      "ritual media must be uploaded by you",
+      "ritual media does not belong to this couple",
+    ])
+  ) {
+    return "media_invalid";
   }
 
   if (

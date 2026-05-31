@@ -18,7 +18,7 @@ export function CapsuleLockedState({ capsule }: CapsuleLockedStateProps) {
       <View style={styles.container}>
         <AppText variant="subtitle">{capsule.title}</AppText>
         <AppText color="textSecondary" variant="bodyMuted">
-          This capsule is still waiting for its day.
+          This capsule is still waiting for its day. Its note and photo stay sealed until unlock.
         </AppText>
 
         {capsule.emotional_context ? (

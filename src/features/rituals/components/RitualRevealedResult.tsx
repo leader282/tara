@@ -1,6 +1,7 @@
 import { StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/ui";
+import { PrivateImage } from "@/features/media/components/PrivateImage";
 import type { RitualCompletion } from "@/features/rituals/types";
 import { formatDateTime } from "@/lib/dates/format";
 import { colors, radii, spacing } from "@/theme/tokens";
@@ -12,13 +13,9 @@ type RitualRevealedResultProps = {
   completedAt?: string | null;
 };
 
-function getResponseText(completion: RitualCompletion | null): string {
+function getResponseText(completion: RitualCompletion | null): string | null {
   const text = completion?.text_response?.trim();
-  if (!text) {
-    return "No text shared.";
-  }
-
-  return text;
+  return text && text.length > 0 ? text : null;
 }
 
 function formatCompletionDate(isoDate: string | null | undefined): string | null {
@@ -51,7 +48,21 @@ export function RitualRevealedResult({
           You
         </AppText>
         <View style={styles.responseCard}>
-          <AppText variant="body">{getResponseText(myCompletion)}</AppText>
+          {getResponseText(myCompletion) ? (
+            <AppText variant="body">{getResponseText(myCompletion)}</AppText>
+          ) : null}
+          {myCompletion?.media_asset_id ? (
+            <PrivateImage
+              accessibilityLabel="Your ritual photo"
+              containerStyle={styles.mediaPreview}
+              mediaAssetId={myCompletion.media_asset_id}
+            />
+          ) : null}
+          {!getResponseText(myCompletion) && !myCompletion?.media_asset_id ? (
+            <AppText color="textSecondary" variant="bodyMuted">
+              No response shared.
+            </AppText>
+          ) : null}
         </View>
       </View>
 
@@ -60,7 +71,21 @@ export function RitualRevealedResult({
           {partnerDisplayName}
         </AppText>
         <View style={styles.responseCard}>
-          <AppText variant="body">{getResponseText(partnerCompletion)}</AppText>
+          {getResponseText(partnerCompletion) ? (
+            <AppText variant="body">{getResponseText(partnerCompletion)}</AppText>
+          ) : null}
+          {partnerCompletion?.media_asset_id ? (
+            <PrivateImage
+              accessibilityLabel={`${partnerDisplayName} ritual photo`}
+              containerStyle={styles.mediaPreview}
+              mediaAssetId={partnerCompletion.media_asset_id}
+            />
+          ) : null}
+          {!getResponseText(partnerCompletion) && !partnerCompletion?.media_asset_id ? (
+            <AppText color="textSecondary" variant="bodyMuted">
+              No response shared.
+            </AppText>
+          ) : null}
         </View>
       </View>
 
@@ -85,6 +110,13 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radii.md,
     borderWidth: StyleSheet.hairlineWidth,
+    gap: spacing.sm,
     padding: spacing.md,
+  },
+  mediaPreview: {
+    aspectRatio: 4 / 3,
+    borderRadius: radii.sm,
+    overflow: "hidden",
+    width: "100%",
   },
 });

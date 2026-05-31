@@ -35,6 +35,17 @@ function isValidDateOnlyValue(value: string): boolean {
 }
 
 const uuidSchema = z.string().uuid("A valid ritual id is required.");
+const optionalTrimmedStringSchema = z
+  .string()
+  .trim()
+  .optional()
+  .transform((value) => {
+    if (value === undefined) {
+      return null;
+    }
+
+    return value.length > 0 ? value : null;
+  });
 
 export const ritualDaySchema = z
   .string()
@@ -54,11 +65,18 @@ export function toCanonicalRitualDay(scheduledFor?: string | null): string {
 
 export const completeRitualSchema = z.object({
   coupleRitualId: uuidSchema,
-  textResponse: z
+  textResponse: optionalTrimmedStringSchema.refine(
+    (value) => value === null || value.length <= 1000,
+    {
+      message: "Keep your response under 1000 characters.",
+    }
+  ),
+  mediaAssetId: z
     .string()
-    .trim()
-    .min(1, "Add a short response before completing this ritual.")
-    .max(1000, "Keep your response under 1000 characters."),
+    .uuid("A valid media asset id is required.")
+    .nullable()
+    .optional()
+    .transform((value) => value ?? null),
 });
 
 export const ritualCoupleIdSchema = z.string().uuid("A valid couple id is required.");

@@ -195,9 +195,10 @@ export async function createMemoryCapsule(input: CreateCapsuleInput): Promise<Me
 
     const { data, error } = await supabase.rpc("create_memory_capsule", {
       p_title: parsedInput.title,
-      p_note: parsedInput.note,
+      p_note: parsedInput.note ?? undefined,
       p_unlock_at: unlockAtIso,
       p_emotional_context: parsedInput.emotionalContext ?? undefined,
+      p_media_asset_id: parsedInput.mediaAssetId ?? undefined,
     });
 
     throwIfCapsuleError(error);

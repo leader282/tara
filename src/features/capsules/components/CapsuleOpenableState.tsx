@@ -26,7 +26,7 @@ export function CapsuleOpenableState({
       <View style={styles.container}>
         <AppText variant="subtitle">{capsule.title}</AppText>
         <AppText color="textSecondary" variant="bodyMuted">
-          This capsule is ready when you are.
+          This capsule is ready when you are. Open it to reveal its note and photo.
         </AppText>
 
         {capsule.emotional_context ? (

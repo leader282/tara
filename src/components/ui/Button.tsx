@@ -11,6 +11,8 @@ type ButtonProps = {
   disabled?: boolean;
   loading?: boolean;
   variant?: ButtonVariant;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 };
 
 const backgroundByVariant: Record<ButtonVariant, string> = {
@@ -37,11 +39,15 @@ export function Button({
   disabled = false,
   loading = false,
   variant = "primary",
+  accessibilityLabel,
+  accessibilityHint,
 }: ButtonProps) {
   const isDisabled = disabled || loading;
 
   return (
     <Pressable
+      accessibilityHint={accessibilityHint}
+      accessibilityLabel={accessibilityLabel ?? title}
       accessibilityRole="button"
       accessibilityState={{ disabled: isDisabled, busy: loading }}
       disabled={isDisabled}

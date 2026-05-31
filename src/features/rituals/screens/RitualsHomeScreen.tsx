@@ -52,14 +52,17 @@ export function RitualsHomeScreen() {
   const handleSubmitResponse = async ({
     coupleRitualId,
     textResponse,
+    mediaAssetId,
   }: {
     coupleRitualId: string;
-    textResponse: string;
+    textResponse?: string | null;
+    mediaAssetId?: string | null;
   }) => {
     try {
       await completeRitualMutation.mutateAsync({
         coupleRitualId,
         textResponse,
+        mediaAssetId,
       });
     } catch {
       // Friendly message comes from mutation state.

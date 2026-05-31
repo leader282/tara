@@ -205,32 +205,47 @@ export type Database = {
         Row: {
           couple_id: string
           created_at: string
+          height: number | null
           id: string
           media_type: string
           mime_type: string
           owner_id: string
+          purpose: string
           size_bytes: number | null
           storage_path: string
+          upload_status: string
+          uploaded_at: string | null
+          width: number | null
         }
         Insert: {
           couple_id: string
           created_at?: string
+          height?: number | null
           id?: string
           media_type: string
           mime_type: string
           owner_id: string
+          purpose?: string
           size_bytes?: number | null
           storage_path: string
+          upload_status?: string
+          uploaded_at?: string | null
+          width?: number | null
         }
         Update: {
           couple_id?: string
           created_at?: string
+          height?: number | null
           id?: string
           media_type?: string
           mime_type?: string
           owner_id?: string
+          purpose?: string
           size_bytes?: number | null
           storage_path?: string
+          upload_status?: string
+          uploaded_at?: string | null
+          width?: number | null
         }
         Relationships: [
           {
@@ -657,9 +672,10 @@ export type Database = {
       create_memory_capsule: {
         Args: {
           p_emotional_context?: string
-          p_note: string
+          p_media_asset_id?: string
+          p_note?: string
           p_title: string
-          p_unlock_at: string
+          p_unlock_at?: string
         }
         Returns: {
           couple_id: string
@@ -681,6 +697,42 @@ export type Database = {
           couple_ritual_id: string
         }[]
       }
+      mark_media_asset_failed: {
+        Args: { p_media_asset_id: string }
+        Returns: {
+          id: string
+          upload_status: string
+        }[]
+      }
+      mark_media_asset_uploaded: {
+        Args: {
+          p_height?: number
+          p_media_asset_id: string
+          p_size_bytes: number
+          p_width?: number
+        }
+        Returns: {
+          couple_id: string
+          created_at: string
+          height: number | null
+          id: string
+          media_type: string
+          mime_type: string
+          owner_id: string
+          purpose: string
+          size_bytes: number | null
+          storage_path: string
+          upload_status: string
+          uploaded_at: string | null
+          width: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "media_assets"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       open_memory_capsule: {
         Args: { p_capsule_id: string }
         Returns: {
@@ -695,6 +747,28 @@ export type Database = {
           unlock_at: string
           unlock_type: string
           updated_at: string
+        }[]
+      }
+      reserve_media_asset: {
+        Args: {
+          p_height?: number
+          p_mime_type: string
+          p_purpose?: string
+          p_size_bytes?: number
+          p_width?: number
+        }
+        Returns: {
+          couple_id: string
+          height: number
+          id: string
+          media_type: string
+          mime_type: string
+          owner_id: string
+          purpose: string
+          size_bytes: number
+          storage_path: string
+          upload_status: string
+          width: number
         }[]
       }
       send_presence_pulse: {

@@ -169,8 +169,8 @@ export function CapsuleDetailScreen() {
       {isOpened ? (
         <CapsuleOpenedContent
           capsule={capsule}
+          content={detail.content}
           isRefreshing={capsuleDetail.isFetching}
-          note={detail.content?.note}
           onRetry={handleRetryCapsuleDetail}
         />
       ) : null}
@@ -188,6 +188,7 @@ export function CapsuleDetailScreen() {
         <CapsulePreviewCard
           capsule={capsule}
           isRefreshing={capsuleDetail.isFetching}
+          mediaAssetId={detail.content?.media_asset_id}
           note={detail.content?.note}
           onRetry={handleRetryCapsuleDetail}
         />

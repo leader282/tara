@@ -1,9 +1,6 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 
-import {
-  DEFAULT_RITUAL_HISTORY_LIMIT,
-  isPhase8SupportedRitualInputType,
-} from "@/features/rituals/constants";
+import { DEFAULT_RITUAL_HISTORY_LIMIT } from "@/features/rituals/constants";
 import {
   completeRitualResultRowSchema,
   completeRitualSchema,
@@ -198,14 +195,6 @@ export async function getTodayRitualState(
       };
     }
 
-    if (!isPhase8SupportedRitualInputType(ritualDetail.template.input_type)) {
-      return {
-        status: "unsupported_photo",
-        ritual: ritualDetail,
-        message: getRitualErrorMessage("photo_not_supported_yet"),
-      };
-    }
-
     if (ritualDetail.revealState.isRevealed) {
       return {
         status: "revealed",
@@ -246,7 +235,8 @@ export async function completeRitual(input: CompleteRitualInput): Promise<Comple
 
     const { data, error } = await supabase.rpc("complete_ritual", {
       p_couple_ritual_id: parsedInput.coupleRitualId,
-      p_text_response: parsedInput.textResponse,
+      p_text_response: parsedInput.textResponse ?? undefined,
+      p_media_asset_id: parsedInput.mediaAssetId ?? undefined,
     });
 
     throwIfRitualError(error);
