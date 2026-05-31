@@ -14,4 +14,14 @@ export const queryKeys = {
     all: ["invite"] as const,
     active: (coupleId: string) => ["invite", "active", coupleId] as const,
   },
+  presence: {
+    all: ["presence"] as const,
+    recentList: (coupleId: string) => ["presence", "recent", coupleId] as const,
+    recent: (coupleId: string, limit = 10) =>
+      ["presence", "recent", coupleId, limit] as const,
+  },
+  timeline: {
+    all: ["timeline"] as const,
+    couple: (coupleId: string) => ["timeline", "couple", coupleId] as const,
+  },
 };

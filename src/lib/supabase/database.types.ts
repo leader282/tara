@@ -657,6 +657,17 @@ export type Database = {
           updated_at: string
         }[]
       }
+      send_presence_pulse: {
+        Args: { p_optional_message?: string; p_type: string }
+        Returns: {
+          couple_id: string
+          created_at: string
+          id: string
+          optional_message: string
+          sender_id: string
+          type: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

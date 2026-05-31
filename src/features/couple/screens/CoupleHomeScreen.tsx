@@ -16,12 +16,31 @@ import { PartnerCard } from "@/features/couple/components/PartnerCard";
 import { PartnerLocalTimeCard } from "@/features/couple/components/PartnerLocalTimeCard";
 import { ReunionCountdownCard } from "@/features/couple/components/ReunionCountdownCard";
 import { useCoupleHome } from "@/features/couple/hooks/useCoupleHome";
+import { IncomingPulseToast } from "@/features/presence/components/IncomingPulseToast";
+import { PresencePulsePanel } from "@/features/presence/components/PresencePulsePanel";
+import { RecentPulsesCard } from "@/features/presence/components/RecentPulsesCard";
+import { useIncomingPulseToast } from "@/features/presence/hooks/useIncomingPulseToast";
+import { usePresenceRealtime } from "@/features/presence/hooks/usePresenceRealtime";
+import { useRecentPresencePulses } from "@/features/presence/hooks/useRecentPresencePulses";
 
 export function CoupleHomeScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user, signOut } = useAuth();
   const coupleHome = useCoupleHome();
+  const incomingPulseToast = useIncomingPulseToast();
+  const pairedCoupleId =
+    coupleHome.state.status === "paired" ? coupleHome.state.data.couple.id : null;
+  const partnerDisplayName =
+    coupleHome.state.status === "paired" ? coupleHome.state.data.partnerProfile.display_name : "Partner";
+  const recentPresencePulses = useRecentPresencePulses(pairedCoupleId);
+
+  usePresenceRealtime(
+    pairedCoupleId,
+    user?.id,
+    incomingPulseToast.showIncomingPulse,
+    coupleHome.state.status === "paired"
+  );
 
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState<string | null>(null);
@@ -114,6 +133,11 @@ export function CoupleHomeScreen() {
 
   return (
     <Screen contentContainerStyle={styles.content} scroll>
+      <IncomingPulseToast
+        partnerDisplayName={partnerDisplayName}
+        pulse={incomingPulseToast.pulse}
+        visible={incomingPulseToast.isVisible}
+      />
       <CoupleHomeHeader partnerDisplayName={coupleHomeData.partnerProfile.display_name} />
       <PartnerCard partnerProfile={coupleHomeData.partnerProfile} />
       <PartnerLocalTimeCard partnerProfile={coupleHomeData.partnerProfile} />
@@ -126,6 +150,14 @@ export function CoupleHomeScreen() {
         nextMeetupAt={coupleHomeData.nextMeetupAt}
         nextMeetupLocation={coupleHomeData.nextMeetupLocation}
         onEditMeetup={handleEditMeetup}
+      />
+      <PresencePulsePanel partnerDisplayName={coupleHomeData.partnerProfile.display_name} />
+      <RecentPulsesCard
+        currentUserId={user?.id ?? ""}
+        errorMessage={recentPresencePulses.friendlyError}
+        isLoading={recentPresencePulses.isLoading}
+        partnerDisplayName={coupleHomeData.partnerProfile.display_name}
+        pulses={recentPresencePulses.pulses}
       />
 
       <View style={styles.signOutSection}>
