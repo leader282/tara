@@ -34,6 +34,15 @@ yarn-error.*
 .env.*
 !.env.example
 !.env*.example
+supabase/functions/.env
+supabase/functions/.env.*
+!supabase/functions/.env.example
+
+# local service credentials
+tara-*.json
+*service-account*.json
+*firebase-adminsdk*.json
+credentials.json
 
 # TypeScript
 *.tsbuildinfo

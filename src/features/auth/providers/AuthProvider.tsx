@@ -8,6 +8,8 @@ import {
   type AuthResponse,
   type SignUpResponse,
 } from "@/features/auth/api/authApi";
+import { unregisterPushToken } from "@/features/notifications/api/notificationsApi";
+import { unregisterCurrentDeviceForPush } from "@/features/notifications/services/notificationToken";
 import type {
   AuthSession,
   AuthStatus,
@@ -67,6 +69,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
   );
 
   const signOut = useCallback(async () => {
+    await unregisterCurrentDeviceForPush({ unregisterToken: unregisterPushToken }).catch(() => {
+      // Push revocation is best-effort; sign-out should still complete.
+    });
     await signOutFromApi();
     queryClient.clear();
     applySession(null);

@@ -6,6 +6,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { AuthProvider } from "@/features/auth/providers/AuthProvider";
+import { NotificationsProvider } from "@/features/notifications/providers/NotificationsProvider";
 import { queryClient } from "@/lib/query/queryClient";
 import {
   startSupabaseAutoRefresh,
@@ -49,8 +50,10 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <StatusBar style="dark" />
-          <RootNavigator />
+          <NotificationsProvider>
+            <StatusBar style="dark" />
+            <RootNavigator />
+          </NotificationsProvider>
         </AuthProvider>
       </QueryClientProvider>
     </SafeAreaProvider>

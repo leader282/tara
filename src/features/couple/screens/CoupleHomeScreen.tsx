@@ -60,6 +60,10 @@ export function CoupleHomeScreen() {
     router.push("/(couple)/timeline");
   };
 
+  const handleOpenNotificationSettings = () => {
+    router.push("/(couple)/settings/notifications");
+  };
+
   const handleRetry = () => {
     if (!user?.id) {
       return;
@@ -205,6 +209,11 @@ export function CoupleHomeScreen() {
             {signOutError}
           </AppText>
         ) : null}
+        <Button
+          onPress={handleOpenNotificationSettings}
+          title="Notification settings"
+          variant="ghost"
+        />
         <Button
           disabled={isSigningOut}
           loading={isSigningOut}

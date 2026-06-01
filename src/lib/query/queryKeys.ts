@@ -5,6 +5,10 @@ export const queryKeys = {
     notificationPreferences: (userId: string) =>
       ["profile", "notificationPreferences", userId] as const,
   },
+  notifications: {
+    all: ["notifications"] as const,
+    preferences: (userId: string) => ["notifications", "preferences", userId] as const,
+  },
   couple: {
     all: ["couple"] as const,
     activeState: (userId: string) => ["couple", "activeState", userId] as const,

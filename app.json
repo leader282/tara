@@ -9,13 +9,23 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-localization"
+      "expo-localization",
+      "expo-notifications"
     ],
     "ios": {
-      "supportsTablet": false
+      "supportsTablet": false,
+      "bundleIdentifier": "com.leader282.tara"
     },
     "android": {
-      "predictiveBackGestureEnabled": false
-    }
+      "predictiveBackGestureEnabled": false,
+      "package": "com.leader282.tara"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "3951340e-8d4b-45a1-aa19-2acd80c69ddf"
+      }
+    },
+    "owner": "leader282"
   }
 }

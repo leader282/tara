@@ -346,6 +346,69 @@ export type Database = {
           },
         ]
       }
+      notification_deliveries: {
+        Row: {
+          created_at: string
+          expo_ticket_id: string | null
+          id: string
+          notification_id: string
+          push_token_id: string
+          receipt_checked_at: string | null
+          receipt_details: Json | null
+          receipt_message: string | null
+          receipt_status: string | null
+          ticket_details: Json | null
+          ticket_message: string | null
+          ticket_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expo_ticket_id?: string | null
+          id?: string
+          notification_id: string
+          push_token_id: string
+          receipt_checked_at?: string | null
+          receipt_details?: Json | null
+          receipt_message?: string | null
+          receipt_status?: string | null
+          ticket_details?: Json | null
+          ticket_message?: string | null
+          ticket_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expo_ticket_id?: string | null
+          id?: string
+          notification_id?: string
+          push_token_id?: string
+          receipt_checked_at?: string | null
+          receipt_details?: Json | null
+          receipt_message?: string | null
+          receipt_status?: string | null
+          ticket_details?: Json | null
+          ticket_message?: string | null
+          ticket_status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_deliveries_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notification_queue"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_deliveries_push_token_id_fkey"
+            columns: ["push_token_id"]
+            isOneToOne: false
+            referencedRelation: "push_tokens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           capsules_enabled: boolean
@@ -378,6 +441,86 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      notification_queue: {
+        Row: {
+          attempts: number
+          body: string
+          couple_id: string | null
+          created_at: string
+          data: Json
+          dedupe_key: string | null
+          failure_code: string | null
+          failure_message: string | null
+          id: string
+          last_attempt_at: string | null
+          max_attempts: number
+          recipient_user_id: string
+          scheduled_for: string
+          sent_at: string | null
+          skipped_at: string | null
+          source_id: string | null
+          source_table: string | null
+          status: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          body: string
+          couple_id?: string | null
+          created_at?: string
+          data?: Json
+          dedupe_key?: string | null
+          failure_code?: string | null
+          failure_message?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          max_attempts?: number
+          recipient_user_id: string
+          scheduled_for?: string
+          sent_at?: string | null
+          skipped_at?: string | null
+          source_id?: string | null
+          source_table?: string | null
+          status?: string
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          body?: string
+          couple_id?: string | null
+          created_at?: string
+          data?: Json
+          dedupe_key?: string | null
+          failure_code?: string | null
+          failure_message?: string | null
+          id?: string
+          last_attempt_at?: string | null
+          max_attempts?: number
+          recipient_user_id?: string
+          scheduled_for?: string
+          sent_at?: string | null
+          skipped_at?: string | null
+          source_id?: string | null
+          source_table?: string | null
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_queue_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       presence_events: {
         Row: {
@@ -455,26 +598,50 @@ export type Database = {
       }
       push_tokens: {
         Row: {
+          app_version: string | null
           created_at: string
+          device_id: string | null
           id: string
+          last_seen_at: string
+          native_token: string | null
           platform: string
+          project_id: string | null
+          revoked_at: string | null
+          status: string
           token: string
+          token_type: string
           updated_at: string
           user_id: string
         }
         Insert: {
+          app_version?: string | null
           created_at?: string
+          device_id?: string | null
           id?: string
+          last_seen_at?: string
+          native_token?: string | null
           platform: string
+          project_id?: string | null
+          revoked_at?: string | null
+          status?: string
           token: string
+          token_type?: string
           updated_at?: string
           user_id: string
         }
         Update: {
+          app_version?: string | null
           created_at?: string
+          device_id?: string | null
           id?: string
+          last_seen_at?: string
+          native_token?: string | null
           platform?: string
+          project_id?: string | null
+          revoked_at?: string | null
+          status?: string
           token?: string
+          token_type?: string
           updated_at?: string
           user_id?: string
         }
@@ -691,6 +858,8 @@ export type Database = {
           updated_at: string
         }[]
       }
+      enqueue_due_capsule_unlock_notifications: { Args: never; Returns: number }
+      enqueue_due_ritual_reminders: { Args: never; Returns: number }
       ensure_daily_ritual: {
         Args: { p_scheduled_for?: string }
         Returns: {
@@ -749,6 +918,39 @@ export type Database = {
           updated_at: string
         }[]
       }
+      register_push_token: {
+        Args: {
+          p_app_version?: string
+          p_device_id?: string
+          p_native_token?: string
+          p_platform: string
+          p_project_id?: string
+          p_token: string
+          p_token_type?: string
+        }
+        Returns: {
+          app_version: string | null
+          created_at: string
+          device_id: string | null
+          id: string
+          last_seen_at: string
+          native_token: string | null
+          platform: string
+          project_id: string | null
+          revoked_at: string | null
+          status: string
+          token: string
+          token_type: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "push_tokens"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       reserve_media_asset: {
         Args: {
           p_height?: number
@@ -782,6 +984,7 @@ export type Database = {
           type: string
         }[]
       }
+      unregister_push_token: { Args: { p_token: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
