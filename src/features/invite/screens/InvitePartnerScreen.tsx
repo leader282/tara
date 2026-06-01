@@ -1,9 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Redirect } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { useState } from "react";
 import { Share, StyleSheet, View } from "react-native";
 
-import { AppText, EmptyState, ErrorState, LoadingState, Screen } from "@/components/ui";
+import { AppText, Button, EmptyState, ErrorState, LoadingState, Screen } from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useActiveCoupleState } from "@/features/couple/hooks/useActiveCoupleState";
 import { InviteCodeCard } from "@/features/invite/components/InviteCodeCard";
@@ -26,6 +26,7 @@ function toShareErrorMessage(error: unknown): string {
 }
 
 export function InvitePartnerScreen() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const { state, isLoading, error } = useActiveCoupleState();
@@ -128,6 +129,12 @@ export function InvitePartnerScreen() {
       )}
 
       <InviteErrorMessage message={shareError} />
+
+      <Button
+        onPress={() => router.push("/(settings)")}
+        title="Open settings"
+        variant="ghost"
+      />
     </Screen>
   );
 }

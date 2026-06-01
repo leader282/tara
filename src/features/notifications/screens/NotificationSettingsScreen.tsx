@@ -14,7 +14,7 @@ import { useRegisterPushToken } from "@/features/notifications/hooks/useRegister
 import { useUserSettings } from "@/features/profile/hooks/useUserSettings";
 import { spacing } from "@/theme/tokens";
 
-const QUIET_HOURS_SETTINGS_ROUTE = "/(onboarding)/quiet-hours";
+const QUIET_HOURS_SETTINGS_ROUTE = "/(settings)/quiet-hours";
 
 type PreferenceToggleField =
   | "presenceEnabled"

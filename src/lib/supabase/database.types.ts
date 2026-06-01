@@ -9,6 +9,54 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      account_deletion_requests: {
+        Row: {
+          canceled_at: string | null
+          completed_at: string | null
+          created_at: string
+          failed_at: string | null
+          failure_message: string | null
+          id: string
+          processing_started_at: string | null
+          reason: string | null
+          requested_at: string
+          scheduled_for: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          canceled_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          failed_at?: string | null
+          failure_message?: string | null
+          id?: string
+          processing_started_at?: string | null
+          reason?: string | null
+          requested_at?: string
+          scheduled_for?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          canceled_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          failed_at?: string | null
+          failure_message?: string | null
+          id?: string
+          processing_started_at?: string | null
+          reason?: string | null
+          requested_at?: string
+          scheduled_for?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       couple_invites: {
         Row: {
           accepted_at: string | null
@@ -198,6 +246,42 @@ export type Database = {
           next_meetup_location?: string | null
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      data_export_requests: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          failed_at: string | null
+          failure_message: string | null
+          id: string
+          requested_at: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          failed_at?: string | null
+          failure_message?: string | null
+          id?: string
+          requested_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          failed_at?: string | null
+          failure_message?: string | null
+          id?: string
+          requested_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -557,6 +641,41 @@ export type Database = {
           },
         ]
       }
+      privacy_safety_events: {
+        Row: {
+          couple_id: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          couple_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          couple_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "privacy_safety_events_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -810,6 +929,30 @@ export type Database = {
           couple_id: string
         }[]
       }
+      cancel_account_deletion_request: {
+        Args: { p_request_id: string }
+        Returns: {
+          canceled_at: string | null
+          completed_at: string | null
+          created_at: string
+          failed_at: string | null
+          failure_message: string | null
+          id: string
+          processing_started_at: string | null
+          reason: string | null
+          requested_at: string
+          scheduled_for: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "account_deletion_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       complete_ritual: {
         Args: {
           p_couple_ritual_id: string
@@ -864,6 +1007,13 @@ export type Database = {
         Args: { p_scheduled_for?: string }
         Returns: {
           couple_ritual_id: string
+        }[]
+      }
+      leave_current_couple: {
+        Args: { p_confirmation: string }
+        Returns: {
+          archived: boolean
+          couple_id: string
         }[]
       }
       mark_media_asset_failed: {
@@ -951,6 +1101,50 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      request_account_deletion: {
+        Args: { p_confirmation: string; p_reason?: string }
+        Returns: {
+          canceled_at: string | null
+          completed_at: string | null
+          created_at: string
+          failed_at: string | null
+          failure_message: string | null
+          id: string
+          processing_started_at: string | null
+          reason: string | null
+          requested_at: string
+          scheduled_for: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "account_deletion_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      request_data_export: {
+        Args: never
+        Returns: {
+          completed_at: string | null
+          created_at: string
+          failed_at: string | null
+          failure_message: string | null
+          id: string
+          requested_at: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "data_export_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       reserve_media_asset: {
         Args: {
           p_height?: number
@@ -985,6 +1179,21 @@ export type Database = {
         }[]
       }
       unregister_push_token: { Args: { p_token: string }; Returns: boolean }
+      update_couple_shared_settings: {
+        Args: {
+          p_anniversary_date?: string
+          p_ritual_frequency?: string
+          p_theme?: string
+        }
+        Returns: {
+          anniversary_date: string
+          couple_id: string
+          couple_settings_updated_at: string
+          couple_updated_at: string
+          ritual_frequency: string
+          theme: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

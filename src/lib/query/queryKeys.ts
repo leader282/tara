@@ -1,4 +1,7 @@
 export const queryKeys = {
+  onboarding: {
+    all: ["onboarding"] as const,
+  },
   profile: {
     current: (userId: string) => ["profile", "current", userId] as const,
     settings: (userId: string) => ["profile", "settings", userId] as const,
@@ -8,6 +11,17 @@ export const queryKeys = {
   notifications: {
     all: ["notifications"] as const,
     preferences: (userId: string) => ["notifications", "preferences", userId] as const,
+  },
+  settings: {
+    all: ["settings"] as const,
+    profile: (userId: string) => ["settings", "profile", userId] as const,
+    coupleList: ["settings", "couple"] as const,
+    couple: (coupleId: string) => ["settings", "couple", coupleId] as const,
+  },
+  account: {
+    all: ["account"] as const,
+    deletionRequest: (userId: string) => ["account", "deletionRequest", userId] as const,
+    dataExportRequests: (userId: string) => ["account", "dataExportRequests", userId] as const,
   },
   couple: {
     all: ["couple"] as const,

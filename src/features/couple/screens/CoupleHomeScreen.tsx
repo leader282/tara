@@ -60,8 +60,8 @@ export function CoupleHomeScreen() {
     router.push("/(couple)/timeline");
   };
 
-  const handleOpenNotificationSettings = () => {
-    router.push("/(couple)/settings/notifications");
+  const handleOpenSettings = () => {
+    router.push("/(settings)");
   };
 
   const handleRetry = () => {
@@ -210,8 +210,8 @@ export function CoupleHomeScreen() {
           </AppText>
         ) : null}
         <Button
-          onPress={handleOpenNotificationSettings}
-          title="Notification settings"
+          onPress={handleOpenSettings}
+          title="Settings"
           variant="ghost"
         />
         <Button

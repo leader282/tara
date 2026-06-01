@@ -46,6 +46,8 @@
 - [ ] Location fields (if any) are **coarse human-entered labels** only (city/country/meetup label).
 - [ ] Media uploads avoid or strip EXIF GPS before storage ([database §media_assets](database.md)).
 - [ ] Export and delete account/data flows work and are documented (Phase 13+).
+- [ ] Account deletion request lifecycle verified in production-like Supabase: request creation, cancellation, push-token revocation, couple archiving, and server-side processor behavior.
+- [ ] Data export remains clearly labeled as a request placeholder until file generation is implemented and production-verified.
 - [ ] No AI reading of capsules, timeline, or signals in MVP.
 
 ---
@@ -154,6 +156,8 @@
 - [ ] RPCs: `create_couple_with_invite`, `accept_couple_invite`, `open_memory_capsule` deployed and permissioned.
 - [ ] Indexes from [database.md §6](database.md) present for list/query paths.
 - [ ] Generated `database.types.ts` matches production schema.
+- [ ] Account deletion Edge Function has `CRON_SECRET` / `EDGE_FUNCTION_SECRET` configured, keeps `service_role` only in function env, and has dry-run/live behavior verified before production use.
+- [ ] Data export workflow is either production-verified end-to-end or explicitly disabled/placeholder-labeled in release notes.
 - [ ] Backups and rollback plan documented (Phase 14/15).
 - [ ] Auth redirect URLs and mobile deep links configured for production.
 

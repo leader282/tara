@@ -1,5 +1,5 @@
-import { NotificationSettingsScreen } from "@/features/notifications/screens/NotificationSettingsScreen";
+import { Redirect } from "expo-router";
 
 export default function CoupleNotificationSettingsRoute() {
-  return <NotificationSettingsScreen />;
+  return <Redirect href="/(settings)/notifications" />;
 }

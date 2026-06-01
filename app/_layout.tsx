@@ -34,6 +34,7 @@ function RootNavigator() {
         <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
         <Stack.Screen name="(invite)" options={{ headerShown: false }} />
         <Stack.Screen name="(couple)" options={{ headerShown: false }} />
+        <Stack.Screen name="(settings)" options={{ headerShown: false }} />
         <Stack.Screen name="(protected)" options={{ headerShown: false }} />
       </Stack.Protected>
     </Stack>

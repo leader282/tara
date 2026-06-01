@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { AppText } from "@/components/ui/AppText";
 import { colors, radii, spacing } from "@/theme/tokens";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 type ButtonProps = {
   title: string;
@@ -19,18 +19,21 @@ const backgroundByVariant: Record<ButtonVariant, string> = {
   primary: colors.primary,
   secondary: colors.secondary,
   ghost: "transparent",
+  danger: colors.danger,
 };
 
 const pressedBackgroundByVariant: Record<ButtonVariant, string> = {
   primary: colors.primaryPressed,
   secondary: colors.secondaryPressed,
   ghost: colors.surfaceMuted,
+  danger: "#A33D31",
 };
 
 const textColorByVariant: Record<ButtonVariant, keyof typeof colors> = {
   primary: "textInverse",
   secondary: "textPrimary",
   ghost: "textSecondary",
+  danger: "textInverse",
 };
 
 export function Button({
@@ -66,7 +69,7 @@ export function Button({
       <View style={styles.content}>
         {loading ? (
           <ActivityIndicator
-            color={variant === "primary" ? colors.textInverse : colors.textPrimary}
+            color={variant === "primary" || variant === "danger" ? colors.textInverse : colors.textPrimary}
             size="small"
           />
         ) : (

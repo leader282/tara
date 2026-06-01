@@ -40,6 +40,12 @@ export function CoupleEntryScreen() {
           />
         </View>
       </Card>
+
+      <Button
+        onPress={() => router.push("/(settings)")}
+        title="Open settings"
+        variant="ghost"
+      />
     </Screen>
   );
 }
