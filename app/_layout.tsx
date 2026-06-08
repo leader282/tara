@@ -1,5 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, useNavigationContainerRef } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -7,12 +7,20 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { AuthProvider } from "@/features/auth/providers/AuthProvider";
 import { NotificationsProvider } from "@/features/notifications/providers/NotificationsProvider";
+import { ErrorBoundary } from "@/lib/errors/ErrorBoundary";
+import {
+  initializeSentry,
+  registerSentryNavigationContainer,
+  withSentryRoot,
+} from "@/lib/monitoring/sentry";
 import { queryClient } from "@/lib/query/queryClient";
 import {
   startSupabaseAutoRefresh,
   stopSupabaseAutoRefresh,
 } from "@/lib/supabase/client";
 import { colors } from "@/theme/tokens";
+
+initializeSentry();
 
 function RootNavigator() {
   const { isAuthenticated, isInitializing } = useAuth();
@@ -41,22 +49,32 @@ function RootNavigator() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
+  const navigationContainerRef = useNavigationContainerRef();
+
+  useEffect(() => {
+    registerSentryNavigationContainer(navigationContainerRef);
+  }, [navigationContainerRef]);
+
   useEffect(() => {
     startSupabaseAutoRefresh();
     return () => stopSupabaseAutoRefresh();
   }, []);
 
   return (
-    <SafeAreaProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <NotificationsProvider>
-            <StatusBar style="dark" />
-            <RootNavigator />
-          </NotificationsProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <NotificationsProvider>
+              <StatusBar style="dark" />
+              <RootNavigator />
+            </NotificationsProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
+
+export default withSentryRoot(RootLayout);

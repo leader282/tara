@@ -6,19 +6,42 @@
     "scheme": "tara",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
     "plugins": [
       "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#FFFFFF"
+        }
+      ],
       "expo-secure-store",
       "expo-localization",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "organization": "tara-45",
+          "project": "tara"
+        }
+      ]
     ],
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.leader282.tara"
+      "bundleIdentifier": "com.leader282.tara",
+      "buildNumber": "1"
     },
     "android": {
       "predictiveBackGestureEnabled": false,
-      "package": "com.leader282.tara"
+      "package": "com.leader282.tara",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFFFFF"
+      }
     },
     "extra": {
       "router": {},

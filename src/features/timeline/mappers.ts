@@ -18,6 +18,7 @@ import type {
   TimelineItemType,
   TimelinePayload,
 } from "@/features/timeline/types";
+import { logger } from "@/lib/logging/logger";
 
 declare const __DEV__: boolean;
 
@@ -55,7 +56,7 @@ function warnIgnoredPrivateFields(rawType: string, privateKeys: string[]): void 
     return;
   }
 
-  console.warn(`[timeline] Ignored private payload fields for ${rawType}: ${privateKeys.join(", ")}`);
+  logger.warn("[timeline] Ignored private payload fields", { privateKeys, rawType });
 }
 
 export function isTimelineItemType(value: string): value is TimelineItemType {

@@ -159,40 +159,48 @@ export const settingsProfileFormSchema = updateSettingsProfileSchema.pick({
 
 export type SettingsProfileFormInput = z.infer<typeof settingsProfileFormSchema>;
 
-export const updateQuietHoursSchema = z
-  .object({
-    userId: settingsUserIdSchema,
-    quietHoursEnabled: z.boolean(),
-    quietHoursStart: optionalQuietHourSchema,
-    quietHoursEnd: optionalQuietHourSchema,
-  })
-  .superRefine((value, context) => {
-    if (!value.quietHoursEnabled) {
-      return;
-    }
-
-    if (!value.quietHoursStart) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["quietHoursStart"],
-        message: "Start time is required when quiet hours are enabled.",
-      });
-    }
-
-    if (!value.quietHoursEnd) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["quietHoursEnd"],
-        message: "End time is required when quiet hours are enabled.",
-      });
-    }
-  });
-
-export const quietHoursSettingsFormSchema = updateQuietHoursSchema.pick({
-  quietHoursEnabled: true,
-  quietHoursStart: true,
-  quietHoursEnd: true,
+const quietHoursSettingsFieldsSchema = z.object({
+  quietHoursEnabled: z.boolean(),
+  quietHoursStart: optionalQuietHourSchema,
+  quietHoursEnd: optionalQuietHourSchema,
 });
+
+type QuietHoursSettingsFieldsInput = z.infer<typeof quietHoursSettingsFieldsSchema>;
+
+function validateQuietHoursSettings(
+  value: QuietHoursSettingsFieldsInput,
+  context: z.RefinementCtx,
+): void {
+  if (!value.quietHoursEnabled) {
+    return;
+  }
+
+  if (!value.quietHoursStart) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["quietHoursStart"],
+      message: "Start time is required when quiet hours are enabled.",
+    });
+  }
+
+  if (!value.quietHoursEnd) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["quietHoursEnd"],
+      message: "End time is required when quiet hours are enabled.",
+    });
+  }
+}
+
+export const updateQuietHoursSchema = quietHoursSettingsFieldsSchema
+  .extend({
+    userId: settingsUserIdSchema,
+  })
+  .superRefine(validateQuietHoursSettings);
+
+export const quietHoursSettingsFormSchema = quietHoursSettingsFieldsSchema.superRefine(
+  validateQuietHoursSettings,
+);
 
 export type QuietHoursSettingsFormInput = z.infer<typeof quietHoursSettingsFormSchema>;
 

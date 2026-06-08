@@ -1,5 +1,3 @@
-const MAX_TITLE_LENGTH = 120;
-const MAX_BODY_LENGTH = 240;
 const MAX_DATA_DEPTH = 4;
 const MAX_DATA_KEYS_PER_OBJECT = 40;
 
@@ -38,19 +36,6 @@ function fallbackCopyForType(notificationType: string): { title: string; body: s
     title: "A Tara update is waiting",
     body: "Open Tara whenever you feel ready.",
   };
-}
-
-function sanitizeText(
-  value: string | null | undefined,
-  fallback: string,
-  maxLength: number,
-): string {
-  const candidate = value?.trim().replace(/\s+/g, " ");
-  if (!candidate) {
-    return fallback;
-  }
-
-  return candidate.slice(0, maxLength);
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -115,15 +100,10 @@ function sanitizeJsonValue(value: unknown, depth: number): unknown {
 
 export function getSafeNotificationCopy(
   notificationType: string,
-  title: string | null | undefined,
-  body: string | null | undefined,
+  _title: string | null | undefined,
+  _body: string | null | undefined,
 ): { title: string; body: string } {
-  const fallback = fallbackCopyForType(notificationType);
-
-  return {
-    title: sanitizeText(title, fallback.title, MAX_TITLE_LENGTH),
-    body: sanitizeText(body, fallback.body, MAX_BODY_LENGTH),
-  };
+  return fallbackCopyForType(notificationType);
 }
 
 export function sanitizeNotificationData(data: unknown): Record<string, unknown> {
