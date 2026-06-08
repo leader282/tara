@@ -1,11 +1,9 @@
-import type { SeverityLevel } from "@sentry/react-native";
-
-import { captureException, captureMessage } from "@/lib/monitoring/sentry";
 import { sanitizeLogPayload } from "@/lib/logging/sanitizeLogPayload";
 
 declare const __DEV__: boolean;
 
 type LogContext = Record<string, unknown> | undefined;
+type MonitoringSeverityLevel = "fatal" | "error" | "warning" | "log" | "info" | "debug";
 
 const LOG_PREFIX = "[tara]";
 
@@ -58,23 +56,29 @@ function printLog(
 
 function captureLogMessage(
   message: string,
-  level: SeverityLevel,
+  level: MonitoringSeverityLevel,
   context?: LogContext,
   error?: unknown
 ): void {
   const safeContext = toSafeContext(context);
-  if (error instanceof Error) {
-    captureException(error, {
-      logger_message: toSafeMessage(message),
-      ...safeContext,
-    });
-    return;
-  }
+  void import("@/lib/monitoring/sentry")
+    .then(({ captureException, captureMessage }) => {
+      if (error instanceof Error) {
+        captureException(error, {
+          logger_message: toSafeMessage(message),
+          ...safeContext,
+        });
+        return;
+      }
 
-  captureMessage(toSafeMessage(message), level, {
-    ...safeContext,
-    ...(error !== undefined ? { error: sanitizeLogPayload(error) } : {}),
-  });
+      captureMessage(toSafeMessage(message), level, {
+        ...safeContext,
+        ...(error !== undefined ? { error: sanitizeLogPayload(error) } : {}),
+      });
+    })
+    .catch(() => {
+      // Logging should never throw into app code or tests.
+    });
 }
 
 export const logger = {
