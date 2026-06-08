@@ -85,7 +85,18 @@ Phase 14F does **not** include public store submission.
 - [ ] Full public-store submission checklist remains deferred to Phase 15.
 - [ ] Any additional deferred item found during QA is added to release notes before signoff.
 
-## 8) Do-not-submit-until list
+## 8) Post-MVP decision gate
+
+- [ ] Internal tester feedback has been reviewed (`experiments.md` outputs consolidated).
+- [ ] Privacy issues from internal testing are triaged with owners and severity.
+- [ ] RLS test gaps found during internal validation are resolved or explicitly blocked with owner signoff.
+- [ ] Deletion/export processor status is checked (including destructive-mode verification state and known limitations).
+- [ ] Next feature phase is selected and documented based on validation evidence; default remains Phase 16 Comfort Kit unless the roadmap is explicitly re-scored.
+- [ ] No unresolved S0 privacy/security debt remains before Phase 16 implementation starts.
+- [ ] AI and monetization remain deferred research tracks with no implementation commitment in the next phase.
+- [ ] No new feature work starts before unresolved Phase 14 blockers are closed or explicitly waived by product + privacy/security owners.
+
+## 9) Do-not-submit-until list
 
 Do **not** submit to public stores until all of the following are true:
 

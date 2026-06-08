@@ -328,7 +328,7 @@ Everything below is **explicitly out of MVP** and listed only to capture directi
 - Localization and broader accessibility.
 - Optional, privacy-preserving assistance features — only with explicit consent and never reading private memories silently.
 
-**Explicitly still NOT planned (reaffirming non-goals):** dating/discovery, public profiles or followers, social feed, generic high-volume chat, covert tracking, guilt-based streaks, and the MVP monetization items (subscriptions, paywalls, RevenueCat). If monetization is ever explored, it will be a separate, principle-aligned decision — not part of this roadmap.
+**Explicitly still NOT planned (reaffirming non-goals):** dating/discovery, public profiles or followers, social feed, generic high-volume chat, covert tracking, guilt-based streaks, and monetization mechanisms such as subscriptions, paywalls, or RevenueCat. If monetization is ever explored, it will be a separate, principle-aligned decision — not part of this roadmap.
 
 ---
 
