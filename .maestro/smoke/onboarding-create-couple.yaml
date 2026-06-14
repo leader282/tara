@@ -1,0 +1,91 @@
+appId: com.leader282.tara
+name: Sign up, onboard, and create couple space
+tags:
+  - smoke
+  - auth
+  - onboarding
+  - invite
+env:
+  E2E_PASSWORD: "TaraE2E!123"
+  E2E_DISPLAY_NAME: "Tara E2E"
+  E2E_TIMEZONE: "Asia/Kolkata"
+  E2E_ANNIVERSARY: "2024-02-14"
+---
+- runFlow: ../shared/launch-app.yaml
+- evalScript: '${output.email = typeof E2E_SMOKE_EMAIL !== "undefined" && E2E_SMOKE_EMAIL ? E2E_SMOKE_EMAIL : "tara.e2e+" + Date.now() + "@example.com"}'
+
+- extendedWaitUntil:
+    visible: "Welcome back"
+    timeout: 120000
+- tapOn: "Create one"
+
+- extendedWaitUntil:
+    visible: "Create your account"
+    timeout: 10000
+- tapOn: "Email"
+- inputText: ${output.email}
+- tapOn: "Password"
+- inputText: ${E2E_PASSWORD}
+- hideKeyboard
+- tapOn: "Confirm password"
+- inputText: ${E2E_PASSWORD}
+- hideKeyboard
+- tapOn: "Create account"
+
+- extendedWaitUntil:
+    visible: "Let's set up your side of Tara"
+    timeout: 30000
+- tapOn: "Display name"
+- inputText: ${E2E_DISPLAY_NAME}
+- tapOn: "Timezone"
+- eraseText: 100
+- inputText: ${E2E_TIMEZONE}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: "Continue"
+    direction: DOWN
+    visibilityPercentage: 60
+    timeout: 25000
+    waitToSettleTimeoutMs: 1000
+- tapOn: "Continue"
+
+- extendedWaitUntil:
+    visible: "How should Tara feel between you two?"
+    timeout: 15000
+- scrollUntilVisible:
+    element:
+      text: "Continue"
+    direction: DOWN
+    visibilityPercentage: 60
+    timeout: 25000
+    waitToSettleTimeoutMs: 1000
+- tapOn: "Continue"
+
+- extendedWaitUntil:
+    visible: "Choose your quiet hours"
+    timeout: 15000
+- tapOn: "Continue"
+
+- extendedWaitUntil:
+    visible: "You're all set for now"
+    timeout: 15000
+- tapOn: "Continue to Tara"
+
+- extendedWaitUntil:
+    visible: "Create your private space for two"
+    timeout: 20000
+- tapOn: "Create our space"
+
+- extendedWaitUntil:
+    visible: "Create your couple space"
+    timeout: 10000
+- tapOn: "Anniversary date"
+- inputText: ${E2E_ANNIVERSARY}
+- hideKeyboard
+- tapOn: "Create and continue"
+
+- extendedWaitUntil:
+    visible: "Invite your partner"
+    timeout: 30000
+- assertVisible: "Your invite code"

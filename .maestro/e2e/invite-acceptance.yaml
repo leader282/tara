@@ -1,0 +1,56 @@
+appId: com.leader282.tara
+name: Accept invite from seeded partner
+tags:
+  - e2e
+  - invite
+---
+- runFlow: ../shared/launch-app.yaml
+- runFlow: ../shared/sign-in.yaml
+
+- extendedWaitUntil:
+    visible: "Create your private space for two"
+    timeout: 30000
+- tapOn: "Join with code"
+
+- extendedWaitUntil:
+    visible: "Join with an invite code"
+    timeout: 10000
+# Let the keyboard settle and clear the field before typing; otherwise Maestro
+# inputText can drop/duplicate a character and corrupt the code.
+- tapOn: "Invite code"
+- waitForAnimationToEnd
+- eraseText
+- inputText: ${E2E_INVALID_INVITE_CODE}
+- hideKeyboard
+- tapOn: "Join couple space"
+- extendedWaitUntil:
+    visible: "This invite is no longer available. Ask your partner for a fresh invite code."
+    timeout: 15000
+
+- tapOn: "Invite code"
+- waitForAnimationToEnd
+# The field still holds the rejected invalid code. Tapping a populated field can
+# leave the cursor mid-text, and Maestro's eraseText only deletes characters before
+# the cursor, so a single erase leaves a trailing remnant (e.g. "...1NV4L1D" -> "1D")
+# and the new code is inserted before it. Clear in rounds: each re-tap on the now
+# shorter text lands the cursor past it, so the tail is removed too.
+- eraseText: 64
+- tapOn: "Invite code"
+- eraseText: 64
+- tapOn: "Invite code"
+- eraseText: 64
+- inputText: ${E2E_INVITE_CODE}
+- waitForAnimationToEnd
+# Fail fast with a clear message if the field still holds a leftover/corrupted code.
+- assertVisible: ${E2E_INVITE_CODE}
+- hideKeyboard
+- tapOn: "Join couple space"
+
+- extendedWaitUntil:
+    visible: "Your private space"
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      text: "Presence pulse"
+    direction: DOWN
+    timeout: 10000

@@ -49,6 +49,12 @@
         "projectId": "3951340e-8d4b-45a1-aa19-2acd80c69ddf"
       }
     },
-    "owner": "leader282"
+    "owner": "leader282",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/3951340e-8d4b-45a1-aa19-2acd80c69ddf"
+    }
   }
 }

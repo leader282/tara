@@ -39,9 +39,9 @@ function isValidDateOnly(value: string): boolean {
 const optionalTrimmedStringSchema = z
   .string()
   .trim()
-  .optional()
+  .nullish()
   .transform((value) => {
-    if (value === undefined) {
+    if (value == null) {
       return null;
     }
 

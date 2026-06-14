@@ -1,0 +1,34 @@
+appId: com.leader282.tara
+name: Android waits for partner realtime pulse
+tags:
+  - e2e
+  - realtime
+  - android
+---
+- runFlow: ../shared/launch-app.yaml
+- runFlow: ../shared/sign-in.yaml
+
+- extendedWaitUntil:
+    visible: "Your private space"
+    timeout: 30000
+- assertVisible: ${E2E_PARTNER_NAME}
+# The partner's pulse is delivered over Supabase Realtime and rendered in the
+# "Recent pulses" card at the bottom of the home screen. The card sits below the
+# long presence-pulse picker, so reaching it takes several swipes; on a busy
+# emulator a short timeout expires mid-scroll. Allow generous time and let each
+# swipe settle so we reliably land on the card before waiting for the note.
+- scrollUntilVisible:
+    element:
+      text: "Recent pulses"
+    direction: DOWN
+    visibilityPercentage: 60
+    timeout: 40000
+    waitToSettleTimeoutMs: 1000
+# The sender starts ~110s after this receiver (staggered to avoid a simultaneous
+# cold-bundle load), then needs to launch, sign in, and send. Wait well past that
+# combined window so the realtime row has time to arrive before we give up.
+- scrollUntilVisible:
+    element:
+      text: ${E2E_PULSE_NOTE}
+    direction: DOWN
+    timeout: 240000

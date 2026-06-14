@@ -1,0 +1,18 @@
+appId: com.leader282.tara
+---
+- extendedWaitUntil:
+    visible: "Welcome back"
+    timeout: 180000
+# tapOn + inputText can occasionally duplicate the first character if the IME
+# is not ready yet, which corrupts the email and fails sign-in. Let the keyboard
+# settle and clear the field before typing to keep input deterministic.
+- tapOn: "Email"
+- waitForAnimationToEnd
+- eraseText
+- inputText: ${E2E_EMAIL}
+- tapOn: "Password"
+- waitForAnimationToEnd
+- eraseText
+- inputText: ${E2E_PASSWORD}
+- hideKeyboard
+- tapOn: "Sign in"

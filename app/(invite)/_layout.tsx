@@ -1,4 +1,4 @@
-import { Redirect, Stack, useSegments } from "expo-router";
+import { Redirect, Stack } from "expo-router";
 import { StyleSheet } from "react-native";
 
 import { ErrorState, LoadingState, Screen } from "@/components/ui";
@@ -7,10 +7,6 @@ import { useActiveCoupleState } from "@/features/couple/hooks/useActiveCoupleSta
 import { useOnboardingGate } from "@/features/onboarding/hooks/useOnboardingGate";
 
 export default function InviteLayout() {
-  const segments = useSegments();
-  const currentSegment = segments[segments.length - 1];
-  const isWaitingRoute = currentSegment === "waiting";
-
   const { isAuthenticated, isInitializing } = useAuth();
   const onboardingGate = useOnboardingGate();
   const coupleGate = useActiveCoupleState();
@@ -65,15 +61,21 @@ export default function InviteLayout() {
     return <Redirect href="/(couple)" />;
   }
 
-  if (coupleGate.state.status === "waiting" && !isWaitingRoute) {
-    return <Redirect href="/(invite)/waiting" />;
-  }
+  const isWaitingForPartner = coupleGate.state.status === "waiting";
 
-  if (coupleGate.state.status === "none" && isWaitingRoute) {
-    return <Redirect href="/(invite)" />;
-  }
-
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Protected guard={!isWaitingForPartner}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="create" />
+        <Stack.Screen name="accept" />
+        <Stack.Screen name="[code]" />
+      </Stack.Protected>
+      <Stack.Protected guard={isWaitingForPartner}>
+        <Stack.Screen name="waiting" />
+      </Stack.Protected>
+    </Stack>
+  );
 }
 
 const styles = StyleSheet.create({

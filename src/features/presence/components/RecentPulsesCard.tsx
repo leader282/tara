@@ -16,6 +16,14 @@ type RecentPulsesCardProps = {
   maxVisible?: number;
 };
 
+function formatRelativeUnit(value: number, unit: "minute" | "hour" | "day"): string {
+  const absoluteValue = Math.abs(value);
+  const label = absoluteValue === 1 ? unit : `${unit}s`;
+  const suffix = value < 0 ? "ago" : "from now";
+
+  return `${absoluteValue} ${label} ${suffix}`;
+}
+
 function formatRelativePulseTime(timestamp: string): string {
   const pulseDate = new Date(timestamp);
   if (Number.isNaN(pulseDate.getTime())) {
@@ -28,22 +36,20 @@ function formatRelativePulseTime(timestamp: string): string {
   const hourMs = 60 * minuteMs;
   const dayMs = 24 * hourMs;
 
-  const formatter = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
-
   if (absDiffMs < minuteMs) {
     return "Just now";
   }
 
   if (absDiffMs < hourMs) {
-    return formatter.format(Math.round(diffMs / minuteMs), "minute");
+    return formatRelativeUnit(Math.round(diffMs / minuteMs), "minute");
   }
 
   if (absDiffMs < dayMs) {
-    return formatter.format(Math.round(diffMs / hourMs), "hour");
+    return formatRelativeUnit(Math.round(diffMs / hourMs), "hour");
   }
 
   if (absDiffMs < 7 * dayMs) {
-    return formatter.format(Math.round(diffMs / dayMs), "day");
+    return formatRelativeUnit(Math.round(diffMs / dayMs), "day");
   }
 
   return formatDateTime(pulseDate);

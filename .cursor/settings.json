@@ -1,0 +1,13 @@
+{
+  "plugins": {
+    "supabase": {
+      "enabled": true
+    },
+    "sentry": {
+      "enabled": true
+    },
+    "posthog": {
+      "enabled": true
+    }
+  }
+}

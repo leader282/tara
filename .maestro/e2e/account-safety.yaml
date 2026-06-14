@@ -1,0 +1,95 @@
+appId: com.leader282.tara
+name: Account safety export deletion and archive
+tags:
+  - e2e
+  - account
+  - destructive
+---
+- runFlow: ../shared/launch-app.yaml
+- runFlow: ../shared/sign-in.yaml
+
+- extendedWaitUntil:
+    visible: "Your private space"
+    timeout: 30000
+# "Settings" sits at the very bottom of the home feed, so allow partial
+# visibility and give the feed time to settle (it can be slow right after the
+# preceding concurrent flows hammered both emulators).
+- scrollUntilVisible:
+    element:
+      text: "Settings"
+    direction: DOWN
+    visibilityPercentage: 50
+    timeout: 20000
+    waitToSettleTimeoutMs: 1000
+- tapOn: "Settings"
+
+- extendedWaitUntil:
+    visible: "Settings"
+    timeout: 15000
+- scrollUntilVisible:
+    element:
+      text: "Account and safety"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Account and safety"
+
+- extendedWaitUntil:
+    visible: "Current account status"
+    timeout: 15000
+- assertVisible: "Paired"
+
+- scrollUntilVisible:
+    element:
+      text: "Request data export"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    point: "50%,81%"
+- extendedWaitUntil:
+    visible: "Request already in progress"
+    timeout: 15000
+
+- scrollUntilVisible:
+    element:
+      text: "Type DELETE to continue"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Type DELETE to continue"
+- inputText: "DELETE"
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: "Deletion reason"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Deletion reason"
+- inputText: ${"E2E deletion coverage " + E2E_RUN_ID}
+- hideKeyboard
+- tapOn:
+    point: "50%,91%"
+# The success banner is transient and renders below the fold, so assert on the
+# persistent state instead. The cancel button only exists while a request is
+# pending, so finding it confirms the deletion request was submitted.
+- scrollUntilVisible:
+    element:
+      text: "Cancel pending deletion request"
+    direction: DOWN
+    timeout: 20000
+- tapOn: "Cancel pending deletion request"
+# Canceling keeps the latest request visible with a canceled status label.
+- scrollUntilVisible:
+    element:
+      text: "Current request: Canceled"
+    direction: DOWN
+    timeout: 20000
+
+# Requesting account deletion archives the active couple, so the account status
+# now reports the user is no longer paired. This is the same archive outcome the
+# explicit unpair button produces (the two destructive paths are mutually
+# exclusive within a single paired session).
+- scrollUntilVisible:
+    element:
+      text: "Current account status"
+    direction: UP
+    timeout: 10000
+- assertVisible: "Not paired"

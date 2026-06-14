@@ -19,6 +19,7 @@ supabase/.temp/
 
 # Metro
 .metro-health-check*
+.maestro/.e2e-data/
 
 # debug
 npm-debug.*

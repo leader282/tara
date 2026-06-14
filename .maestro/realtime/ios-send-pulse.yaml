@@ -1,0 +1,43 @@
+appId: com.leader282.tara
+name: iOS sends partner realtime pulse
+tags:
+  - e2e
+  - realtime
+  - ios
+---
+- runFlow: ../shared/launch-app.yaml
+- runFlow: ../shared/sign-in.yaml
+
+- extendedWaitUntil:
+    visible: "Your private space"
+    timeout: 30000
+# Reach the presence pulse panel in two steps (matches paired-core). A single
+# scroll straight to the note field is unreliable under concurrent two-device
+# load, so settle on the panel header first, then the note field.
+- scrollUntilVisible:
+    element:
+      text: "Presence pulse"
+    direction: DOWN
+    timeout: 20000
+    waitToSettleTimeoutMs: 1000
+- scrollUntilVisible:
+    element:
+      text: "Optional pulse note"
+    direction: DOWN
+    timeout: 20000
+    waitToSettleTimeoutMs: 1000
+- waitForAnimationToEnd
+- tapOn: "Send a hug pulse"
+- tapOn: "Optional pulse note"
+- inputText: ${E2E_PULSE_NOTE}
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      text: "Send pulse"
+    direction: DOWN
+    timeout: 20000
+    waitToSettleTimeoutMs: 1000
+- tapOn: "Send pulse"
+- extendedWaitUntil:
+    visible: "Sent hug with care."
+    timeout: 20000
