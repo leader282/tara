@@ -173,6 +173,13 @@ Database rules:
 - Keep privileged server workflows in RPCs or Edge Functions with explicit authorization checks.
 - Regenerate and commit `src/lib/supabase/database.types.ts` after schema changes.
 
+Notification workers are scheduled with `pg_cron`: `process-notification-queue` runs every minute and `check-push-receipts` every 15 minutes. `process-account-deletion-requests` is not scheduled. The jobs stay inactive until the project has two Vault secrets, and `cron_secret` must match the Edge Functions' `CRON_SECRET`:
+
+```sql
+select vault.create_secret('https://<project-ref>.supabase.co', 'project_url');
+select vault.create_secret('<CRON_SECRET>', 'cron_secret');
+```
+
 ## Quality Gates
 
 Run these before merging code changes:
