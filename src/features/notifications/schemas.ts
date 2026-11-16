@@ -6,7 +6,8 @@ import {
 } from "@/features/notifications/constants";
 
 const optionalTrimmedStringSchema = z
-  .union([z.string(), z.null(), z.undefined()])
+  .string()
+  .nullish()
   .transform((value) => {
     if (value === null || value === undefined) {
       return null;
@@ -16,7 +17,7 @@ const optionalTrimmedStringSchema = z
     return trimmed.length > 0 ? trimmed : null;
   });
 
-const optionalBooleanSchema = z.union([z.boolean(), z.undefined()]);
+const optionalBooleanSchema = z.boolean().optional();
 
 export const userIdSchema = z.string().uuid("A valid user id is required.");
 export const notificationTypeSchema = z.enum(NOTIFICATION_TYPES);

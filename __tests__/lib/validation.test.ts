@@ -3,9 +3,14 @@ import { describe, expect, it } from "@jest/globals";
 import { leaveCurrentCoupleConfirmationSchema, requestAccountDeletionInputSchema } from "@/features/account/schemas";
 import { createCapsuleSchema } from "@/features/capsules/schemas";
 import { acceptInviteSchema } from "@/features/invite/schemas";
+import { upsertNotificationPreferencesInputSchema } from "@/features/notifications/schemas";
 import { quietHoursSchema } from "@/features/onboarding/schemas";
 import { upsertCurrentProfileSchema } from "@/features/profile/schemas";
 import { completeRitualSchema } from "@/features/rituals/schemas";
+import {
+  updateCoupleSharedSettingsSchema,
+  updateSettingsProfileSchema,
+} from "@/features/settings/schemas";
 
 const USER_ID = "33333333-3333-4333-8333-333333333333";
 const RITUAL_ID = "44444444-4444-4444-8444-444444444444";
@@ -108,5 +113,27 @@ describe("zod validation schemas", () => {
         quietHoursEnd: "06:30",
       }),
     ).toThrow("Start time is required when quiet hours are enabled.");
+  });
+
+  it("accepts partial notification preference updates", () => {
+    expect(upsertNotificationPreferencesInputSchema.parse({ userId: USER_ID })).toEqual({
+      userId: USER_ID,
+    });
+    expect(
+      upsertNotificationPreferencesInputSchema.parse({ userId: USER_ID, presenceEnabled: false }),
+    ).toEqual({ userId: USER_ID, presenceEnabled: false });
+  });
+
+  it("accepts settings updates that omit optional fields", () => {
+    const parsedProfile = updateSettingsProfileSchema.parse({
+      userId: USER_ID,
+      displayName: "Levi",
+      timezone: "Asia/Kolkata",
+    });
+
+    expect(parsedProfile.displayName).toBe("Levi");
+    expect(updateCoupleSharedSettingsSchema.parse({ ritualFrequency: "weekly" })).toEqual({
+      ritualFrequency: "weekly",
+    });
   });
 });

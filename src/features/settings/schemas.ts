@@ -54,14 +54,17 @@ function isNotFutureDate(value: string): boolean {
 }
 
 const optionalNullableShortTextSchema = z
-  .union([z.string(), z.null(), z.undefined()])
+  .string()
+  .nullable()
   .transform((value) => normalizeOptionalStringPreserveUndefined(value))
   .refine((value) => value === null || value === undefined || value.length <= 120, {
     message: "Must be 120 characters or fewer.",
-  });
+  })
+  .optional();
 
 const optionalNullableBirthdaySchema = z
-  .union([z.string(), z.null(), z.undefined()])
+  .string()
+  .nullable()
   .transform((value) => normalizeOptionalStringPreserveUndefined(value))
   .refine((value) => value === null || value === undefined || DATE_ONLY_PATTERN.test(value), {
     message: "Birthday must use YYYY-MM-DD format.",
@@ -71,15 +74,20 @@ const optionalNullableBirthdaySchema = z
   })
   .refine((value) => value === null || value === undefined || isNotFutureDate(value), {
     message: "Birthday cannot be in the future.",
-  });
+  })
+  .optional();
 
 const optionalNullableEmotionalToneSchema = z
-  .union([z.enum(SETTINGS_EMOTIONAL_TONES), z.null(), z.undefined()])
-  .transform((value) => value);
+  .enum(SETTINGS_EMOTIONAL_TONES)
+  .nullable()
+  .transform((value) => value)
+  .optional();
 
 const optionalNullableNotificationToneSchema = z
-  .union([z.enum(SETTINGS_NOTIFICATION_TONES), z.null(), z.undefined()])
-  .transform((value) => value);
+  .enum(SETTINGS_NOTIFICATION_TONES)
+  .nullable()
+  .transform((value) => value)
+  .optional();
 
 const optionalLoveSignalsSchema = z
   .array(z.enum(SETTINGS_LOVE_SIGNALS))
@@ -90,24 +98,29 @@ const optionalLoveSignalsSchema = z
   .optional();
 
 const optionalQuietHourSchema = z
-  .union([z.string(), z.null(), z.undefined()])
+  .string()
+  .nullable()
   .transform((value) => normalizeOptionalStringPreserveUndefined(value))
   .refine((value) => value === null || value === undefined || HH_MM_PATTERN.test(value), {
     message: "Quiet hours must use HH:mm format.",
-  });
+  })
+  .optional();
 
 const optionalNullableAnniversarySchema = z
-  .union([z.string(), z.null(), z.undefined()])
+  .string()
+  .nullable()
   .transform((value) => normalizeOptionalStringPreserveUndefined(value))
   .refine((value) => value === null || value === undefined || DATE_ONLY_PATTERN.test(value), {
     message: "Anniversary date must use YYYY-MM-DD format.",
   })
   .refine((value) => value === null || value === undefined || isValidDateOnly(value), {
     message: "Anniversary date must be a valid calendar date.",
-  });
+  })
+  .optional();
 
 const optionalNullableThemeSchema = z
-  .union([z.string(), z.null(), z.undefined()])
+  .string()
+  .nullable()
   .transform((value) => normalizeOptionalStringPreserveUndefined(value))
   .refine((value) => value === null || value === undefined || value.length <= 40, {
     message: "Theme must be 40 characters or fewer.",
@@ -121,7 +134,8 @@ const optionalNullableThemeSchema = z
     {
       message: "Theme is not supported.",
     },
-  );
+  )
+  .optional();
 
 export const settingsUserIdSchema = z.string().uuid("A valid user id is required.");
 export const settingsCoupleIdSchema = z.string().uuid("A valid couple id is required.");
@@ -206,7 +220,7 @@ export type QuietHoursSettingsFormInput = z.infer<typeof quietHoursSettingsFormS
 
 export const updateCoupleSharedSettingsSchema = z.object({
   anniversaryDate: optionalNullableAnniversarySchema,
-  ritualFrequency: z.union([z.enum(SETTINGS_RITUAL_FREQUENCIES), z.null(), z.undefined()]),
+  ritualFrequency: z.enum(SETTINGS_RITUAL_FREQUENCIES).nullish(),
   theme: optionalNullableThemeSchema,
 });
 
