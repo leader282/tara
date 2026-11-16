@@ -27,7 +27,8 @@
           "organization": "tara-45",
           "project": "tara"
         }
-      ]
+      ],
+      "./plugins/withGradleDaemonJvm"
     ],
     "ios": {
       "supportsTablet": false,
