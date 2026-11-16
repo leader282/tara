@@ -101,6 +101,14 @@ Do not put private credentials in `.env`. In particular, never expose Supabase `
 
 Edge Function environment values are documented separately in `supabase/functions/.env.example`. Function-only secrets such as `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`, `EDGE_FUNCTION_SECRET`, and `EXPO_ACCESS_TOKEN` belong in Supabase/EAS/CI secret storage, not in the mobile app runtime environment.
 
+Android builds need the Firebase config file `google-services.json` (Firebase project `tara-5c982`, Android app `com.leader282.tara`) in the repository root. It is gitignored; download it with:
+
+```bash
+npx -y firebase-tools@latest apps:sdkconfig ANDROID 1:215832715307:android:a47e291b1b873200e60a6e --project tara-5c982 --out google-services.json
+```
+
+EAS builds receive the same file through the `GOOGLE_SERVICES_JSON` secret file variable, which `app.config.js` reads.
+
 ## Local Development
 
 Install dependencies:

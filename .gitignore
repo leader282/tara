@@ -44,6 +44,8 @@ tara-*.json
 *service-account*.json
 *firebase-adminsdk*.json
 credentials.json
+google-services.json
+GoogleService-Info.plist
 
 # TypeScript
 *.tsbuildinfo
