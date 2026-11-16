@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(11);
+select plan(13);
 
 create or replace function pg_temp.throws_sqlstate(p_sql text, p_expected_sqlstate text)
 returns boolean
@@ -188,6 +188,16 @@ select is(
 );
 
 reset role;
+
+select ok(
+  not has_function_privilege('anon', 'public.create_couple_with_invite(date, timestamptz, text)', 'EXECUTE'),
+  'invite pairing: signed-out users cannot create a couple space'
+);
+
+select ok(
+  not has_function_privilege('anon', 'public.accept_couple_invite(text)', 'EXECUTE'),
+  'invite pairing: signed-out users cannot accept an invite'
+);
 
 select * from finish();
 rollback;
