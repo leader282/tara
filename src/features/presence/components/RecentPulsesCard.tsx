@@ -1,7 +1,8 @@
+import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { AppText, Card, EmptyState, LoadingState } from "@/components/ui";
-import { PRESENCE_PULSE_OPTIONS } from "@/features/presence/constants";
+import { PRESENCE_PULSE_OPTIONS, RECENT_PULSE_WINDOW_MS } from "@/features/presence/constants";
 import { PulseTypeIcon } from "@/features/presence/components/PulseTypeIcon";
 import type { RecentPresencePulse } from "@/features/presence/types";
 import { formatDateTime } from "@/lib/dates/format";
@@ -16,6 +17,8 @@ type RecentPulsesCardProps = {
   maxVisible?: number;
 };
 
+const REFRESH_INTERVAL_MS = 60_000;
+
 function formatRelativeUnit(value: number, unit: "minute" | "hour" | "day"): string {
   const absoluteValue = Math.abs(value);
   const label = absoluteValue === 1 ? unit : `${unit}s`;
@@ -24,13 +27,13 @@ function formatRelativeUnit(value: number, unit: "minute" | "hour" | "day"): str
   return `${absoluteValue} ${label} ${suffix}`;
 }
 
-function formatRelativePulseTime(timestamp: string): string {
+function formatRelativePulseTime(timestamp: string, now: number): string {
   const pulseDate = new Date(timestamp);
   if (Number.isNaN(pulseDate.getTime())) {
     return "Just now";
   }
 
-  const diffMs = pulseDate.getTime() - Date.now();
+  const diffMs = pulseDate.getTime() - now;
   const absDiffMs = Math.abs(diffMs);
   const minuteMs = 60_000;
   const hourMs = 60 * minuteMs;
@@ -63,28 +66,42 @@ export function RecentPulsesCard({
   errorMessage = null,
   maxVisible = 5,
 }: RecentPulsesCardProps) {
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setNow(Date.now());
+    }, REFRESH_INTERVAL_MS);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const visiblePulses = pulses.filter(
+    (pulse) => now - new Date(pulse.created_at).getTime() < RECENT_PULSE_WINDOW_MS,
+  );
+
   return (
     <Card>
       <View style={styles.container}>
         <View style={styles.header}>
           <AppText variant="subtitle">Recent pulses</AppText>
           <AppText color="textSecondary" variant="bodyMuted">
-            Small signals you&apos;ve shared lately.
+            Small signals from the last hour.
           </AppText>
         </View>
 
         {isLoading ? <LoadingState label="Loading recent pulses..." /> : null}
 
-        {!isLoading && pulses.length === 0 ? (
+        {!isLoading && visiblePulses.length === 0 ? (
           <EmptyState
             description="Send a small signal when you want to feel close."
-            title="No pulses yet"
+            title="No pulses in the last hour"
           />
         ) : null}
 
-        {!isLoading && pulses.length > 0 ? (
+        {!isLoading && visiblePulses.length > 0 ? (
           <View style={styles.pulseList}>
-            {pulses.slice(0, maxVisible).map((pulse) => {
+            {visiblePulses.slice(0, maxVisible).map((pulse) => {
               const pulseLabel = PRESENCE_PULSE_OPTIONS[pulse.type].label;
               const senderLabel = pulse.sender_id === currentUserId ? "You" : partnerDisplayName;
               return (
@@ -96,7 +113,7 @@ export function RecentPulsesCard({
                         {senderLabel} sent {pulseLabel.toLowerCase()}
                       </AppText>
                       <AppText color="textSecondary" variant="caption">
-                        {formatRelativePulseTime(pulse.created_at)}
+                        {formatRelativePulseTime(pulse.created_at, now)}
                       </AppText>
                     </View>
                   </View>

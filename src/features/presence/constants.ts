@@ -76,3 +76,5 @@ export const PRESENCE_PULSE_OPTIONS_LIST: (
   type,
   ...PRESENCE_PULSE_OPTIONS[type],
 }));
+
+export const RECENT_PULSE_WINDOW_MS = 60 * 60 * 1000;

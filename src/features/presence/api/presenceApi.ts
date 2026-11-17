@@ -1,5 +1,6 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 
+import { RECENT_PULSE_WINDOW_MS } from "@/features/presence/constants";
 import {
   presenceEventSchema,
   presenceEventsSchema,
@@ -75,6 +76,7 @@ export async function getRecentPresencePulses(
       .from("presence_events")
       .select("id, couple_id, sender_id, type, optional_message, created_at")
       .eq("couple_id", parsedCoupleId)
+      .gte("created_at", new Date(Date.now() - RECENT_PULSE_WINDOW_MS).toISOString())
       .order("created_at", { ascending: false })
       .limit(parsedLimit);
 
