@@ -136,6 +136,7 @@ export interface ExpoPushMessage {
   body: string;
   data: Record<string, unknown>;
   sound?: "default";
+  priority?: "default" | "normal" | "high";
 }
 
 export interface BuildExpoMessageInput {
@@ -188,6 +189,8 @@ export function buildSafeExpoMessage(input: BuildExpoMessageInput): ExpoPushMess
     title: copy.title,
     body: copy.body,
     data: sanitizeNotificationData(input.data),
+    // Android holds normal-priority pushes while the phone is dozing; high priority delivers them right away.
+    priority: "high",
   };
 
   if (input.sound === "default") {

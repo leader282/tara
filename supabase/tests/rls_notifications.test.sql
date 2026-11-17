@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(6);
+select plan(7);
 
 create or replace function pg_temp.throws_sqlstate(p_sql text, p_expected_sqlstate text)
 returns boolean
@@ -151,6 +151,13 @@ select ok(
 );
 
 reset role;
+
+select has_trigger(
+  'public',
+  'notification_queue',
+  'invoke_notification_worker_on_enqueue',
+  'notifications: queueing a notification invokes the worker immediately'
+);
 
 select * from finish();
 rollback;
