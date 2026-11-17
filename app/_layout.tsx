@@ -14,6 +14,7 @@ import {
   withSentryRoot,
 } from "@/lib/monitoring/sentry";
 import { queryClient } from "@/lib/query/queryClient";
+import { useResyncOnForeground } from "@/lib/query/useResyncOnForeground";
 import {
   startSupabaseAutoRefresh,
   stopSupabaseAutoRefresh,
@@ -24,6 +25,7 @@ initializeSentry();
 
 function RootNavigator() {
   const { isAuthenticated, isInitializing } = useAuth();
+  useResyncOnForeground(isAuthenticated);
 
   return (
     <Stack
