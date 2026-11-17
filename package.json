@@ -18,7 +18,7 @@
     "web": "expo start --web",
     "test": "jest",
     "test:watch": "jest --watch",
-    "typecheck": "tsc --noEmit --ignoreDeprecations 6.0",
+    "typecheck": "tsc --noEmit",
     "lint": "EXPO_NO_DOTENV=1 expo lint",
     "e2e:maestro": "MAESTRO_CLI_NO_ANALYTICS=1 MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED=true maestro test .maestro",
     "e2e:maestro:smoke": "MAESTRO_CLI_NO_ANALYTICS=1 MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED=true maestro test .maestro/smoke",
