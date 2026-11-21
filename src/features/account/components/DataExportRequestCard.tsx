@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Button, Card } from "@/components/ui";
+import { AppText, Badge, type BadgeTone, Button, Card, Icon, InlineMessage } from "@/components/ui";
 import type { DataExportRequest } from "@/features/account/types";
 import { formatDateTime } from "@/lib/dates/format";
-import { spacing } from "@/theme/tokens";
+import { colors, radii, spacing } from "@/theme/tokens";
 
 type DataExportRequestCardProps = {
   requests: DataExportRequest[];
@@ -13,20 +13,20 @@ type DataExportRequestCardProps = {
   onRequest: () => Promise<unknown>;
 };
 
-function toStatusLabel(status: DataExportRequest["status"]): string {
+function toStatusPresentation(status: DataExportRequest["status"]): { label: string; tone: BadgeTone } {
   switch (status) {
     case "requested":
-      return "Request received";
+      return { label: "Request received", tone: "info" };
     case "processing":
-      return "Processing";
+      return { label: "Processing", tone: "warning" };
     case "completed":
-      return "Completed";
+      return { label: "Completed", tone: "success" };
     case "failed":
-      return "Needs attention";
+      return { label: "Needs attention", tone: "danger" };
     case "canceled":
-      return "Canceled";
+      return { label: "Canceled", tone: "neutral" };
     default:
-      return "Unknown";
+      return { label: "Unknown", tone: "neutral" };
   }
 }
 
@@ -52,7 +52,11 @@ export function DataExportRequestCard({
   const latestRequest = requests[0] ?? null;
   const latestRequestedAt = formatTimestamp(latestRequest?.requested_at ?? null);
   const latestCompletedAt = formatTimestamp(latestRequest?.completed_at ?? null);
-  const isActiveRequest = latestRequest?.status === "requested" || latestRequest?.status === "processing";
+  const isActiveRequest =
+    latestRequest?.status === "requested" || latestRequest?.status === "processing";
+  const statusPresentation = latestRequest
+    ? toStatusPresentation(latestRequest.status)
+    : { label: "No request yet", tone: "neutral" as const };
 
   const statusLines = useMemo(() => {
     if (!latestRequest) {
@@ -82,30 +86,34 @@ export function DataExportRequestCard({
     <Card>
       <View style={styles.container}>
         <View style={styles.header}>
-          <AppText variant="subtitle">Request data export</AppText>
-          <AppText color="textSecondary" variant="caption">
-            {latestRequest ? toStatusLabel(latestRequest.status) : "No request yet"}
+          <View style={styles.iconWell}>
+            <Icon color="info" name="download-outline" size={20} />
+          </View>
+          <AppText style={styles.title} variant="subtitle">
+            Data export
           </AppText>
+          <Badge label={statusPresentation.label} tone={statusPresentation.tone} />
         </View>
 
         <AppText color="textSecondary" variant="bodyMuted">
           This starts an export request placeholder. File generation is not instant in this phase.
         </AppText>
 
-        {statusLines.map((line) => (
-          <AppText key={line} color="textSecondary" variant="caption">
-            {line}
-          </AppText>
-        ))}
-
-        {errorMessage ? (
-          <AppText color="danger" variant="caption">
-            {errorMessage}
-          </AppText>
+        {statusLines.length > 0 ? (
+          <View style={styles.lines}>
+            {statusLines.map((line) => (
+              <AppText color="textSecondary" key={line} variant="caption">
+                {line}
+              </AppText>
+            ))}
+          </View>
         ) : null}
+
+        {errorMessage ? <InlineMessage message={errorMessage} tone="danger" /> : null}
 
         <Button
           disabled={isRequesting || isActiveRequest}
+          icon="download-outline"
           loading={isRequesting}
           onPress={() => {
             const submit = async () => {
@@ -119,7 +127,7 @@ export function DataExportRequestCard({
             void submit();
           }}
           title={isActiveRequest ? "Request already in progress" : "Request data export"}
-          variant="secondary"
+          variant="outline"
         />
       </View>
     </Card>
@@ -133,6 +141,20 @@ const styles = StyleSheet.create({
   header: {
     alignItems: "center",
     flexDirection: "row",
-    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  iconWell: {
+    alignItems: "center",
+    backgroundColor: colors.infoSoft,
+    borderRadius: radii.md,
+    height: 40,
+    justifyContent: "center",
+    width: 40,
+  },
+  title: {
+    flex: 1,
+  },
+  lines: {
+    gap: spacing.xs,
   },
 });

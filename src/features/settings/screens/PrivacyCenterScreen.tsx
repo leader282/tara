@@ -1,23 +1,22 @@
 import { useRouter } from "expo-router";
-import { StyleSheet, View } from "react-native";
 
-import { AppText, Button, Screen } from "@/components/ui";
+import { useGoBack } from "@/components/navigation/useGoBack";
+import { Button, Screen } from "@/components/ui";
 import { PrivacyExplanationCard } from "@/features/settings/components/PrivacyExplanationCard";
-import { spacing } from "@/theme/tokens";
 
 export function PrivacyCenterScreen() {
   const router = useRouter();
+  const goBack = useGoBack("/(settings)");
 
   return (
-    <Screen contentContainerStyle={styles.content} scroll>
-      <View style={styles.header}>
-        <AppText variant="title">Privacy center</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          Tara is built as a private emotional space for exactly two partners.
-        </AppText>
-      </View>
-
+    <Screen
+      onBack={goBack}
+      scroll
+      subtitle="Tara is built as a private emotional space for exactly two partners."
+      title="Privacy center"
+    >
       <PrivacyExplanationCard
+        icon="eye-off-outline"
         points={[
           "No public profiles, no followers, and no discovery feed.",
           "No exact GPS tracking in the MVP.",
@@ -28,16 +27,18 @@ export function PrivacyCenterScreen() {
       />
 
       <PrivacyExplanationCard
+        icon="lock-closed-outline"
         points={[
           "Ritual responses reveal only after both partners complete.",
           "Memory capsule contents unlock only after the unlock time.",
           "Media remains private and context-aware inside your couple space.",
-          "Notifications avoid sensitive lock-screen content.",
+          "Notifications say what your partner shared, never your notes, answers, or photos.",
         ]}
         title="How shared content is protected"
       />
 
       <PrivacyExplanationCard
+        icon="options-outline"
         points={[
           "AI does not read private memories in the MVP.",
           "Data export and account deletion controls are available in account safety.",
@@ -47,19 +48,11 @@ export function PrivacyCenterScreen() {
       />
 
       <Button
+        iconRight="arrow-forward"
         onPress={() => router.push("/(settings)/account")}
         title="Open account and safety controls"
-        variant="secondary"
+        variant="outline"
       />
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    gap: spacing.lg,
-  },
-  header: {
-    gap: spacing.sm,
-  },
-});

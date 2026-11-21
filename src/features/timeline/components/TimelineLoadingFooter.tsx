@@ -28,6 +28,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.sm,
     justifyContent: "center",
-    paddingTop: spacing.md,
+    paddingTop: spacing.lg,
   },
 });

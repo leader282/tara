@@ -1,7 +1,7 @@
 import { type PropsWithChildren, type ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Card, Screen } from "@/components/ui";
+import { AppText, BrandMark, Card, Screen } from "@/components/ui";
 import { spacing } from "@/theme/tokens";
 
 type AuthScreenLayoutProps = PropsWithChildren<{
@@ -10,22 +10,29 @@ type AuthScreenLayoutProps = PropsWithChildren<{
   footer?: ReactNode;
 }>;
 
-export function AuthScreenLayout({
-  title,
-  subtitle,
-  children,
-  footer,
-}: AuthScreenLayoutProps) {
+export function AuthScreenLayout({ title, subtitle, children, footer }: AuthScreenLayoutProps) {
   return (
     <Screen contentContainerStyle={styles.content} scroll>
+      <View style={styles.brand}>
+        <BrandMark size={60} />
+        <AppText style={styles.wordmark} variant="display">
+          Tara
+        </AppText>
+        <AppText color="textSecondary" variant="caption">
+          A private space for two
+        </AppText>
+      </View>
+
       <View style={styles.header}>
-        <AppText variant="title">{title}</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
+        <AppText accessibilityRole="header" align="center" variant="title">
+          {title}
+        </AppText>
+        <AppText align="center" color="textSecondary" variant="bodyMuted">
           {subtitle}
         </AppText>
       </View>
 
-      <Card>
+      <Card padding="lg">
         <View style={styles.cardContent}>{children}</View>
       </Card>
 
@@ -40,6 +47,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingVertical: spacing["2xl"],
   },
+  brand: {
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  wordmark: {
+    marginTop: spacing.xs,
+  },
   header: {
     gap: spacing.sm,
   },
@@ -48,6 +62,5 @@ const styles = StyleSheet.create({
   },
   footer: {
     alignItems: "center",
-    marginTop: spacing.sm,
   },
 });

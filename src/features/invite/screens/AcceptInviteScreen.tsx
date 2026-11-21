@@ -3,9 +3,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { StyleSheet, View } from "react-native";
 
-import { AppText, Button, Card, Screen, TextField } from "@/components/ui";
+import { useGoBack } from "@/components/navigation/useGoBack";
+import { Button, Card, Screen, TextField } from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { getActiveCoupleState } from "@/features/couple/api/coupleApi";
 import { InviteErrorMessage } from "@/features/invite/components/InviteErrorMessage";
@@ -13,7 +13,6 @@ import { acceptInviteSchema, type AcceptInviteInput } from "@/features/invite/sc
 import { useAcceptCoupleInvite } from "@/features/invite/hooks/useAcceptCoupleInvite";
 import { toInviteActionMessage } from "@/lib/errors/inviteErrorMessages";
 import { queryKeys } from "@/lib/query/queryKeys";
-import { spacing } from "@/theme/tokens";
 
 type AcceptInviteScreenProps = {
   initialCode?: string;
@@ -21,6 +20,7 @@ type AcceptInviteScreenProps = {
 
 export function AcceptInviteScreen({ initialCode = "" }: AcceptInviteScreenProps) {
   const router = useRouter();
+  const goBack = useGoBack("/(invite)");
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const acceptInviteMutation = useAcceptCoupleInvite();
@@ -78,42 +78,44 @@ export function AcceptInviteScreen({ initialCode = "" }: AcceptInviteScreenProps
   });
 
   return (
-    <Screen contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <AppText variant="title">Join with an invite code</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          Paste the code your partner shared. Only valid invite codes can join a private couple
-          space.
-        </AppText>
-      </View>
-
+    <Screen
+      onBack={goBack}
+      scroll
+      subtitle="Paste the code your partner shared. Only valid invite codes can join a private couple space."
+      title="Join with an invite code"
+    >
       <Card>
-        <View style={styles.form}>
-          <Controller
-            control={control}
-            name="inviteCode"
-            render={({ field, fieldState }) => (
-              <TextField
-                accessibilityLabel="Invite code"
-                autoCapitalize="none"
-                autoCorrect={false}
-                errorMessage={fieldState.error?.message}
-                label="Invite code"
-                onBlur={field.onBlur}
-                onChangeText={field.onChange}
-                placeholder="Paste invite code"
-                returnKeyType="done"
-                value={field.value ?? ""}
-              />
-            )}
-          />
-        </View>
+        <Controller
+          control={control}
+          name="inviteCode"
+          render={({ field, fieldState }) => (
+            <TextField
+              accessibilityLabel="Invite code"
+              autoCapitalize="none"
+              autoCorrect={false}
+              errorMessage={fieldState.error?.message}
+              label="Invite code"
+              leftIcon="key-outline"
+              onBlur={field.onBlur}
+              onChangeText={field.onChange}
+              onSubmitEditing={() => {
+                if (formState.isValid) {
+                  void onSubmit();
+                }
+              }}
+              placeholder="Paste invite code"
+              returnKeyType="go"
+              value={field.value ?? ""}
+            />
+          )}
+        />
       </Card>
 
       <InviteErrorMessage message={submitError} />
 
       <Button
         disabled={!formState.isValid || acceptInviteMutation.isPending}
+        icon="heart"
         loading={acceptInviteMutation.isPending}
         onPress={onSubmit}
         title="Join couple space"
@@ -121,16 +123,3 @@ export function AcceptInviteScreen({ initialCode = "" }: AcceptInviteScreenProps
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    gap: spacing.lg,
-    justifyContent: "center",
-  },
-  header: {
-    gap: spacing.sm,
-  },
-  form: {
-    gap: spacing.md,
-  },
-});

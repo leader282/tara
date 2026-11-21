@@ -3,43 +3,44 @@ import { StyleSheet, View } from "react-native";
 import { AppText } from "@/components/ui";
 import { PRESENCE_PULSE_OPTIONS } from "@/features/presence/constants";
 import type { PresencePulseType } from "@/features/presence/types";
-import { colors, radii, spacing } from "@/theme/tokens";
+import { radii } from "@/theme/tokens";
 
 type PulseTypeIconProps = {
   type: PresencePulseType;
-  compact?: boolean;
+  size?: number;
+  surface?: boolean;
 };
 
-function formatIconText(type: PresencePulseType): string {
-  const rawIcon = PRESENCE_PULSE_OPTIONS[type].iconText ?? "pulse";
-  return rawIcon.length <= 4 ? rawIcon.toUpperCase() : rawIcon.slice(0, 4).toUpperCase();
-}
+export function PulseTypeIcon({ type, size = 40, surface = false }: PulseTypeIconProps) {
+  const option = PRESENCE_PULSE_OPTIONS[type];
 
-export function PulseTypeIcon({ type, compact = false }: PulseTypeIconProps) {
   return (
-    <View style={[styles.container, compact ? styles.containerCompact : null]}>
-      <AppText color="primary" variant="caption">
-        {formatIconText(type)}
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={[
+        styles.badge,
+        {
+          backgroundColor: surface ? "#FFFFFF" : option.tint,
+          height: size,
+          width: size,
+        },
+      ]}
+    >
+      <AppText
+        maxFontSizeMultiplier={1}
+        style={{ fontSize: Math.round(size * 0.5), lineHeight: Math.round(size * 0.64) }}
+      >
+        {option.emoji}
       </AppText>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  badge: {
     alignItems: "center",
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.border,
     borderRadius: radii.pill,
-    borderWidth: StyleSheet.hairlineWidth,
     justifyContent: "center",
-    minHeight: 24,
-    minWidth: 44,
-    paddingHorizontal: spacing.sm,
-  },
-  containerCompact: {
-    minHeight: 20,
-    minWidth: 36,
-    paddingHorizontal: spacing.xs,
   },
 });

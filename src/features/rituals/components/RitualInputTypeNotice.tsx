@@ -1,8 +1,5 @@
-import { StyleSheet, View } from "react-native";
-
-import { AppText } from "@/components/ui";
+import { InlineMessage } from "@/components/ui";
 import type { RitualInputType } from "@/features/rituals/types";
-import { colors, radii, spacing } from "@/theme/tokens";
 
 type RitualInputTypeNoticeProps = {
   inputType: RitualInputType;
@@ -21,21 +18,5 @@ function getInputTypeNotice(inputType: RitualInputType): string {
 }
 
 export function RitualInputTypeNotice({ inputType }: RitualInputTypeNoticeProps) {
-  return (
-    <View style={styles.notice}>
-      <AppText color="textSecondary" variant="caption">
-        {getInputTypeNotice(inputType)}
-      </AppText>
-    </View>
-  );
+  return <InlineMessage icon="images-outline" message={getInputTypeNotice(inputType)} tone="info" />;
 }
-
-const styles = StyleSheet.create({
-  notice: {
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: spacing.md,
-  },
-});

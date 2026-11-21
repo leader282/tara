@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import { StyleSheet } from "react-native";
 
 import { useRouter } from "expo-router";
 
-import { ErrorState, LoadingState, Screen } from "@/components/ui";
+import { useGoBack } from "@/components/navigation/useGoBack";
+import { type BadgeTone, ErrorState, LoadingState, Screen } from "@/components/ui";
 import { useAccountDeletionRequest } from "@/features/account/hooks/useAccountDeletionRequest";
 import { useCancelAccountDeletionRequest } from "@/features/account/hooks/useCancelAccountDeletionRequest";
 import { useDataExportRequest } from "@/features/account/hooks/useDataExportRequest";
@@ -15,18 +15,20 @@ import { DataExportRequestCard } from "@/features/account/components/DataExportR
 import { DeleteAccountRequestCard } from "@/features/account/components/DeleteAccountRequestCard";
 import { UnpairConfirmationCard } from "@/features/account/components/UnpairConfirmationCard";
 import { formatDateTime } from "@/lib/dates/format";
-import { spacing } from "@/theme/tokens";
 
-function toCoupleStatusLabel(status: "none" | "waiting" | "paired"): string {
+function toCoupleStatusPresentation(status: "none" | "waiting" | "paired"): {
+  label: string;
+  tone: BadgeTone;
+} {
   switch (status) {
     case "paired":
-      return "Paired";
+      return { label: "Paired", tone: "success" };
     case "waiting":
-      return "Waiting for partner";
+      return { label: "Waiting for partner", tone: "warning" };
     case "none":
-      return "Not paired";
+      return { label: "Not paired", tone: "neutral" };
     default:
-      return "Unknown";
+      return { label: "Unknown", tone: "neutral" };
   }
 }
 
@@ -45,6 +47,7 @@ function formatTimestamp(value: string | null): string | null {
 
 export function AccountSafetyScreen() {
   const router = useRouter();
+  const goBack = useGoBack("/(settings)");
   const { user } = useAuth();
   const activeCoupleState = useActiveCoupleState();
   const leaveCoupleMutation = useLeaveCouple();
@@ -54,9 +57,8 @@ export function AccountSafetyScreen() {
 
   const latestDataExportRequest = dataExport.requests[0] ?? null;
   const coupleStatus =
-    activeCoupleState.state.status === "loading"
-      ? "none"
-      : activeCoupleState.state.status;
+    activeCoupleState.state.status === "loading" ? "none" : activeCoupleState.state.status;
+  const coupleStatusPresentation = toCoupleStatusPresentation(coupleStatus);
 
   const statusDetails = useMemo(() => {
     const lines: string[] = [];
@@ -86,7 +88,7 @@ export function AccountSafetyScreen() {
 
   if (!user?.id) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered onBack={goBack}>
         <ErrorState
           message="Please sign in to access account safety settings."
           title="Sign-in required"
@@ -103,19 +105,32 @@ export function AccountSafetyScreen() {
 
   if (isLoading) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered onBack={goBack}>
         <LoadingState label="Loading account safety settings..." />
       </Screen>
     );
   }
 
   return (
-    <Screen contentContainerStyle={styles.content} scroll>
+    <Screen
+      onBack={goBack}
+      scroll
+      subtitle="Careful controls for your account and your shared space."
+      title="Account and safety"
+    >
       <AccountRequestStatusCard
         description="Requests are server-validated and processed in the background."
         details={statusDetails}
-        statusLabel={toCoupleStatusLabel(coupleStatus)}
+        statusLabel={coupleStatusPresentation.label}
+        statusTone={coupleStatusPresentation.tone}
         title="Current account status"
+      />
+
+      <DataExportRequestCard
+        errorMessage={dataExport.requestExportErrorMessage ?? dataExport.requestsErrorMessage}
+        isRequesting={dataExport.isRequestingExport}
+        onRequest={dataExport.requestExport}
+        requests={dataExport.requests}
       />
 
       <UnpairConfirmationCard
@@ -130,13 +145,6 @@ export function AccountSafetyScreen() {
         }}
       />
 
-      <DataExportRequestCard
-        errorMessage={dataExport.requestExportErrorMessage ?? dataExport.requestsErrorMessage}
-        isRequesting={dataExport.isRequestingExport}
-        onRequest={dataExport.requestExport}
-        requests={dataExport.requests}
-      />
-
       <DeleteAccountRequestCard
         cancelErrorMessage={cancelAccountDeletionMutation.friendlyError}
         currentRequest={accountDeletion.currentRequest}
@@ -149,12 +157,3 @@ export function AccountSafetyScreen() {
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    gap: spacing.lg,
-  },
-  loading: {
-    justifyContent: "center",
-  },
-});

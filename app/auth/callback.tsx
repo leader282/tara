@@ -1,9 +1,8 @@
 import * as Linking from "expo-linking";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { StyleSheet } from "react-native";
 
-import { ErrorState, LoadingState, Screen } from "@/components/ui";
+import { GateErrorScreen, GateLoadingScreen } from "@/components/ui";
 import { completeAuthRedirect } from "@/features/auth/api/authApi";
 
 const confirmationErrorMessage =
@@ -47,26 +46,14 @@ export default function AuthCallbackScreen() {
 
   if (errorMessage) {
     return (
-      <Screen contentContainerStyle={styles.centered}>
-        <ErrorState
-          message={errorMessage}
-          onRetry={() => router.replace("/(auth)/sign-in")}
-          retryLabel="Back to sign in"
-          title="Email confirmation failed"
-        />
-      </Screen>
+      <GateErrorScreen
+        message={errorMessage}
+        onRetry={() => router.replace("/(auth)/sign-in")}
+        retryLabel="Back to sign in"
+        title="Email confirmation failed"
+      />
     );
   }
 
-  return (
-    <Screen contentContainerStyle={styles.centered}>
-      <LoadingState label="Confirming your email..." />
-    </Screen>
-  );
+  return <GateLoadingScreen label="Confirming your email..." />;
 }
-
-const styles = StyleSheet.create({
-  centered: {
-    justifyContent: "center",
-  },
-});

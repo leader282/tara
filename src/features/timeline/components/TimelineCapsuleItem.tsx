@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
 
-import { AppText } from "@/components/ui";
+import { TimelineMetaLine } from "@/features/timeline/components/TimelineMetaLine";
 import type { TimelineDisplayItem } from "@/features/timeline/types";
 import { formatTimelineDateTime } from "@/lib/dates/format";
 import { spacing } from "@/theme/tokens";
@@ -14,8 +14,6 @@ export function TimelineCapsuleItem({ item }: TimelineCapsuleItemProps) {
     return null;
   }
 
-  const hasDetailTarget = Boolean(item.payload.value.capsule_id);
-
   if (item.payload.type === "capsule_created") {
     const unlockLabel = formatTimelineDateTime(item.payload.value.unlock_at);
     const hasNote = item.payload.value.has_note === true;
@@ -23,24 +21,12 @@ export function TimelineCapsuleItem({ item }: TimelineCapsuleItemProps) {
 
     return (
       <View style={styles.container}>
-        <AppText color="textSecondary" variant="caption">
-          {unlockLabel ? `Unlocks ${unlockLabel}.` : "Saved to open later."}
-        </AppText>
-        {hasNote ? (
-          <AppText color="textSecondary" variant="caption">
-            Includes a private note.
-          </AppText>
-        ) : null}
-        {hasMedia ? (
-          <AppText color="textSecondary" variant="caption">
-            Includes media.
-          </AppText>
-        ) : null}
-        {hasDetailTarget ? (
-          <AppText color="textSecondary" variant="caption">
-            Tap to open capsule details.
-          </AppText>
-        ) : null}
+        <TimelineMetaLine
+          icon="lock-closed-outline"
+          label={unlockLabel ? `Unlocks ${unlockLabel}.` : "Saved to open later."}
+        />
+        {hasNote ? <TimelineMetaLine icon="document-text-outline" label="Includes a private note." /> : null}
+        {hasMedia ? <TimelineMetaLine icon="image-outline" label="Includes media." /> : null}
       </View>
     );
   }
@@ -50,18 +36,12 @@ export function TimelineCapsuleItem({ item }: TimelineCapsuleItemProps) {
 
   return (
     <View style={styles.container}>
-      <AppText color="textSecondary" variant="caption">
-        {openedLabel ? `Opened ${openedLabel}.` : "A capsule was opened."}
-      </AppText>
+      <TimelineMetaLine
+        icon="mail-open-outline"
+        label={openedLabel ? `Opened ${openedLabel}.` : "A capsule was opened."}
+      />
       {unlockLabel ? (
-        <AppText color="textSecondary" variant="caption">
-          Unlock time was {unlockLabel}.
-        </AppText>
-      ) : null}
-      {hasDetailTarget ? (
-        <AppText color="textSecondary" variant="caption">
-          Tap to open capsule details.
-        </AppText>
+        <TimelineMetaLine icon="time-outline" label={`Unlock time was ${unlockLabel}.`} />
       ) : null}
     </View>
   );

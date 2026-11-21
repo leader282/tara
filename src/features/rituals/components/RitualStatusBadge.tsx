@@ -1,74 +1,24 @@
-import { StyleSheet, View } from "react-native";
-
-import { AppText } from "@/components/ui";
-import { colors, radii, spacing } from "@/theme/tokens";
+import { Badge, type BadgeTone, type IconName } from "@/components/ui";
 
 type RitualStatusBadgeProps = {
   status: string;
 };
 
-function getStatusLabel(status: string): string {
+function getStatusPresentation(status: string): { label: string; tone: BadgeTone; icon: IconName } {
   switch (status) {
     case "completed":
-      return "Completed";
+      return { label: "Completed", tone: "success", icon: "checkmark-circle" };
     case "scheduled":
-      return "Scheduled";
+      return { label: "Scheduled", tone: "neutral", icon: "time-outline" };
     case "skipped":
-      return "Skipped";
+      return { label: "Skipped", tone: "danger", icon: "close-circle" };
     default:
-      return "In progress";
+      return { label: "In progress", tone: "primary", icon: "ellipse" };
   }
-}
-
-function getStatusStyles(status: string) {
-  if (status === "completed") {
-    return {
-      backgroundColor: colors.surfaceMuted,
-      borderColor: colors.success,
-      textColor: "success" as const,
-    };
-  }
-
-  if (status === "skipped") {
-    return {
-      backgroundColor: colors.surfaceMuted,
-      borderColor: colors.danger,
-      textColor: "danger" as const,
-    };
-  }
-
-  return {
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.border,
-    textColor: "textSecondary" as const,
-  };
 }
 
 export function RitualStatusBadge({ status }: RitualStatusBadgeProps) {
-  const statusStyles = getStatusStyles(status);
+  const presentation = getStatusPresentation(status);
 
-  return (
-    <View
-      style={[
-        styles.badge,
-        {
-          backgroundColor: statusStyles.backgroundColor,
-          borderColor: statusStyles.borderColor,
-        },
-      ]}
-    >
-      <AppText color={statusStyles.textColor} variant="caption">
-        {getStatusLabel(status)}
-      </AppText>
-    </View>
-  );
+  return <Badge icon={presentation.icon} label={presentation.label} tone={presentation.tone} />;
 }
-
-const styles = StyleSheet.create({
-  badge: {
-    borderRadius: radii.pill,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-});

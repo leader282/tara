@@ -5,12 +5,14 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Button, Card, Screen, TextField } from "@/components/ui";
+import { useGoBack } from "@/components/navigation/useGoBack";
+import { Button, Card, DateField, InlineMessage, Screen } from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { getActiveCoupleState } from "@/features/couple/api/coupleApi";
 import { InviteErrorMessage } from "@/features/invite/components/InviteErrorMessage";
 import { createCoupleSchema } from "@/features/invite/schemas";
 import { useCreateCoupleWithInvite } from "@/features/invite/hooks/useCreateCoupleWithInvite";
+import { toDateKey } from "@/lib/dates/calendar";
 import { toInviteActionMessage } from "@/lib/errors/inviteErrorMessages";
 import { queryKeys } from "@/lib/query/queryKeys";
 import { spacing } from "@/theme/tokens";
@@ -21,6 +23,7 @@ function isActiveCoupleError(message: string): boolean {
 
 export function CreateCoupleScreen() {
   const router = useRouter();
+  const goBack = useGoBack("/(invite)");
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const createCoupleMutation = useCreateCoupleWithInvite();
@@ -74,45 +77,44 @@ export function CreateCoupleScreen() {
   });
 
   return (
-    <Screen contentContainerStyle={styles.content} scroll>
-      <View style={styles.header}>
-        <AppText variant="title">Create your couple space</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          You can optionally add your anniversary now, or set it later.
-        </AppText>
-      </View>
-
+    <Screen
+      onBack={goBack}
+      scroll
+      subtitle="You can optionally add your anniversary now, or set it later."
+      title="Create your couple space"
+    >
       <Card>
         <View style={styles.form}>
           <Controller
             control={control}
             name="anniversaryDate"
             render={({ field, fieldState }) => (
-              <TextField
+              <DateField
                 accessibilityLabel="Anniversary date"
-                autoCapitalize="none"
-                autoCorrect={false}
+                clearable
                 errorMessage={fieldState.error?.message}
-                keyboardType="numbers-and-punctuation"
                 label="Anniversary date (optional)"
-                onBlur={field.onBlur}
-                onChangeText={field.onChange}
-                placeholder="YYYY-MM-DD"
-                returnKeyType="done"
+                maxDate={toDateKey(new Date())}
+                onChange={field.onChange}
+                placeholder="When did your story begin?"
+                sheetTitle="Your anniversary"
                 value={field.value ?? ""}
               />
             )}
           />
-
-          <AppText color="textSecondary" variant="caption">
-            No one can discover your space publicly. Only your invite code can add a partner.
-          </AppText>
         </View>
       </Card>
+
+      <InlineMessage
+        icon="shield-checkmark-outline"
+        message="No one can discover your space publicly. Only your invite code can add a partner."
+        tone="neutral"
+      />
 
       <InviteErrorMessage message={submitError} />
 
       <Button
+        iconRight="arrow-forward"
         loading={createCoupleMutation.isPending}
         onPress={onSubmit}
         title="Create and continue"
@@ -122,12 +124,6 @@ export function CreateCoupleScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: {
-    gap: spacing.lg,
-  },
-  header: {
-    gap: spacing.sm,
-  },
   form: {
     gap: spacing.md,
   },

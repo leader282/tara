@@ -1,7 +1,7 @@
 import { StyleSheet, View } from "react-native";
 
-import { AppText } from "@/components/ui";
 import { PRESENCE_PULSE_OPTIONS } from "@/features/presence/constants";
+import { TimelineMetaLine } from "@/features/timeline/components/TimelineMetaLine";
 import type { TimelineDisplayItem } from "@/features/timeline/types";
 import { spacing } from "@/theme/tokens";
 
@@ -39,13 +39,12 @@ export function TimelinePresenceItem({ item }: TimelinePresenceItemProps) {
 
   return (
     <View style={styles.container}>
-      <AppText color="textSecondary" variant="caption">
-        {pulseLabel ? `Pulse: ${pulseLabel}.` : "A gentle pulse was shared."}
-      </AppText>
+      <TimelineMetaLine
+        icon="heart-outline"
+        label={pulseLabel ? `Pulse: ${pulseLabel}.` : "A gentle pulse was shared."}
+      />
       {hasOptionalMessage ? (
-        <AppText color="textSecondary" variant="caption">
-          Included a short note.
-        </AppText>
+        <TimelineMetaLine icon="chatbubble-outline" label="Included a short note." />
       ) : null}
     </View>
   );

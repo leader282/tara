@@ -2,16 +2,21 @@ import { type PropsWithChildren, useCallback, useEffect, useRef } from "react";
 
 import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
+import { useRouter } from "expo-router";
 import { Platform } from "react-native";
 
+import { useToast } from "@/components/feedback/ToastProvider";
 import {
   registerPushToken,
   unregisterPushToken,
   upsertNotificationPreferences,
 } from "@/features/notifications/api/notificationsApi";
+import { PARTNER_NOTIFICATION_TYPES } from "@/features/notifications/constants";
 import { useNotificationResponseHandler } from "@/features/notifications/hooks/useNotificationResponseHandler";
+import { toForegroundBanner } from "@/features/notifications/services/foregroundBanner";
 import { getNotificationPermissionStatus } from "@/features/notifications/services/notificationPermissions";
 import { getExpoProjectId, setupAndroidNotificationChannel } from "@/features/notifications/services/notificationToken";
+import { claimPulseAnnouncement } from "@/features/presence/services/pulseAnnouncements";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 
 type NotificationSubscription = {
@@ -44,8 +49,15 @@ function getPlatformForPushRegistration(): "ios" | "android" | null {
 export function NotificationsProvider({ children }: PropsWithChildren) {
   const { isAuthenticated, isInitializing, user } = useAuth();
   const { handleNotificationResponse } = useNotificationResponseHandler();
+  const router = useRouter();
+  const toast = useToast();
   const pendingResponseRef = useRef<Notifications.NotificationResponse | null>(null);
   const canHandleNotificationResponses = !isInitializing && isAuthenticated;
+  const canShowForegroundBannersRef = useRef(canHandleNotificationResponses);
+
+  useEffect(() => {
+    canShowForegroundBannersRef.current = canHandleNotificationResponses;
+  }, [canHandleNotificationResponses]);
 
   const handleNotificationResponseWhenReady = useCallback(
     (response: Notifications.NotificationResponse | null) => {
@@ -81,6 +93,35 @@ export function NotificationsProvider({ children }: PropsWithChildren) {
       // Channel setup failures should not block app startup.
     });
   }, []);
+
+  useEffect(() => {
+    const subscription = Notifications.addNotificationReceivedListener((notification) => {
+      if (!canShowForegroundBannersRef.current) {
+        return;
+      }
+
+      const banner = toForegroundBanner(notification.request.content);
+      if (!banner) {
+        return;
+      }
+
+      if (banner.presenceEventId && !claimPulseAnnouncement(banner.presenceEventId)) {
+        return;
+      }
+
+      const route = banner.route;
+      toast.show({
+        tone: PARTNER_NOTIFICATION_TYPES.includes(banner.type) ? "love" : "info",
+        emoji: banner.emoji ?? undefined,
+        title: banner.title,
+        message: banner.message ?? undefined,
+        actionLabel: route ? "Open" : undefined,
+        onPress: route ? () => router.push(route) : undefined,
+      });
+    });
+
+    return () => subscription.remove();
+  }, [router, toast]);
 
   useEffect(() => {
     if (isInitializing) {
@@ -145,10 +186,6 @@ export function NotificationsProvider({ children }: PropsWithChildren) {
       }
     };
 
-    const receivedSubscription = Notifications.addNotificationReceivedListener(() => {
-      // Intentionally no persistent storage or read-receipt state.
-    });
-
     const responseSubscription =
       Notifications.addNotificationResponseReceivedListener(handleNotificationResponseWhenReady);
 
@@ -173,7 +210,6 @@ export function NotificationsProvider({ children }: PropsWithChildren) {
 
     return () => {
       isMounted = false;
-      receivedSubscription.remove();
       responseSubscription.remove();
       tokenSubscription?.remove();
     };

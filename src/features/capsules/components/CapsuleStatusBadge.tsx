@@ -1,94 +1,32 @@
-import { StyleSheet, View } from "react-native";
-
-import { AppText } from "@/components/ui";
+import { Badge, type BadgeTone, type IconName } from "@/components/ui";
 import type { CapsuleStatus } from "@/features/capsules/types";
-import { colors, radii, spacing } from "@/theme/tokens";
 
 type CapsuleStatusBadgeProps = {
   status: CapsuleStatus;
 };
 
-function getStatusLabel(status: CapsuleStatus): string {
+export function getCapsuleStatusPresentation(status: CapsuleStatus): {
+  label: string;
+  tone: BadgeTone;
+  icon: IconName;
+} {
   switch (status) {
     case "openable":
-      return "Ready to open";
+      return { label: "Ready to open", tone: "primary", icon: "gift" };
     case "opened":
-      return "Opened";
+      return { label: "Opened", tone: "success", icon: "mail-open-outline" };
     case "created_by_me":
-      return "Yours";
+      return { label: "Yours", tone: "info", icon: "lock-closed" };
     case "unavailable":
-      return "Unavailable";
+      return { label: "Unavailable", tone: "danger", icon: "alert-circle" };
     case "locked":
     default:
-      return "Locked";
+      return { label: "Locked", tone: "neutral", icon: "lock-closed" };
   }
-}
-
-function getStatusStyles(status: CapsuleStatus) {
-  if (status === "opened") {
-    return {
-      backgroundColor: colors.surfaceMuted,
-      borderColor: colors.success,
-      textColor: "success" as const,
-    };
-  }
-
-  if (status === "openable") {
-    return {
-      backgroundColor: colors.surfaceMuted,
-      borderColor: colors.primary,
-      textColor: "primary" as const,
-    };
-  }
-
-  if (status === "created_by_me") {
-    return {
-      backgroundColor: colors.surfaceMuted,
-      borderColor: colors.border,
-      textColor: "textPrimary" as const,
-    };
-  }
-
-  if (status === "unavailable") {
-    return {
-      backgroundColor: colors.surfaceMuted,
-      borderColor: colors.danger,
-      textColor: "danger" as const,
-    };
-  }
-
-  return {
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.border,
-    textColor: "textSecondary" as const,
-  };
 }
 
 export function CapsuleStatusBadge({ status }: CapsuleStatusBadgeProps) {
-  const statusStyles = getStatusStyles(status);
+  const presentation = getCapsuleStatusPresentation(status);
 
-  return (
-    <View
-      style={[
-        styles.badge,
-        {
-          backgroundColor: statusStyles.backgroundColor,
-          borderColor: statusStyles.borderColor,
-        },
-      ]}
-    >
-      <AppText color={statusStyles.textColor} variant="caption">
-        {getStatusLabel(status)}
-      </AppText>
-    </View>
-  );
+  return <Badge icon={presentation.icon} label={presentation.label} tone={presentation.tone} />;
 }
-
-const styles = StyleSheet.create({
-  badge: {
-    borderRadius: radii.pill,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
-});

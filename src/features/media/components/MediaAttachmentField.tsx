@@ -136,7 +136,7 @@ export function MediaAttachmentField({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <AppText variant="subtitle">
+        <AppText variant="label">
           {label}
           {required ? " *" : ""}
         </AppText>
@@ -180,6 +180,6 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   header: {
-    gap: spacing.xs,
+    gap: 2,
   },
 });

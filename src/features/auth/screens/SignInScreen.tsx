@@ -1,9 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, type TextInput, View } from "react-native";
 
-import { AppText, Button } from "@/components/ui";
+import { Button, InlineMessage } from "@/components/ui";
 import { AuthFooterLink } from "@/features/auth/components/AuthFooterLink";
 import { AuthScreenLayout } from "@/features/auth/components/AuthScreenLayout";
 import { ControlledTextField } from "@/features/auth/components/ControlledTextField";
@@ -15,6 +15,7 @@ import { spacing } from "@/theme/tokens";
 export function SignInScreen() {
   const { signIn } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const passwordRef = useRef<TextInput>(null);
 
   const { control, handleSubmit, formState } = useForm<SignInInput>({
     defaultValues: {
@@ -55,31 +56,37 @@ export function SignInScreen() {
           control={control}
           keyboardType="email-address"
           label="Email"
+          leftIcon="mail-outline"
           name="email"
+          onSubmitEditing={() => passwordRef.current?.focus()}
           placeholder="you@example.com"
           returnKeyType="next"
+          submitBehavior="submit"
           textContentType="emailAddress"
         />
         <ControlledTextField
           accessibilityLabel="Password"
           autoCapitalize="none"
-          autoCorrect={false}
           autoComplete="password"
+          autoCorrect={false}
           control={control}
           label="Password"
+          leftIcon="lock-closed-outline"
           name="password"
+          onSubmitEditing={() => {
+            if (formState.isValid) {
+              void onSubmit();
+            }
+          }}
           placeholder="Enter your password"
-          returnKeyType="done"
+          ref={passwordRef}
+          returnKeyType="go"
           secureTextEntry
           textContentType="password"
         />
       </View>
 
-      {submitError ? (
-        <AppText color="danger" variant="caption">
-          {submitError}
-        </AppText>
-      ) : null}
+      {submitError ? <InlineMessage message={submitError} tone="danger" /> : null}
 
       <Button
         disabled={!formState.isValid || formState.isSubmitting}

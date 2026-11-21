@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
 
-import { AppText, TextField } from "@/components/ui";
+import { AppText, Icon, TextField } from "@/components/ui";
 import { spacing } from "@/theme/tokens";
 
 type ConfirmationFieldProps = {
@@ -33,19 +33,28 @@ export function ConfirmationField({
         editable={!disabled}
         keyboardType="default"
         label={label}
+        leftIcon="key-outline"
         onChangeText={onChangeText}
         placeholder={confirmationValue}
         value={value}
       />
-      <AppText color={isMatched ? "success" : "textSecondary"} variant="caption">
-        {helperText}
-      </AppText>
+      <View style={styles.helperRow}>
+        {isMatched ? <Icon color="success" name="checkmark-circle" size={14} /> : null}
+        <AppText color={isMatched ? "success" : "textSecondary"} variant="caption">
+          {helperText}
+        </AppText>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    gap: spacing.sm,
+  },
+  helperRow: {
+    alignItems: "center",
+    flexDirection: "row",
     gap: spacing.xs,
   },
 });

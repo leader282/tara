@@ -1,9 +1,13 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { Stack, useNavigationContainerRef } from "expo-router";
+import { useFonts } from "expo-font";
+import { DefaultTheme, Stack, ThemeProvider, useNavigationContainerRef } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
+import * as SystemUI from "expo-system-ui";
 import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { ToastProvider } from "@/components/feedback/ToastProvider";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { AuthProvider } from "@/features/auth/providers/AuthProvider";
 import { NotificationsProvider } from "@/features/notifications/providers/NotificationsProvider";
@@ -19,9 +23,23 @@ import {
   startSupabaseAutoRefresh,
   stopSupabaseAutoRefresh,
 } from "@/lib/supabase/client";
+import { appFonts } from "@/theme/fonts";
 import { colors } from "@/theme/tokens";
 
 initializeSentry();
+SplashScreen.preventAutoHideAsync().catch(() => undefined);
+
+const navigationTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: colors.background,
+    border: colors.border,
+    card: colors.background,
+    primary: colors.primary,
+    text: colors.textPrimary,
+  },
+};
 
 function RootNavigator() {
   const { isAuthenticated, isInitializing } = useAuth();
@@ -31,22 +49,20 @@ function RootNavigator() {
     <Stack
       screenOptions={{
         contentStyle: { backgroundColor: colors.background },
-        headerShadowVisible: false,
-        headerStyle: { backgroundColor: colors.background },
-        headerTintColor: colors.textPrimary,
+        headerShown: false,
       }}
     >
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="auth/callback" options={{ headerShown: false }} />
+      <Stack.Screen name="index" />
+      <Stack.Screen name="auth/callback" />
       <Stack.Protected guard={!isInitializing && !isAuthenticated}>
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)" />
       </Stack.Protected>
       <Stack.Protected guard={!isInitializing && isAuthenticated}>
-        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-        <Stack.Screen name="(invite)" options={{ headerShown: false }} />
-        <Stack.Screen name="(couple)" options={{ headerShown: false }} />
-        <Stack.Screen name="(settings)" options={{ headerShown: false }} />
-        <Stack.Screen name="(protected)" options={{ headerShown: false }} />
+        <Stack.Screen name="(onboarding)" />
+        <Stack.Screen name="(invite)" />
+        <Stack.Screen name="(couple)" />
+        <Stack.Screen name="(settings)" />
+        <Stack.Screen name="(protected)" />
       </Stack.Protected>
     </Stack>
   );
@@ -54,6 +70,8 @@ function RootNavigator() {
 
 function RootLayout() {
   const navigationContainerRef = useNavigationContainerRef();
+  const [fontsLoaded, fontError] = useFonts(appFonts);
+  const isReady = fontsLoaded || Boolean(fontError);
 
   useEffect(() => {
     registerSentryNavigationContainer(navigationContainerRef);
@@ -64,16 +82,34 @@ function RootLayout() {
     return () => stopSupabaseAutoRefresh();
   }, []);
 
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(colors.background).catch(() => undefined);
+  }, []);
+
+  useEffect(() => {
+    if (isReady) {
+      SplashScreen.hideAsync().catch(() => undefined);
+    }
+  }, [isReady]);
+
+  if (!isReady) {
+    return null;
+  }
+
   return (
     <ErrorBoundary>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <AuthProvider>
-            <NotificationsProvider>
-              <StatusBar style="dark" />
-              <RootNavigator />
-            </NotificationsProvider>
-          </AuthProvider>
+          <ThemeProvider value={navigationTheme}>
+            <ToastProvider>
+              <AuthProvider>
+                <NotificationsProvider>
+                  <StatusBar style="dark" />
+                  <RootNavigator />
+                </NotificationsProvider>
+              </AuthProvider>
+            </ToastProvider>
+          </ThemeProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
     </ErrorBoundary>

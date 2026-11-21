@@ -6,6 +6,7 @@
     "scheme": "tara",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "backgroundColor": "#FAF6F3",
     "icon": "./assets/icon.png",
     "plugins": [
       "expo-router",
@@ -13,8 +14,9 @@
         "expo-splash-screen",
         {
           "image": "./assets/splash-icon.png",
+          "imageWidth": 120,
           "resizeMode": "contain",
-          "backgroundColor": "#FFFFFF"
+          "backgroundColor": "#FAF6F3"
         }
       ],
       "expo-secure-store",
@@ -41,7 +43,9 @@
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFFF"
+        "backgroundImage": "./assets/adaptive-icon-background.png",
+        "monochromeImage": "./assets/adaptive-icon-monochrome.png",
+        "backgroundColor": "#8A4A5C"
       }
     },
     "extra": {

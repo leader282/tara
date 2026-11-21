@@ -1,9 +1,17 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Redirect, useRouter } from "expo-router";
-import { useState } from "react";
-import { Share, StyleSheet, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Animated, Share, StyleSheet, View } from "react-native";
 
-import { AppText, Button, EmptyState, ErrorState, LoadingState, Screen } from "@/components/ui";
+import {
+  AppText,
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  Screen,
+} from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useActiveCoupleState } from "@/features/couple/hooks/useActiveCoupleState";
 import { InviteCodeCard } from "@/features/invite/components/InviteCodeCard";
@@ -15,7 +23,7 @@ import {
 import { useActiveInvite } from "@/features/invite/hooks/useActiveInvite";
 import { queryKeys } from "@/lib/query/queryKeys";
 import { buildInviteLink } from "@/lib/sharing/inviteShare";
-import { spacing } from "@/theme/tokens";
+import { colors, radii, spacing } from "@/theme/tokens";
 
 function toShareErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message.toLowerCase().includes("cancelled")) {
@@ -23,6 +31,41 @@ function toShareErrorMessage(error: unknown): string {
   }
 
   return "We couldn't open share options right now. Please try again.";
+}
+
+function WaitingIndicator() {
+  const [pulse] = useState(() => new Animated.Value(0));
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 900, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+
+  return (
+    <View style={styles.waitingRow}>
+      <View style={styles.dotWrap}>
+        <Animated.View
+          style={[
+            styles.dotHalo,
+            {
+              opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.45, 0] }),
+              transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 2.2] }) }],
+            },
+          ]}
+        />
+        <View style={styles.dot} />
+      </View>
+      <AppText color="textSecondary" style={styles.waitingText} variant="bodyMuted">
+        Waiting for your partner to join. Your couple home unlocks the moment they do.
+      </AppText>
+    </View>
+  );
 }
 
 export function InvitePartnerScreen() {
@@ -35,9 +78,19 @@ export function InvitePartnerScreen() {
   const [shareError, setShareError] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
 
+  const refreshCoupleState = () => {
+    if (!user?.id) {
+      return;
+    }
+
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.couple.activeState(user.id),
+    });
+  };
+
   if (isLoading || state.status === "loading") {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered>
         <LoadingState label="Loading your invite..." />
       </Screen>
     );
@@ -45,18 +98,10 @@ export function InvitePartnerScreen() {
 
   if (error) {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered>
         <ErrorState
           message="We couldn't load your invite details right now. Please try again."
-          onRetry={() => {
-            if (!user?.id) {
-              return;
-            }
-
-            void queryClient.invalidateQueries({
-              queryKey: queryKeys.couple.activeState(user.id),
-            });
-          }}
+          onRetry={refreshCoupleState}
           title="Couldn’t load invite"
         />
       </Screen>
@@ -85,8 +130,8 @@ export function InvitePartnerScreen() {
       const inviteLink = buildInviteLink(normalizedCode) ?? undefined;
       const shareMessage = buildInviteMessage(normalizedCode, inviteLink);
       await Share.share({ message: shareMessage });
-    } catch (error) {
-      const friendlyError = toShareErrorMessage(error);
+    } catch (shareFailure) {
+      const friendlyError = toShareErrorMessage(shareFailure);
       setShareError(friendlyError || null);
     } finally {
       setIsSharing(false);
@@ -94,14 +139,11 @@ export function InvitePartnerScreen() {
   };
 
   return (
-    <Screen contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <AppText variant="title">Invite your partner</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          Your couple home unlocks as soon as your partner joins with this invite.
-        </AppText>
-      </View>
-
+    <Screen
+      scroll
+      subtitle="Your couple home unlocks as soon as your partner joins with this invite."
+      title="Invite your partner"
+    >
       {inviteQuery.isLoading && !invite ? <LoadingState label="Checking your active invite..." /> : null}
 
       {invite ? (
@@ -112,25 +154,43 @@ export function InvitePartnerScreen() {
           onSharePress={handleShareInvite}
         />
       ) : (
-        <EmptyState
-          actionLabel="Refresh invite"
-          description="We couldn't find an active invite right now. Try refreshing, then create a new one if needed."
-          onActionPress={() => {
-            if (!waitingCoupleId) {
-              return;
-            }
+        <Card>
+          <EmptyState
+            actionLabel="Refresh invite"
+            actionVariant="outline"
+            description="We couldn't find an active invite right now. Try refreshing, then create a new one if needed."
+            icon="key-outline"
+            onActionPress={() => {
+              if (!waitingCoupleId) {
+                return;
+              }
 
-            void queryClient.invalidateQueries({
-              queryKey: queryKeys.invite.active(waitingCoupleId),
-            });
-          }}
-          title="No active invite yet"
-        />
+              void queryClient.invalidateQueries({
+                queryKey: queryKeys.invite.active(waitingCoupleId),
+              });
+            }}
+            title="No active invite yet"
+          />
+        </Card>
       )}
 
       <InviteErrorMessage message={shareError} />
 
+      <Card variant="muted">
+        <View style={styles.waitingCard}>
+          <WaitingIndicator />
+          <Button
+            icon="refresh"
+            onPress={refreshCoupleState}
+            size="md"
+            title="Check again"
+            variant="outline"
+          />
+        </View>
+      </Card>
+
       <Button
+        icon="settings-outline"
         onPress={() => router.push("/(settings)")}
         title="Open settings"
         variant="ghost"
@@ -140,14 +200,34 @@ export function InvitePartnerScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: {
+  waitingCard: {
     gap: spacing.lg,
-    justifyContent: "center",
   },
-  centered: {
-    justifyContent: "center",
+  waitingRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.md,
   },
-  header: {
-    gap: spacing.sm,
+  dotWrap: {
+    alignItems: "center",
+    height: 20,
+    justifyContent: "center",
+    width: 20,
+  },
+  dotHalo: {
+    backgroundColor: colors.primary,
+    borderRadius: radii.pill,
+    height: 12,
+    position: "absolute",
+    width: 12,
+  },
+  dot: {
+    backgroundColor: colors.primary,
+    borderRadius: radii.pill,
+    height: 10,
+    width: 10,
+  },
+  waitingText: {
+    flex: 1,
   },
 });

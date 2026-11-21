@@ -1,7 +1,8 @@
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Button, Card } from "@/components/ui";
-import { spacing } from "@/theme/tokens";
+import { AppText, Card, Icon } from "@/components/ui";
+import { formatTimeKey } from "@/lib/dates/calendar";
+import { colors, radii, spacing } from "@/theme/tokens";
 
 type QuietHoursSummaryCardProps = {
   quietHoursStart?: string | null;
@@ -34,37 +35,32 @@ export function QuietHoursSummaryCard({
   const hasQuietHoursWindow = Boolean(start && end);
 
   return (
-    <Card>
+    <Card
+      accessibilityLabel="Adjust quiet hours"
+      onPress={onOpenQuietHoursSettings ?? undefined}
+      padding="md"
+    >
       <View style={styles.container}>
-        <View style={styles.copy}>
-          <AppText variant="subtitle">Quiet hours</AppText>
-          <AppText color="textSecondary" variant="bodyMuted">
-            Tara will avoid non-urgent notifications during your rest time.
-          </AppText>
+        <View style={styles.iconWell}>
+          <Icon color="info" name="moon" size={20} />
         </View>
-
-        {hasQuietHoursWindow ? (
-          <AppText variant="body">
-            Current quiet hours: {start} - {end}
+        <View style={styles.copy}>
+          <AppText style={styles.title} variant="label">
+            Quiet hours
           </AppText>
-        ) : (
-          <AppText color="textSecondary" variant="caption">
-            Quiet hours are not configured yet.
+          <AppText color={hasQuietHoursWindow ? "textPrimary" : "textSecondary"} variant="caption">
+            {hasQuietHoursWindow
+              ? `Current quiet hours: ${formatTimeKey(start) ?? start} - ${formatTimeKey(end) ?? end}`
+              : "Quiet hours are not configured yet."}
           </AppText>
-        )}
-
-        {!respectQuietHoursEnabled ? (
-          <AppText color="textSecondary" variant="caption">
-            Respect quiet hours is off in notification preferences right now.
-          </AppText>
-        ) : null}
-
+          {!respectQuietHoursEnabled ? (
+            <AppText color="warning" variant="caption">
+              Respect quiet hours is off in notification preferences right now.
+            </AppText>
+          ) : null}
+        </View>
         {onOpenQuietHoursSettings ? (
-          <Button
-            onPress={onOpenQuietHoursSettings}
-            title="Adjust quiet hours"
-            variant="ghost"
-          />
+          <Icon color="textTertiary" name="chevron-forward" size={18} />
         ) : null}
       </View>
     </Card>
@@ -73,9 +69,24 @@ export function QuietHoursSummaryCard({
 
 const styles = StyleSheet.create({
   container: {
+    alignItems: "center",
+    flexDirection: "row",
     gap: spacing.md,
   },
+  iconWell: {
+    alignItems: "center",
+    backgroundColor: colors.infoSoft,
+    borderRadius: radii.md,
+    height: 44,
+    justifyContent: "center",
+    width: 44,
+  },
   copy: {
-    gap: spacing.xs,
+    flex: 1,
+    gap: 2,
+  },
+  title: {
+    fontSize: 15,
+    lineHeight: 20,
   },
 });

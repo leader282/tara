@@ -1,10 +1,10 @@
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Card } from "@/components/ui";
+import { AppText, Badge, Icon, type IconName } from "@/components/ui";
 import { RitualStatusBadge } from "@/features/rituals/components/RitualStatusBadge";
 import type { CoupleRitual, RitualTemplate } from "@/features/rituals/types";
 import { formatDateOnly } from "@/lib/dates/format";
-import { spacing } from "@/theme/tokens";
+import { colors, gradients, radii, shadows, spacing } from "@/theme/tokens";
 
 type RitualPromptCardProps = {
   coupleRitual: CoupleRitual;
@@ -19,16 +19,16 @@ function formatCategoryLabel(category: string): string {
     .join(" ");
 }
 
-function formatInputTypeLabel(inputType: string): string {
+function getInputTypePresentation(inputType: string): { label: string; icon: IconName } {
   if (inputType === "text_or_photo") {
-    return "Text or photo";
+    return { label: "Words or a photo", icon: "images-outline" };
   }
 
   if (inputType === "photo") {
-    return "Photo";
+    return { label: "A photo", icon: "camera-outline" };
   }
 
-  return "Text";
+  return { label: "A few words", icon: "create-outline" };
 }
 
 export function RitualPromptCard({
@@ -37,70 +37,82 @@ export function RitualPromptCard({
   heading = "Today's ritual",
 }: RitualPromptCardProps) {
   const scheduledDateLabel = formatDateOnly(coupleRitual.scheduled_for);
+  const inputType = getInputTypePresentation(template.input_type);
 
   return (
-    <Card>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <AppText color="textSecondary" variant="caption">
-            {heading}
-          </AppText>
-          <RitualStatusBadge status={coupleRitual.status} />
-        </View>
-
-        <View style={styles.content}>
-          <AppText variant="subtitle">{template.title}</AppText>
-          {template.description ? (
-            <AppText color="textSecondary" variant="bodyMuted">
-              {template.description}
-            </AppText>
-          ) : null}
-          {template.category === "parallel_moment" ? (
-            <AppText color="textSecondary" variant="bodyMuted">
-              A small moment you both answer from where you are.
-            </AppText>
-          ) : null}
-        </View>
-
-        <View style={styles.promptBlock}>
-          <AppText color="textSecondary" variant="caption">
-            Prompt
-          </AppText>
-          <AppText variant="body">{template.prompt}</AppText>
-        </View>
-
-        <View style={styles.meta}>
-          <AppText color="textSecondary" variant="caption">
-            {formatCategoryLabel(template.category)}
-          </AppText>
-          <AppText color="textSecondary" variant="caption">
-            {formatInputTypeLabel(template.input_type)}
-          </AppText>
-          {scheduledDateLabel ? (
-            <AppText color="textSecondary" variant="caption">
-              {scheduledDateLabel}
-            </AppText>
-          ) : null}
-        </View>
+    <View style={styles.card}>
+      <View style={styles.header}>
+        <AppText color="primaryStrong" style={styles.heading} variant="overline">
+          {heading}
+        </AppText>
+        <RitualStatusBadge status={coupleRitual.status} />
       </View>
-    </Card>
+
+      <View style={styles.content}>
+        <AppText variant="headline">{template.title}</AppText>
+        {template.description ? (
+          <AppText color="textSecondary" variant="bodyMuted">
+            {template.description}
+          </AppText>
+        ) : null}
+        {template.category === "parallel_moment" ? (
+          <AppText color="textSecondary" variant="bodyMuted">
+            A small moment you both answer from where you are.
+          </AppText>
+        ) : null}
+      </View>
+
+      <View style={styles.promptBlock}>
+        <Icon color="primary" name="chatbubble-ellipses-outline" size={18} />
+        <AppText style={styles.prompt} variant="subtitle">
+          {template.prompt}
+        </AppText>
+      </View>
+
+      <View style={styles.meta}>
+        <Badge label={formatCategoryLabel(template.category)} tone="primary" />
+        <Badge icon={inputType.icon} label={inputType.label} />
+        {scheduledDateLabel ? <Badge icon="calendar-outline" label={scheduledDateLabel} /> : null}
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    gap: spacing.md,
+  card: {
+    backgroundColor: colors.surface,
+    borderColor: colors.border,
+    borderRadius: radii.xl,
+    borderWidth: StyleSheet.hairlineWidth,
+    experimental_backgroundImage: gradients.dawn,
+    gap: spacing.lg,
+    padding: 20,
+    ...shadows.card,
   },
   header: {
     alignItems: "center",
     flexDirection: "row",
+    gap: spacing.md,
     justifyContent: "space-between",
+  },
+  heading: {
+    flex: 1,
   },
   content: {
     gap: spacing.xs,
   },
   promptBlock: {
-    gap: spacing.xs,
+    alignItems: "flex-start",
+    backgroundColor: "rgba(255, 255, 255, 0.82)",
+    borderRadius: radii.md,
+    flexDirection: "row",
+    gap: spacing.sm,
+    padding: spacing.lg,
+  },
+  prompt: {
+    flex: 1,
+    fontSize: 18,
+    lineHeight: 26,
   },
   meta: {
     flexDirection: "row",

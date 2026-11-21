@@ -2,12 +2,17 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Button, Card, Screen } from "@/components/ui";
+import { AppText, Button, Card, Icon, InlineMessage, Screen } from "@/components/ui";
 import { OnboardingProgress } from "@/features/onboarding/components/OnboardingProgress";
+import { ONBOARDING_TOTAL_STEPS } from "@/features/onboarding/components/OnboardingHeader";
 import { useCompleteOnboarding } from "@/features/onboarding/hooks/useCompleteOnboarding";
-import { spacing } from "@/theme/tokens";
+import { colors, radii, spacing } from "@/theme/tokens";
 
-const TOTAL_STEPS = 4;
+const READY_ITEMS = [
+  "Your display profile basics",
+  "Your emotional tone preferences",
+  "Your quiet-hours defaults",
+];
 
 function toFriendlySubmitError(): string {
   return "We couldn't finish onboarding right now. Please try again.";
@@ -29,38 +34,43 @@ export function OnboardingCompleteScreen() {
   };
 
   return (
-    <Screen contentContainerStyle={styles.content}>
-      <OnboardingProgress currentStep={4} title="Complete" totalSteps={TOTAL_STEPS} />
+    <Screen contentContainerStyle={styles.content} scroll>
+      <OnboardingProgress currentStep={4} title="Complete" totalSteps={ONBOARDING_TOTAL_STEPS} />
 
-      <View style={styles.header}>
-        <AppText variant="title">You&apos;re all set for now</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
+      <View style={styles.hero}>
+        <View style={styles.emojiWell}>
+          <AppText style={styles.emoji}>🎉</AppText>
+        </View>
+        <AppText accessibilityRole="header" align="center" variant="title">
+          You&apos;re all set for now
+        </AppText>
+        <AppText align="center" color="textSecondary" variant="bodyMuted">
           Your profile and preferences are saved. Couple setup comes next.
         </AppText>
       </View>
 
       <Card>
         <View style={styles.summary}>
-          <AppText variant="subtitle">What&apos;s ready</AppText>
-          <AppText color="textSecondary" variant="bodyMuted">
-            - Your display profile basics
+          <AppText color="textSecondary" variant="overline">
+            What&apos;s ready
           </AppText>
-          <AppText color="textSecondary" variant="bodyMuted">
-            - Your emotional tone preferences
-          </AppText>
-          <AppText color="textSecondary" variant="bodyMuted">
-            - Your quiet-hours defaults
-          </AppText>
+          {READY_ITEMS.map((item) => (
+            <View key={item} style={styles.summaryRow}>
+              <View style={styles.check}>
+                <Icon color="success" name="checkmark" size={14} />
+              </View>
+              <AppText style={styles.summaryText} variant="body">
+                {item}
+              </AppText>
+            </View>
+          ))}
         </View>
       </Card>
 
-      {submitError ? (
-        <AppText color="danger" variant="caption">
-          {submitError}
-        </AppText>
-      ) : null}
+      {submitError ? <InlineMessage message={submitError} tone="danger" /> : null}
 
       <Button
+        iconRight="arrow-forward"
         loading={completeOnboardingMutation.isPending}
         onPress={handleComplete}
         title="Continue to Tara"
@@ -71,13 +81,42 @@ export function OnboardingCompleteScreen() {
 
 const styles = StyleSheet.create({
   content: {
-    gap: spacing.lg,
-    justifyContent: "center",
+    gap: spacing.xl,
   },
-  header: {
-    gap: spacing.sm,
+  hero: {
+    alignItems: "center",
+    gap: spacing.md,
+    paddingVertical: spacing.lg,
+  },
+  emojiWell: {
+    alignItems: "center",
+    backgroundColor: colors.primarySoft,
+    borderRadius: radii.pill,
+    height: 88,
+    justifyContent: "center",
+    width: 88,
+  },
+  emoji: {
+    fontSize: 42,
+    lineHeight: 50,
   },
   summary: {
-    gap: spacing.sm,
+    gap: spacing.md,
+  },
+  summaryRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.md,
+  },
+  check: {
+    alignItems: "center",
+    backgroundColor: colors.successSoft,
+    borderRadius: radii.pill,
+    height: 24,
+    justifyContent: "center",
+    width: 24,
+  },
+  summaryText: {
+    flex: 1,
   },
 });

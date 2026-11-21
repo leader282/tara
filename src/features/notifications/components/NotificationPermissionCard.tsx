@@ -1,8 +1,8 @@
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Button, Card } from "@/components/ui";
+import { AppText, Badge, type BadgeTone, Button, Card, Icon, InlineMessage } from "@/components/ui";
 import type { NotificationPermissionState } from "@/features/notifications/types";
-import { spacing } from "@/theme/tokens";
+import { colors, radii, spacing } from "@/theme/tokens";
 
 type NotificationPermissionCardProps = {
   status: NotificationPermissionState;
@@ -15,16 +15,16 @@ type NotificationPermissionCardProps = {
   successMessage?: string | null;
 };
 
-function toStatusLabel(status: NotificationPermissionState): string {
+function toStatusPresentation(status: NotificationPermissionState): { label: string; tone: BadgeTone } {
   switch (status) {
     case "granted":
-      return "Enabled";
+      return { label: "Enabled", tone: "success" };
     case "provisional":
-      return "Enabled quietly";
+      return { label: "Enabled quietly", tone: "success" };
     case "denied":
-      return "Off";
+      return { label: "Off", tone: "danger" };
     default:
-      return "Not set";
+      return { label: "Not set", tone: "neutral" };
   }
 }
 
@@ -38,54 +38,60 @@ export function NotificationPermissionCard({
   errorMessage = null,
   successMessage = null,
 }: NotificationPermissionCardProps) {
-  const statusLabel = toStatusLabel(status);
+  const statusPresentation = toStatusPresentation(status);
   const showEnableButton = !isGranted && canAskAgain;
   const showSettingsHint = !isGranted && !canAskAgain;
 
   return (
     <Card>
       <View style={styles.container}>
-        <View style={styles.copy}>
-          <AppText variant="subtitle">Notifications are optional</AppText>
-          <AppText color="textSecondary" variant="bodyMuted">
-            Tara can gently nudge you, but private notes, ritual responses, photos, and exact
-            locations are not shown in notification text.
-          </AppText>
-          <AppText color="textSecondary" variant="caption">
-            Status: {statusLabel}
-          </AppText>
+        <View style={styles.header}>
+          <View style={[styles.iconWell, isGranted ? styles.iconWellEnabled : null]}>
+            <Icon
+              color={isGranted ? "success" : "primaryStrong"}
+              name={isGranted ? "notifications" : "notifications-outline"}
+              size={22}
+            />
+          </View>
+          <View style={styles.copy}>
+            <AppText variant="subtitle">Notifications are optional</AppText>
+            <Badge label={`Status: ${statusPresentation.label}`} tone={statusPresentation.tone} />
+          </View>
         </View>
 
+        <AppText color="textSecondary" variant="bodyMuted">
+          When your partner sends a hug or answers a ritual, Tara tells you what they shared. Private
+          notes, ritual responses, photos, and exact locations are never shown in notification text.
+        </AppText>
+
         {isGranted ? (
-          <AppText color="success" variant="caption">
-            {successMessage ?? "Gentle notifications are enabled on this device."}
-          </AppText>
+          <InlineMessage
+            message={successMessage ?? "Gentle notifications are enabled on this device."}
+            tone="success"
+          />
         ) : null}
 
         {showEnableButton ? (
           <Button
+            icon="notifications-outline"
             loading={isEnabling}
             onPress={onEnable}
             title="Enable gentle notifications"
-            variant="secondary"
           />
         ) : null}
 
         {showSettingsHint ? (
-          <AppText color="textSecondary" variant="caption">
-            You can turn this on later in your device settings.
-          </AppText>
+          <InlineMessage
+            message="You can turn this on later in your device settings."
+            tone="neutral"
+          />
         ) : null}
 
         {!isEnabling && !showEnableButton ? (
-          <Button onPress={onRefreshStatus} title="Refresh status" variant="ghost" />
+          <Button icon="refresh" onPress={onRefreshStatus} size="md" title="Refresh status" variant="ghost" />
         ) : null}
 
-        {errorMessage ? (
-          <AppText color="danger" variant="caption">
-            {errorMessage}
-          </AppText>
-        ) : null}
+        {errorMessage ? <InlineMessage message={errorMessage} tone="danger" /> : null}
       </View>
     </Card>
   );
@@ -93,9 +99,26 @@ export function NotificationPermissionCard({
 
 const styles = StyleSheet.create({
   container: {
+    gap: spacing.lg,
+  },
+  header: {
+    alignItems: "center",
+    flexDirection: "row",
     gap: spacing.md,
   },
+  iconWell: {
+    alignItems: "center",
+    backgroundColor: colors.primarySoft,
+    borderRadius: radii.md,
+    height: 48,
+    justifyContent: "center",
+    width: 48,
+  },
+  iconWellEnabled: {
+    backgroundColor: colors.successSoft,
+  },
   copy: {
+    flex: 1,
     gap: spacing.xs,
   },
 });

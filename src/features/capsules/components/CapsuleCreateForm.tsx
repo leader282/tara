@@ -4,12 +4,26 @@ import { Controller, useForm } from "react-hook-form";
 import { StyleSheet, View } from "react-native";
 import { z } from "zod";
 
-import { AppText, Button, Card, TextField } from "@/components/ui";
+import {
+  AppText,
+  Button,
+  Card,
+  DateField,
+  InlineMessage,
+  TextField,
+  TimeField,
+} from "@/components/ui";
 import { MediaAttachmentField } from "@/features/media/components/MediaAttachmentField";
 import type { MediaAsset } from "@/features/media/types";
-import { DEFAULT_CAPSULE_UNLOCK_TIME, CAPSULE_MAX_NOTE_LENGTH } from "@/features/capsules/constants";
+import {
+  CAPSULE_MAX_EMOTIONAL_CONTEXT_LENGTH,
+  CAPSULE_MAX_NOTE_LENGTH,
+  CAPSULE_MAX_TITLE_LENGTH,
+  DEFAULT_CAPSULE_UNLOCK_TIME,
+} from "@/features/capsules/constants";
 import { createCapsuleSchema } from "@/features/capsules/schemas";
 import type { CreateCapsuleInput } from "@/features/capsules/types";
+import { formatTimeKey, toDateKey } from "@/lib/dates/calendar";
 import { spacing } from "@/theme/tokens";
 
 type CapsuleCreateFormValues = z.input<typeof createCapsuleSchema>;
@@ -21,11 +35,8 @@ type CapsuleCreateFormProps = {
   submitError?: string | null;
 };
 
-function getTomorrowDateInputValue(now: Date = new Date()): string {
-  const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
-  return `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, "0")}-${String(
-    tomorrow.getDate()
-  ).padStart(2, "0")}`;
+function getTomorrowDateKey(now: Date = new Date()): string {
+  return toDateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1));
 }
 
 export function CapsuleCreateForm({
@@ -35,7 +46,6 @@ export function CapsuleCreateForm({
   submitError = null,
 }: CapsuleCreateFormProps) {
   const [attachedMediaAsset, setAttachedMediaAsset] = useState<MediaAsset | null>(null);
-  const [noteLength, setNoteLength] = useState(0);
 
   const { control, formState, handleSubmit, setValue } = useForm<
     CapsuleCreateFormValues,
@@ -46,7 +56,7 @@ export function CapsuleCreateForm({
       title: "",
       note: "",
       mediaAssetId: null,
-      unlockDate: getTomorrowDateInputValue(),
+      unlockDate: getTomorrowDateKey(),
       unlockTime: DEFAULT_CAPSULE_UNLOCK_TIME,
       emotionalContext: "",
     },
@@ -61,7 +71,10 @@ export function CapsuleCreateForm({
   return (
     <View style={styles.container}>
       <Card>
-        <View style={styles.form}>
+        <View style={styles.section}>
+          <AppText color="textSecondary" variant="overline">
+            The memory
+          </AppText>
           <Controller
             control={control}
             name="title"
@@ -73,10 +86,10 @@ export function CapsuleCreateForm({
                 editable={!isSubmitting}
                 errorMessage={fieldState.error?.message}
                 label="Title"
-                maxLength={120}
+                maxLength={CAPSULE_MAX_TITLE_LENGTH}
                 onBlur={field.onBlur}
                 onChangeText={field.onChange}
-                placeholder="A short title"
+                placeholder="Our first anniversary"
                 returnKeyType="next"
                 value={field.value ?? ""}
               />
@@ -93,30 +106,23 @@ export function CapsuleCreateForm({
                 autoCorrect
                 editable={!isSubmitting}
                 errorMessage={fieldState.error?.message}
-                label="Note (optional)"
+                label="Note"
                 maxLength={CAPSULE_MAX_NOTE_LENGTH}
                 multiline
                 onBlur={field.onBlur}
-                onChangeText={(nextValue) => {
-                  field.onChange(nextValue);
-                  setNoteLength(nextValue.length);
-                }}
+                onChangeText={field.onChange}
                 placeholder="Write something your future selves will love to read."
+                showCount
                 style={styles.noteInput}
-                textAlignVertical="top"
                 value={field.value ?? ""}
               />
             )}
           />
 
-          <AppText color="textSecondary" variant="caption">
-            {noteLength}/{CAPSULE_MAX_NOTE_LENGTH}
-          </AppText>
-
           <MediaAttachmentField
             disabled={isSubmitting}
-            helperText="Add a private photo if you want this capsule to include media."
-            label="Photo attachment"
+            helperText="Optional. Add a private photo to open together later."
+            label="Photo"
             onChange={(nextMediaAsset) => {
               setAttachedMediaAsset(nextMediaAsset);
               setValue("mediaAssetId", nextMediaAsset?.id ?? null, {
@@ -129,27 +135,28 @@ export function CapsuleCreateForm({
           />
 
           {formState.errors.mediaAssetId?.message ? (
-            <AppText color="danger" variant="caption">
-              {formState.errors.mediaAssetId.message}
-            </AppText>
+            <InlineMessage message={formState.errors.mediaAssetId.message} tone="danger" />
           ) : null}
+        </View>
+      </Card>
 
+      <Card>
+        <View style={styles.section}>
+          <AppText color="textSecondary" variant="overline">
+            When it opens
+          </AppText>
           <Controller
             control={control}
             name="unlockDate"
             render={({ field, fieldState }) => (
-              <TextField
+              <DateField
                 accessibilityLabel="Unlock date"
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!isSubmitting}
+                disabled={isSubmitting}
                 errorMessage={fieldState.error?.message}
-                keyboardType="numbers-and-punctuation"
                 label="Unlock date"
-                onBlur={field.onBlur}
-                onChangeText={field.onChange}
-                placeholder="YYYY-MM-DD"
-                returnKeyType="next"
+                minDate={toDateKey(new Date())}
+                onChange={field.onChange}
+                sheetTitle="Choose an unlock date"
                 value={field.value ?? ""}
               />
             )}
@@ -159,18 +166,16 @@ export function CapsuleCreateForm({
             control={control}
             name="unlockTime"
             render={({ field, fieldState }) => (
-              <TextField
+              <TimeField
                 accessibilityLabel="Unlock time"
-                autoCapitalize="none"
-                autoCorrect={false}
-                editable={!isSubmitting}
+                clearable
+                defaultTime={DEFAULT_CAPSULE_UNLOCK_TIME}
+                disabled={isSubmitting}
                 errorMessage={fieldState.error?.message}
-                keyboardType="numbers-and-punctuation"
+                helperText={`Leave empty to open at ${formatTimeKey(DEFAULT_CAPSULE_UNLOCK_TIME)}.`}
                 label="Unlock time (optional)"
-                onBlur={field.onBlur}
-                onChangeText={field.onChange}
-                placeholder="HH:mm"
-                returnKeyType="next"
+                onChange={field.onChange}
+                sheetTitle="Choose an unlock time"
                 value={field.value ?? ""}
               />
             )}
@@ -186,32 +191,26 @@ export function CapsuleCreateForm({
                 autoCorrect
                 editable={!isSubmitting}
                 errorMessage={fieldState.error?.message}
-                label="Emotional context (optional)"
-                maxLength={240}
+                helperText="Visible to both of you before it opens."
+                label="How this moment feels (optional)"
+                maxLength={CAPSULE_MAX_EMOTIONAL_CONTEXT_LENGTH}
                 onBlur={field.onBlur}
                 onChangeText={field.onChange}
-                placeholder="How this moment feels"
+                placeholder="Excited, nervous, so in love..."
                 returnKeyType="done"
                 value={field.value ?? ""}
               />
             )}
           />
-
-          <AppText color="textSecondary" variant="caption">
-            Leave unlock time blank to use {DEFAULT_CAPSULE_UNLOCK_TIME}.
-          </AppText>
         </View>
       </Card>
 
-      {submitError ? (
-        <AppText color="danger" variant="caption">
-          {submitError}
-        </AppText>
-      ) : null}
+      {submitError ? <InlineMessage message={submitError} tone="danger" /> : null}
 
       <View style={styles.actions}>
         <Button
           disabled={!formState.isValid || isSubmitting}
+          icon="lock-closed"
           loading={isSubmitting}
           onPress={handleSave}
           title="Save capsule"
@@ -226,15 +225,15 @@ export function CapsuleCreateForm({
 
 const styles = StyleSheet.create({
   container: {
-    gap: spacing.md,
+    gap: spacing.lg,
   },
-  form: {
-    gap: spacing.md,
+  section: {
+    gap: spacing.lg,
   },
   noteInput: {
-    minHeight: 160,
+    minHeight: 150,
   },
   actions: {
-    gap: spacing.md,
+    gap: spacing.sm,
   },
 });

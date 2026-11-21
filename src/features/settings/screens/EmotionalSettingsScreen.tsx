@@ -3,10 +3,21 @@ import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Button, Card, ErrorState, LoadingState, Screen } from "@/components/ui";
+import { useToast } from "@/components/feedback/ToastProvider";
+import { useGoBack } from "@/components/navigation/useGoBack";
+import {
+  Button,
+  Card,
+  ErrorState,
+  InlineMessage,
+  LoadingState,
+  Screen,
+  SectionHeader,
+} from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { OnboardingOptionCard } from "@/features/onboarding/components/OnboardingOptionCard";
 import { LoveSignalSelector } from "@/features/onboarding/components/LoveSignalSelector";
+import { OnboardingOptionCard } from "@/features/onboarding/components/OnboardingOptionCard";
+import { EMOTIONAL_TONE_COPY, NOTIFICATION_TONE_COPY } from "@/features/onboarding/constants";
 import {
   SETTINGS_EMOTIONAL_TONES,
   SETTINGS_LOVE_SIGNALS,
@@ -19,50 +30,6 @@ import {
   type EmotionalSettingsFormInput,
 } from "@/features/settings/schemas";
 import { spacing } from "@/theme/tokens";
-
-const emotionalToneCopy: Record<
-  (typeof SETTINGS_EMOTIONAL_TONES)[number],
-  { label: string; description: string }
-> = {
-  soft: {
-    label: "Soft",
-    description: "Gentle and calm check-ins.",
-  },
-  playful: {
-    label: "Playful",
-    description: "Light moments that keep connection warm.",
-  },
-  grounding: {
-    label: "Grounding",
-    description: "Steady support when life feels full.",
-  },
-  romantic: {
-    label: "Romantic",
-    description: "Affection-forward moments when you want them.",
-  },
-  minimal: {
-    label: "Minimal",
-    description: "Simple and low-noise communication.",
-  },
-};
-
-const notificationToneCopy: Record<
-  (typeof SETTINGS_NOTIFICATION_TONES)[number],
-  { label: string; description: string }
-> = {
-  gentle: {
-    label: "Gentle",
-    description: "Warm and calm reminders.",
-  },
-  minimal: {
-    label: "Minimal",
-    description: "Quiet reminders with little interruption.",
-  },
-  playful: {
-    label: "Playful",
-    description: "A little extra spark when it feels right.",
-  },
-};
 
 function isEmotionalTone(
   value: string | null | undefined,
@@ -83,6 +50,8 @@ function isLoveSignal(value: string): value is (typeof SETTINGS_LOVE_SIGNALS)[nu
 }
 
 export function EmotionalSettingsScreen() {
+  const goBack = useGoBack("/(settings)");
+  const toast = useToast();
   const { user } = useAuth();
   const settingsProfileQuery = useSettingsProfile(user?.id);
   const updateSettingsProfileMutation = useUpdateSettingsProfile();
@@ -144,6 +113,13 @@ export function EmotionalSettingsScreen() {
         preferredLoveSignals: values.preferredLoveSignals,
         notificationTone: values.notificationTone,
       });
+      reset(values);
+      toast.show({
+        tone: "success",
+        emoji: EMOTIONAL_TONE_COPY[values.emotionalTone].emoji,
+        title: "Emotional preferences saved",
+        message: "Tara will follow your lead.",
+      });
     } catch {
       setSubmitError(
         updateSettingsProfileMutation.friendlyError ??
@@ -154,18 +130,15 @@ export function EmotionalSettingsScreen() {
 
   if (!user?.id) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
-        <ErrorState
-          message="Please sign in to edit emotional preferences."
-          title="Sign-in required"
-        />
+      <Screen centered onBack={goBack}>
+        <ErrorState message="Please sign in to edit emotional preferences." title="Sign-in required" />
       </Screen>
     );
   }
 
   if (settingsProfileQuery.isLoading && !settingsProfileQuery.data) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered onBack={goBack}>
         <LoadingState label="Loading emotional preferences..." />
       </Screen>
     );
@@ -173,7 +146,7 @@ export function EmotionalSettingsScreen() {
 
   if (settingsProfileQuery.error && !settingsProfileQuery.data) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered onBack={goBack}>
         <ErrorState
           message="We couldn't load emotional preferences right now."
           onRetry={() => {
@@ -186,28 +159,27 @@ export function EmotionalSettingsScreen() {
   }
 
   return (
-    <Screen contentContainerStyle={styles.content} scroll>
-      <View style={styles.header}>
-        <AppText variant="title">Emotional preferences</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          Adjust this whenever you want. It should feel supportive, never like a personality test.
-        </AppText>
-      </View>
-
+    <Screen
+      onBack={goBack}
+      scroll
+      subtitle="Adjust this whenever you want. It should feel supportive, never like a personality test."
+      title="Emotional preferences"
+    >
       <Card>
         <View style={styles.section}>
-          <AppText variant="subtitle">Emotional tone</AppText>
+          <SectionHeader title="Emotional tone" />
           <Controller
             control={control}
             name="emotionalTone"
             render={({ field }) => (
               <View style={styles.options}>
                 {SETTINGS_EMOTIONAL_TONES.map((tone) => {
-                  const option = emotionalToneCopy[tone];
+                  const option = EMOTIONAL_TONE_COPY[tone];
                   return (
                     <OnboardingOptionCard
-                      key={tone}
                       description={option.description}
+                      emoji={option.emoji}
+                      key={tone}
                       label={option.label}
                       onPress={() => field.onChange(tone)}
                       selected={field.value === tone}
@@ -222,7 +194,7 @@ export function EmotionalSettingsScreen() {
 
       <Card>
         <View style={styles.section}>
-          <AppText variant="subtitle">Preferred love signals</AppText>
+          <SectionHeader description="Choose as many as you like." title="Preferred love signals" />
           <Controller
             control={control}
             name="preferredLoveSignals"
@@ -239,18 +211,19 @@ export function EmotionalSettingsScreen() {
 
       <Card>
         <View style={styles.section}>
-          <AppText variant="subtitle">Notification tone</AppText>
+          <SectionHeader title="Notification tone" />
           <Controller
             control={control}
             name="notificationTone"
             render={({ field }) => (
               <View style={styles.options}>
                 {SETTINGS_NOTIFICATION_TONES.map((tone) => {
-                  const option = notificationToneCopy[tone];
+                  const option = NOTIFICATION_TONE_COPY[tone];
                   return (
                     <OnboardingOptionCard
-                      key={tone}
                       description={option.description}
+                      emoji={option.emoji}
+                      key={tone}
                       label={option.label}
                       onPress={() => field.onChange(tone)}
                       selected={field.value === tone}
@@ -263,20 +236,13 @@ export function EmotionalSettingsScreen() {
         </View>
       </Card>
 
-      {submitError ? (
-        <AppText color="danger" variant="caption">
-          {submitError}
-        </AppText>
-      ) : null}
-
-      {updateSettingsProfileMutation.isSuccess ? (
-        <AppText color="success" variant="caption">
-          Emotional preferences saved.
-        </AppText>
-      ) : null}
+      {submitError ? <InlineMessage message={submitError} tone="danger" /> : null}
 
       <Button
-        disabled={!isValid || updateSettingsProfileMutation.isPending}
+        disabled={
+          !isDirty || !isValid || updateSettingsProfileMutation.isPending
+        }
+        icon="checkmark"
         loading={updateSettingsProfileMutation.isPending}
         onPress={onSubmit}
         title="Save emotional preferences"
@@ -286,17 +252,8 @@ export function EmotionalSettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: {
-    gap: spacing.lg,
-  },
-  loading: {
-    justifyContent: "center",
-  },
-  header: {
-    gap: spacing.sm,
-  },
   section: {
-    gap: spacing.md,
+    gap: spacing.lg,
   },
   options: {
     gap: spacing.sm,

@@ -1,4 +1,4 @@
-import { AppText } from "@/components/ui";
+import { InlineMessage } from "@/components/ui";
 
 type InviteErrorMessageProps = {
   message?: string | null;
@@ -9,9 +9,5 @@ export function InviteErrorMessage({ message }: InviteErrorMessageProps) {
     return null;
   }
 
-  return (
-    <AppText color="danger" variant="caption">
-      {message}
-    </AppText>
-  );
+  return <InlineMessage message={message} tone="danger" />;
 }

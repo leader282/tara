@@ -1,22 +1,31 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, type TextInput, View } from "react-native";
 
-import { AppText, Button, Card, ErrorState, LoadingState, Screen, TextField } from "@/components/ui";
+import {
+  Button,
+  Card,
+  DateField,
+  ErrorState,
+  InlineMessage,
+  LoadingState,
+  Screen,
+  TextField,
+} from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { OnboardingProgress } from "@/features/onboarding/components/OnboardingProgress";
+import { OnboardingHeader } from "@/features/onboarding/components/OnboardingHeader";
 import {
   profileSetupSchema,
   type ProfileSetupInput,
 } from "@/features/onboarding/schemas";
+import { TimezoneField } from "@/features/profile/components/TimezoneField";
 import { useCurrentProfile } from "@/features/profile/hooks/useCurrentProfile";
 import { useUpdateProfile } from "@/features/profile/hooks/useUpdateProfile";
+import { toDateKey } from "@/lib/dates/calendar";
 import { getDeviceTimeZone } from "@/lib/dates/timezone";
 import { spacing } from "@/theme/tokens";
-
-const TOTAL_STEPS = 4;
 
 function toFriendlySubmitError(): string {
   return "We couldn't save your profile yet. Please try again in a moment.";
@@ -29,6 +38,7 @@ export function ProfileSetupScreen() {
   const updateProfileMutation = useUpdateProfile();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const fallbackTimeZone = useMemo(() => getDeviceTimeZone(), []);
+  const countryRef = useRef<TextInput>(null);
 
   const { control, handleSubmit, formState, reset } = useForm<ProfileSetupInput>({
     defaultValues: {
@@ -85,33 +95,28 @@ export function ProfileSetupScreen() {
 
   if (!user?.id) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
-        <ErrorState
-          message="Please sign in to continue your onboarding."
-          title="Sign-in required"
-        />
+      <Screen centered>
+        <ErrorState message="Please sign in to continue your onboarding." title="Sign-in required" />
       </Screen>
     );
   }
 
   if (profileQuery.isLoading && !profileQuery.data) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered>
         <LoadingState label="Loading your profile..." />
       </Screen>
     );
   }
 
   return (
-    <Screen contentContainerStyle={styles.content} scroll>
-      <OnboardingProgress currentStep={1} title="Profile" totalSteps={TOTAL_STEPS} />
-
-      <View style={styles.header}>
-        <AppText variant="title">Let&apos;s set up your side of Tara</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          Keep this simple for now. You can update details anytime.
-        </AppText>
-      </View>
+    <Screen scroll>
+      <OnboardingHeader
+        step={1}
+        stepTitle="Profile"
+        subtitle="Keep this simple for now. You can update details anytime."
+        title="Let's set up your side of Tara"
+      />
 
       <Card>
         <View style={styles.form}>
@@ -125,6 +130,7 @@ export function ProfileSetupScreen() {
                 autoCorrect={false}
                 errorMessage={fieldState.error?.message}
                 label="Display name"
+                leftIcon="person-outline"
                 onBlur={field.onBlur}
                 onChangeText={field.onChange}
                 placeholder="How your partner sees your name"
@@ -139,74 +145,74 @@ export function ProfileSetupScreen() {
             control={control}
             name="timezone"
             render={({ field, fieldState }) => (
-              <TextField
-                accessibilityLabel="Timezone"
-                autoCapitalize="none"
-                autoCorrect={false}
+              <TimezoneField
                 errorMessage={fieldState.error?.message}
-                label="Timezone"
                 onBlur={field.onBlur}
-                onChangeText={field.onChange}
-                placeholder="Asia/Kolkata"
-                returnKeyType="next"
+                onChange={field.onChange}
                 value={field.value ?? ""}
               />
             )}
           />
 
-          <Controller
-            control={control}
-            name="city"
-            render={({ field, fieldState }) => (
-              <TextField
-                accessibilityLabel="City"
-                autoCapitalize="words"
-                autoCorrect={false}
-                errorMessage={fieldState.error?.message}
-                label="City (optional)"
-                onBlur={field.onBlur}
-                onChangeText={field.onChange}
-                placeholder="Mumbai"
-                returnKeyType="next"
-                value={field.value ?? ""}
-              />
-            )}
-          />
+          <View style={styles.row}>
+            <Controller
+              control={control}
+              name="city"
+              render={({ field, fieldState }) => (
+                <TextField
+                  accessibilityLabel="City"
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  containerStyle={styles.rowField}
+                  errorMessage={fieldState.error?.message}
+                  label="City (optional)"
+                  onBlur={field.onBlur}
+                  onChangeText={field.onChange}
+                  onSubmitEditing={() => countryRef.current?.focus()}
+                  placeholder="Mumbai"
+                  returnKeyType="next"
+                  submitBehavior="submit"
+                  value={field.value ?? ""}
+                />
+              )}
+            />
 
-          <Controller
-            control={control}
-            name="country"
-            render={({ field, fieldState }) => (
-              <TextField
-                accessibilityLabel="Country"
-                autoCapitalize="words"
-                autoCorrect={false}
-                errorMessage={fieldState.error?.message}
-                label="Country (optional)"
-                onBlur={field.onBlur}
-                onChangeText={field.onChange}
-                placeholder="India"
-                returnKeyType="next"
-                value={field.value ?? ""}
-              />
-            )}
-          />
+            <Controller
+              control={control}
+              name="country"
+              render={({ field, fieldState }) => (
+                <TextField
+                  accessibilityLabel="Country"
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  containerStyle={styles.rowField}
+                  errorMessage={fieldState.error?.message}
+                  label="Country (optional)"
+                  onBlur={field.onBlur}
+                  onChangeText={field.onChange}
+                  placeholder="India"
+                  ref={countryRef}
+                  returnKeyType="done"
+                  value={field.value ?? ""}
+                />
+              )}
+            />
+          </View>
 
           <Controller
             control={control}
             name="birthday"
             render={({ field, fieldState }) => (
-              <TextField
+              <DateField
                 accessibilityLabel="Birthday"
-                autoCapitalize="none"
-                autoCorrect={false}
+                clearable
                 errorMessage={fieldState.error?.message}
-                keyboardType="numbers-and-punctuation"
+                helperText="Only your partner can see this."
                 label="Birthday (optional)"
-                onBlur={field.onBlur}
-                onChangeText={field.onChange}
-                placeholder="YYYY-MM-DD"
-                returnKeyType="done"
+                maxDate={toDateKey(new Date())}
+                onChange={field.onChange}
+                placeholder="Add your birthday"
+                sheetTitle="Your birthday"
                 value={field.value ?? ""}
               />
             )}
@@ -215,19 +221,17 @@ export function ProfileSetupScreen() {
       </Card>
 
       {profileQuery.error ? (
-        <AppText color="textSecondary" variant="caption">
-          We couldn&apos;t load existing profile details, but you can still continue.
-        </AppText>
+        <InlineMessage
+          message="We couldn't load existing profile details, but you can still continue."
+          tone="warning"
+        />
       ) : null}
 
-      {submitError ? (
-        <AppText color="danger" variant="caption">
-          {submitError}
-        </AppText>
-      ) : null}
+      {submitError ? <InlineMessage message={submitError} tone="danger" /> : null}
 
       <Button
         disabled={!isValid || updateProfileMutation.isPending}
+        iconRight="arrow-forward"
         loading={updateProfileMutation.isPending}
         onPress={onSubmit}
         title="Continue"
@@ -237,16 +241,14 @@ export function ProfileSetupScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: {
+  form: {
     gap: spacing.lg,
   },
-  loading: {
-    justifyContent: "center",
-  },
-  header: {
-    gap: spacing.sm,
-  },
-  form: {
+  row: {
+    flexDirection: "row",
     gap: spacing.md,
+  },
+  rowField: {
+    flex: 1,
   },
 });

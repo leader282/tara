@@ -10,11 +10,11 @@ import {
   type ViewStyle,
 } from "react-native";
 
-import { ErrorState, LoadingState } from "@/components/ui";
+import { AppText, Button, Icon } from "@/components/ui";
 import { useMediaAsset } from "@/features/media/hooks/useMediaAsset";
 import { useSignedMediaUrl } from "@/features/media/hooks/useSignedMediaUrl";
 import type { MediaAsset } from "@/features/media/types";
-import { colors } from "@/theme/tokens";
+import { colors, spacing } from "@/theme/tokens";
 
 type PrivateImageProps = {
   mediaAsset?: Pick<MediaAsset, "storage_path"> | null;
@@ -26,6 +26,35 @@ type PrivateImageProps = {
   containerStyle?: StyleProp<ViewStyle>;
   loadingLabel?: string;
 };
+
+type PlaceholderProps = {
+  containerStyle?: StyleProp<ViewStyle>;
+  message: string;
+  isLoading?: boolean;
+  onRetry?: () => void;
+};
+
+function ImagePlaceholder({ containerStyle, message, isLoading = false, onRetry }: PlaceholderProps) {
+  return (
+    <View
+      accessibilityLabel={message}
+      accessibilityRole={isLoading ? "progressbar" : undefined}
+      style={[styles.placeholder, containerStyle]}
+    >
+      {isLoading ? (
+        <ActivityIndicator color={colors.primary} size="small" />
+      ) : (
+        <Icon color="textTertiary" name="image-outline" size={26} />
+      )}
+      <AppText align="center" color="textSecondary" variant="caption">
+        {message}
+      </AppText>
+      {onRetry ? (
+        <Button icon="refresh" onPress={onRetry} size="sm" title="Try again" variant="outline" />
+      ) : null}
+    </View>
+  );
+}
 
 export function PrivateImage({
   mediaAsset,
@@ -49,58 +78,44 @@ export function PrivateImage({
   const failedToRenderImage = Boolean(signedUrl && failedUrl === signedUrl);
 
   if (!hasPathFromProps && mediaAssetId && mediaAssetQuery.isLoading) {
-    return (
-      <View style={containerStyle}>
-        <LoadingState label={loadingLabel} />
-      </View>
-    );
+    return <ImagePlaceholder containerStyle={containerStyle} isLoading message={loadingLabel} />;
   }
 
   if (!hasPathFromProps && mediaAssetId && mediaAssetQuery.isError) {
     return (
-      <View style={containerStyle}>
-        <ErrorState
-          message={mediaAssetQuery.friendlyError ?? "We could not load this private photo."}
-          onRetry={() => {
-            void mediaAssetQuery.refetch();
-          }}
-          title="Couldn't load photo"
-        />
-      </View>
+      <ImagePlaceholder
+        containerStyle={containerStyle}
+        message={mediaAssetQuery.friendlyError ?? "We could not load this private photo."}
+        onRetry={() => {
+          void mediaAssetQuery.refetch();
+        }}
+      />
     );
   }
 
   if (!resolvedStoragePath) {
     return (
-      <View style={containerStyle}>
-        <ErrorState
-          message="This private photo is unavailable right now."
-          title="Photo unavailable"
-        />
-      </View>
+      <ImagePlaceholder
+        containerStyle={containerStyle}
+        message="This private photo is unavailable right now."
+      />
     );
   }
 
   if (signedUrlQuery.isLoading && !signedUrlQuery.data) {
-    return (
-      <View style={containerStyle}>
-        <LoadingState label={loadingLabel} />
-      </View>
-    );
+    return <ImagePlaceholder containerStyle={containerStyle} isLoading message={loadingLabel} />;
   }
 
   if (signedUrlQuery.isError || !signedUrlQuery.data || failedToRenderImage) {
     return (
-      <View style={containerStyle}>
-        <ErrorState
-          message={signedUrlQuery.friendlyError ?? "We could not load this private photo."}
-          onRetry={() => {
-            setFailedUrl(null);
-            void signedUrlQuery.refetch();
-          }}
-          title="Couldn't load photo"
-        />
-      </View>
+      <ImagePlaceholder
+        containerStyle={containerStyle}
+        message={signedUrlQuery.friendlyError ?? "We could not load this private photo."}
+        onRetry={() => {
+          setFailedUrl(null);
+          void signedUrlQuery.refetch();
+        }}
+      />
     );
   }
 
@@ -133,6 +148,14 @@ const styles = StyleSheet.create({
   image: {
     height: "100%",
     width: "100%",
+  },
+  placeholder: {
+    alignItems: "center",
+    backgroundColor: colors.surfaceMuted,
+    gap: spacing.sm,
+    justifyContent: "center",
+    minHeight: 160,
+    padding: spacing.lg,
   },
   refreshOverlay: {
     alignItems: "center",

@@ -1,15 +1,29 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { Redirect, useRouter } from "expo-router";
+import { Redirect } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Alert, StyleSheet, View } from "react-native";
 
-import { AppText, Button, Card, ErrorState, LoadingState, Screen, TextField } from "@/components/ui";
+import { useToast } from "@/components/feedback/ToastProvider";
+import { useGoBack } from "@/components/navigation/useGoBack";
+import {
+  Button,
+  Card,
+  DateField,
+  ErrorState,
+  InlineMessage,
+  LoadingState,
+  Screen,
+  TextField,
+  TimeField,
+} from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useCoupleHome } from "@/features/couple/hooks/useCoupleHome";
 import { useUpdateNextMeetup } from "@/features/couple/hooks/useUpdateNextMeetup";
 import { editMeetupSchema } from "@/features/couple/schemas";
+import { toDateKey } from "@/lib/dates/calendar";
+import { getCountdownParts } from "@/lib/dates/countdown";
 import { parseMeetupDateTimeFromFields } from "@/lib/dates/format";
 import { queryKeys } from "@/lib/query/queryKeys";
 import { spacing } from "@/theme/tokens";
@@ -21,12 +35,6 @@ type MeetupFormValues = {
   clearMeetup: boolean;
 };
 
-function formatDateInputValue(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
-    date.getDate()
-  ).padStart(2, "0")}`;
-}
-
 function formatTimeInputValue(date: Date): string {
   return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
@@ -35,30 +43,26 @@ function toMeetupFormValues(
   nextMeetupAt: string | null,
   nextMeetupLocation: string | null
 ): MeetupFormValues {
+  const emptyValues = {
+    meetupDate: "",
+    meetupTime: "",
+    meetupLocation: nextMeetupLocation ?? "",
+    clearMeetup: false,
+  };
+
   if (!nextMeetupAt) {
-    return {
-      meetupDate: "",
-      meetupTime: "",
-      meetupLocation: nextMeetupLocation ?? "",
-      clearMeetup: false,
-    };
+    return emptyValues;
   }
 
   const parsedDate = new Date(nextMeetupAt);
   if (Number.isNaN(parsedDate.getTime())) {
-    return {
-      meetupDate: "",
-      meetupTime: "",
-      meetupLocation: nextMeetupLocation ?? "",
-      clearMeetup: false,
-    };
+    return emptyValues;
   }
 
   return {
-    meetupDate: formatDateInputValue(parsedDate),
+    ...emptyValues,
+    meetupDate: toDateKey(parsedDate),
     meetupTime: formatTimeInputValue(parsedDate),
-    meetupLocation: nextMeetupLocation ?? "",
-    clearMeetup: false,
   };
 }
 
@@ -67,20 +71,31 @@ function normalizeOptionalLocation(value: string | null | undefined): string | n
   return trimmed && trimmed.length > 0 ? trimmed : null;
 }
 
+function describeCountdown(nextMeetupAt: string): string {
+  const countdown = getCountdownParts(new Date(nextMeetupAt));
+
+  switch (countdown.status) {
+    case "today":
+      return "You reunite today.";
+    case "tomorrow":
+      return "You'll be together tomorrow.";
+    case "upcoming":
+      return `${countdown.daysRemaining} days until you're together.`;
+    default:
+      return "Your countdown is set.";
+  }
+}
+
 export function EditMeetupScreen() {
-  const router = useRouter();
+  const goBack = useGoBack("/(couple)");
   const queryClient = useQueryClient();
+  const toast = useToast();
   const { user } = useAuth();
   const coupleHome = useCoupleHome();
   const updateNextMeetupMutation = useUpdateNextMeetup();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const {
-    control,
-    handleSubmit,
-    formState,
-    reset,
-  } = useForm({
+  const { control, handleSubmit, formState, reset } = useForm({
     defaultValues: {
       meetupDate: "",
       meetupTime: "",
@@ -147,7 +162,15 @@ export function EditMeetupScreen() {
         nextMeetupLocation: normalizeOptionalLocation(values.meetupLocation),
       });
       await invalidateCoupleHome();
-      router.replace("/(couple)");
+      toast.show({
+        tone: "success",
+        emoji: "✈️",
+        title: "Reunion saved",
+        message: nextMeetupAt
+          ? `${describeCountdown(nextMeetupAt)} ${pairedData.partnerProfile.display_name} will see it too.`
+          : `${pairedData.partnerProfile.display_name} will see it too.`,
+      });
+      goBack();
     } catch {
       // Friendly backend messages are exposed by the mutation hook.
     }
@@ -166,7 +189,13 @@ export function EditMeetupScreen() {
         nextMeetupLocation: null,
       });
       await invalidateCoupleHome();
-      router.replace("/(couple)");
+      toast.show({
+        tone: "info",
+        icon: "calendar-clear-outline",
+        title: "Reunion cleared",
+        message: "Set a new date whenever you're ready.",
+      });
+      goBack();
     } catch {
       // Friendly backend messages are exposed by the mutation hook.
     }
@@ -191,7 +220,7 @@ export function EditMeetupScreen() {
 
   if (coupleHome.isLoading || coupleHome.state.status === "loading") {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered onBack={goBack}>
         <LoadingState label="Loading meetup details..." />
       </Screen>
     );
@@ -199,7 +228,7 @@ export function EditMeetupScreen() {
 
   if (coupleHome.error) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered onBack={goBack}>
         <ErrorState
           message={coupleHome.friendlyError ?? "We couldn't load your reunion details right now."}
           onRetry={handleRetry}
@@ -219,7 +248,7 @@ export function EditMeetupScreen() {
 
   if (coupleHome.state.status === "invariant_error") {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered onBack={goBack}>
         <ErrorState
           message="Your couple setup needs attention before editing meetup details."
           onRetry={handleRetry}
@@ -230,32 +259,25 @@ export function EditMeetupScreen() {
   }
 
   return (
-    <Screen contentContainerStyle={styles.content} scroll>
-      <View style={styles.header}>
-        <AppText variant="title">Edit next meetup</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          Save a reunion date with optional time. Keep location details broad, like a city or place
-          name.
-        </AppText>
-      </View>
-
+    <Screen
+      onBack={goBack}
+      scroll
+      subtitle="Save the day you'll be together again. You'll both see the countdown."
+      title="Plan your reunion"
+    >
       <Card>
         <View style={styles.form}>
           <Controller
             control={control}
             name="meetupDate"
             render={({ field, fieldState }) => (
-              <TextField
+              <DateField
                 accessibilityLabel="Meetup date"
-                autoCapitalize="none"
-                autoCorrect={false}
                 errorMessage={fieldState.error?.message}
-                keyboardType="numbers-and-punctuation"
                 label="Meetup date"
-                onBlur={field.onBlur}
-                onChangeText={field.onChange}
-                placeholder="YYYY-MM-DD"
-                returnKeyType="next"
+                minDate={toDateKey(new Date())}
+                onChange={field.onChange}
+                sheetTitle="When will you be together?"
                 value={field.value ?? ""}
               />
             )}
@@ -265,17 +287,14 @@ export function EditMeetupScreen() {
             control={control}
             name="meetupTime"
             render={({ field, fieldState }) => (
-              <TextField
+              <TimeField
                 accessibilityLabel="Meetup time"
-                autoCapitalize="none"
-                autoCorrect={false}
+                clearable
+                defaultTime="12:00"
                 errorMessage={fieldState.error?.message}
-                keyboardType="numbers-and-punctuation"
                 label="Meetup time (optional)"
-                onBlur={field.onBlur}
-                onChangeText={field.onChange}
-                placeholder="HH:mm"
-                returnKeyType="next"
+                onChange={field.onChange}
+                sheetTitle="What time?"
                 value={field.value ?? ""}
               />
             )}
@@ -290,7 +309,9 @@ export function EditMeetupScreen() {
                 autoCapitalize="words"
                 autoCorrect={false}
                 errorMessage={fieldState.error?.message}
+                helperText="Use only a city or place name. Do not enter an exact address."
                 label="Meetup location (optional)"
+                leftIcon="location-outline"
                 maxLength={160}
                 onBlur={field.onBlur}
                 onChangeText={field.onChange}
@@ -300,22 +321,15 @@ export function EditMeetupScreen() {
               />
             )}
           />
-
-          <AppText color="textSecondary" variant="caption">
-            Use only a city or place name. Do not enter an exact address.
-          </AppText>
         </View>
       </Card>
 
-      {formErrorMessage ? (
-        <AppText color="danger" variant="caption">
-          {formErrorMessage}
-        </AppText>
-      ) : null}
+      {formErrorMessage ? <InlineMessage message={formErrorMessage} tone="danger" /> : null}
 
       <View style={styles.actions}>
         <Button
           disabled={!isValid || updateNextMeetupMutation.isPending}
+          icon="checkmark"
           loading={updateNextMeetupMutation.isPending}
           onPress={onSubmit}
           title="Save meetup"
@@ -323,14 +337,15 @@ export function EditMeetupScreen() {
         {hasExistingMeetup ? (
           <Button
             disabled={updateNextMeetupMutation.isPending}
+            icon="trash-outline"
             onPress={handleClearMeetup}
             title="Clear meetup"
-            variant="secondary"
+            variant="dangerSoft"
           />
         ) : null}
         <Button
           disabled={updateNextMeetupMutation.isPending}
-          onPress={() => router.replace("/(couple)")}
+          onPress={goBack}
           title="Cancel"
           variant="ghost"
         />
@@ -340,19 +355,10 @@ export function EditMeetupScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: {
+  form: {
     gap: spacing.lg,
   },
-  loading: {
-    justifyContent: "center",
-  },
-  header: {
-    gap: spacing.sm,
-  },
-  form: {
-    gap: spacing.md,
-  },
   actions: {
-    gap: spacing.md,
+    gap: spacing.sm,
   },
 });

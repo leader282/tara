@@ -2,18 +2,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { StyleSheet, View } from "react-native";
 
-import { AppText, Button, Card, ErrorState, LoadingState, Screen } from "@/components/ui";
+import { Button, Card, ErrorState, InlineMessage, LoadingState, Screen } from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
-import { OnboardingProgress } from "@/features/onboarding/components/OnboardingProgress";
+import { OnboardingHeader } from "@/features/onboarding/components/OnboardingHeader";
 import { QuietHoursFields } from "@/features/onboarding/components/QuietHoursFields";
 import { quietHoursSchema, type QuietHoursInput } from "@/features/onboarding/schemas";
 import { useUserSettings } from "@/features/profile/hooks/useUserSettings";
 import { useUpdateUserSettings } from "@/features/profile/hooks/useUpdateUserSettings";
-import { spacing } from "@/theme/tokens";
-
-const TOTAL_STEPS = 4;
 
 function toHHmm(value: string | null): string {
   if (!value) {
@@ -88,33 +84,28 @@ export function QuietHoursScreen() {
 
   if (!user?.id) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
-        <ErrorState
-          message="Please sign in to continue your onboarding."
-          title="Sign-in required"
-        />
+      <Screen centered>
+        <ErrorState message="Please sign in to continue your onboarding." title="Sign-in required" />
       </Screen>
     );
   }
 
   if (userSettingsQuery.isLoading && !userSettingsQuery.data) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered>
         <LoadingState label="Loading quiet hours..." />
       </Screen>
     );
   }
 
   return (
-    <Screen contentContainerStyle={styles.content} scroll>
-      <OnboardingProgress currentStep={3} title="Quiet hours" totalSteps={TOTAL_STEPS} />
-
-      <View style={styles.header}>
-        <AppText variant="title">Choose your quiet hours</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          Tara should respect your rest. We&apos;ll keep your connection gentle.
-        </AppText>
-      </View>
+    <Screen onBack={() => router.back()} scroll>
+      <OnboardingHeader
+        step={3}
+        stepTitle="Quiet hours"
+        subtitle="Tara should respect your rest. We'll keep your connection gentle."
+        title="Choose your quiet hours"
+      />
 
       <Card>
         <Controller
@@ -145,20 +136,24 @@ export function QuietHoursScreen() {
         />
       </Card>
 
+      <InlineMessage
+        icon="moon-outline"
+        message="During quiet hours, gentle updates wait until you're awake."
+        tone="neutral"
+      />
+
       {userSettingsQuery.error ? (
-        <AppText color="textSecondary" variant="caption">
-          We couldn&apos;t load previous quiet hours, but you can set them now.
-        </AppText>
+        <InlineMessage
+          message="We couldn't load previous quiet hours, but you can set them now."
+          tone="warning"
+        />
       ) : null}
 
-      {submitError ? (
-        <AppText color="danger" variant="caption">
-          {submitError}
-        </AppText>
-      ) : null}
+      {submitError ? <InlineMessage message={submitError} tone="danger" /> : null}
 
       <Button
         disabled={!isValid || updateUserSettingsMutation.isPending}
+        iconRight="arrow-forward"
         loading={updateUserSettingsMutation.isPending}
         onPress={onSubmit}
         title="Continue"
@@ -166,15 +161,3 @@ export function QuietHoursScreen() {
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    gap: spacing.lg,
-  },
-  loading: {
-    justifyContent: "center",
-  },
-  header: {
-    gap: spacing.sm,
-  },
-});

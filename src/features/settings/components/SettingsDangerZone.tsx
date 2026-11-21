@@ -1,31 +1,38 @@
 import { type PropsWithChildren } from "react";
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Card } from "@/components/ui";
-import { colors, spacing } from "@/theme/tokens";
+import { AppText, Card, Icon, type IconName } from "@/components/ui";
+import { colors, radii, spacing } from "@/theme/tokens";
 
 type SettingsDangerZoneProps = PropsWithChildren<{
   title?: string;
   description?: string;
+  icon?: IconName;
 }>;
 
 export function SettingsDangerZone({
   title = "Sensitive actions",
   description,
+  icon = "warning-outline",
   children,
 }: SettingsDangerZoneProps) {
   return (
-    <Card>
+    <Card style={styles.card}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <AppText color="danger" variant="subtitle">
-            {title}
-          </AppText>
-          {description ? (
-            <AppText color="textSecondary" variant="bodyMuted">
-              {description}
+          <View style={styles.iconWell}>
+            <Icon color="danger" name={icon} size={20} />
+          </View>
+          <View style={styles.headerCopy}>
+            <AppText color="danger" variant="subtitle">
+              {title}
             </AppText>
-          ) : null}
+            {description ? (
+              <AppText color="textSecondary" variant="bodyMuted">
+                {description}
+              </AppText>
+            ) : null}
+          </View>
         </View>
         <View style={styles.content}>{children}</View>
       </View>
@@ -34,16 +41,30 @@ export function SettingsDangerZone({
 }
 
 const styles = StyleSheet.create({
+  card: {
+    borderColor: "#F2D3CE",
+  },
   container: {
-    gap: spacing.md,
+    gap: spacing.lg,
   },
   header: {
-    borderColor: colors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: spacing.md,
+  },
+  iconWell: {
+    alignItems: "center",
+    backgroundColor: colors.dangerSoft,
+    borderRadius: radii.md,
+    height: 40,
+    justifyContent: "center",
+    width: 40,
+  },
+  headerCopy: {
+    flex: 1,
     gap: spacing.xs,
-    paddingBottom: spacing.sm,
   },
   content: {
-    gap: spacing.sm,
+    gap: spacing.md,
   },
 });

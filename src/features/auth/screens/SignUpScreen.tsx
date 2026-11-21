@@ -1,16 +1,16 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, type TextInput, View } from "react-native";
 
-import { AppText, Button } from "@/components/ui";
+import { Button, InlineMessage } from "@/components/ui";
 import { AuthFooterLink } from "@/features/auth/components/AuthFooterLink";
 import { AuthScreenLayout } from "@/features/auth/components/AuthScreenLayout";
 import { ControlledTextField } from "@/features/auth/components/ControlledTextField";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { signUpSchema, type SignUpInput } from "@/features/auth/schemas";
 import { toAuthActionMessage } from "@/lib/errors/authErrorMessages";
-import { colors, radii, spacing } from "@/theme/tokens";
+import { spacing } from "@/theme/tokens";
 
 const checkEmailMessage =
   "Check your email to confirm your account. After confirmation, sign in to continue.";
@@ -19,6 +19,8 @@ export function SignUpScreen() {
   const { signUp } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const passwordRef = useRef<TextInput>(null);
+  const confirmPasswordRef = useRef<TextInput>(null);
 
   const { control, handleSubmit, reset, formState } = useForm<SignUpInput>({
     defaultValues: {
@@ -59,7 +61,7 @@ export function SignUpScreen() {
           prompt="Already have an account?"
         />
       }
-      subtitle="Create your account for Tara."
+      subtitle="Create your account for Tara. It only takes a minute."
       title="Create your account"
     >
       <View style={styles.fields}>
@@ -71,9 +73,12 @@ export function SignUpScreen() {
           control={control}
           keyboardType="email-address"
           label="Email"
+          leftIcon="mail-outline"
           name="email"
+          onSubmitEditing={() => passwordRef.current?.focus()}
           placeholder="you@example.com"
           returnKeyType="next"
+          submitBehavior="submit"
           textContentType="emailAddress"
         />
         <ControlledTextField
@@ -82,11 +87,16 @@ export function SignUpScreen() {
           autoComplete="new-password"
           autoCorrect={false}
           control={control}
+          helperText="At least 8 characters."
           label="Password"
+          leftIcon="lock-closed-outline"
           name="password"
-          placeholder="At least 8 characters"
+          onSubmitEditing={() => confirmPasswordRef.current?.focus()}
+          placeholder="Create a password"
+          ref={passwordRef}
           returnKeyType="next"
           secureTextEntry
+          submitBehavior="submit"
           textContentType="newPassword"
         />
         <ControlledTextField
@@ -95,27 +105,24 @@ export function SignUpScreen() {
           autoCorrect={false}
           control={control}
           label="Confirm password"
+          leftIcon="shield-checkmark-outline"
           name="confirmPassword"
+          onSubmitEditing={() => {
+            if (formState.isValid) {
+              void onSubmit();
+            }
+          }}
           placeholder="Re-enter your password"
-          returnKeyType="done"
+          ref={confirmPasswordRef}
+          returnKeyType="go"
           secureTextEntry
           textContentType="password"
         />
       </View>
 
-      {notice ? (
-        <View style={styles.notice}>
-          <AppText color="success" variant="caption">
-            {notice}
-          </AppText>
-        </View>
-      ) : null}
+      {notice ? <InlineMessage message={notice} title="Almost there" tone="success" /> : null}
 
-      {submitError ? (
-        <AppText color="danger" variant="caption">
-          {submitError}
-        </AppText>
-      ) : null}
+      {submitError ? <InlineMessage message={submitError} tone="danger" /> : null}
 
       <Button
         disabled={!formState.isValid || formState.isSubmitting}
@@ -130,12 +137,5 @@ export function SignUpScreen() {
 const styles = StyleSheet.create({
   fields: {
     gap: spacing.lg,
-  },
-  notice: {
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.success,
-    borderRadius: radii.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: spacing.md,
   },
 });

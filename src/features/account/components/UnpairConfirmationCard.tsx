@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { StyleSheet, View } from "react-native";
 
-import { AppText, Button } from "@/components/ui";
+import { Button, InlineMessage } from "@/components/ui";
+import { ConsequenceList } from "@/features/account/components/ConsequenceList";
 import { LEAVE_COUPLE_CONFIRMATION } from "@/features/account/constants";
 import { SettingsDangerZone } from "@/features/settings/components/SettingsDangerZone";
 import { ConfirmationField } from "@/features/settings/components/ConfirmationField";
-import { spacing } from "@/theme/tokens";
 
 type UnpairConfirmationCardProps = {
   isPaired: boolean;
@@ -27,22 +26,17 @@ export function UnpairConfirmationCard({
   return (
     <SettingsDangerZone
       description="Unpairing archives your shared couple space and removes active access for both partners."
+      icon="heart-dislike-outline"
       title="Unpair from couple"
     >
-      <View style={styles.consequences}>
-        <AppText color="textSecondary" variant="caption">
-          - Shared couple space will be archived.
-        </AppText>
-        <AppText color="textSecondary" variant="caption">
-          - Both partners lose active access in MVP.
-        </AppText>
-        <AppText color="textSecondary" variant="caption">
-          - Historical records are not immediately deleted.
-        </AppText>
-        <AppText color="textSecondary" variant="caption">
-          - Export and deletion workflows are separate.
-        </AppText>
-      </View>
+      <ConsequenceList
+        items={[
+          "Shared couple space will be archived.",
+          "Both partners lose active access in MVP.",
+          "Historical records are not immediately deleted.",
+          "Export and deletion workflows are separate.",
+        ]}
+      />
 
       <ConfirmationField
         confirmationValue={LEAVE_COUPLE_CONFIRMATION}
@@ -55,20 +49,12 @@ export function UnpairConfirmationCard({
         value={confirmation}
       />
 
-      {errorMessage ? (
-        <AppText color="danger" variant="caption">
-          {errorMessage}
-        </AppText>
-      ) : null}
-
-      {successMessage ? (
-        <AppText color="success" variant="caption">
-          {successMessage}
-        </AppText>
-      ) : null}
+      {errorMessage ? <InlineMessage message={errorMessage} tone="danger" /> : null}
+      {successMessage ? <InlineMessage message={successMessage} tone="success" /> : null}
 
       <Button
         disabled={!isPaired || !isConfirmationMatched || isSubmitting}
+        icon="heart-dislike-outline"
         loading={isSubmitting}
         onPress={() => {
           const submit = async () => {
@@ -89,9 +75,3 @@ export function UnpairConfirmationCard({
     </SettingsDangerZone>
   );
 }
-
-const styles = StyleSheet.create({
-  consequences: {
-    gap: spacing.xs,
-  },
-});

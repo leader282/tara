@@ -17,8 +17,8 @@ export function AuthFooterLink({ prompt, linkLabel, href }: AuthFooterLinkProps)
         {prompt}
       </AppText>
       <Link asChild href={href}>
-        <Pressable accessibilityRole="link">
-          <AppText color="primary" variant="body">
+        <Pressable accessibilityRole="link" hitSlop={10} style={({ pressed }) => [pressed ? styles.pressed : null]}>
+          <AppText color="primary" variant="label">
             {linkLabel}
           </AppText>
         </Pressable>
@@ -31,7 +31,10 @@ const styles = StyleSheet.create({
   container: {
     alignItems: "center",
     flexDirection: "row",
-    gap: spacing.sm,
+    gap: spacing.xs,
     justifyContent: "center",
+  },
+  pressed: {
+    opacity: 0.6,
   },
 });

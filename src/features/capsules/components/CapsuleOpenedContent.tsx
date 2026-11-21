@@ -1,6 +1,7 @@
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Button, Card } from "@/components/ui";
+import { AppText, Button, Card, EmptyState } from "@/components/ui";
+import { CapsuleHero } from "@/features/capsules/components/CapsuleHero";
 import { PrivateImage } from "@/features/media/components/PrivateImage";
 import type { MemoryCapsule, MemoryCapsuleContent } from "@/features/capsules/types";
 import { formatUnlockDateTime } from "@/lib/dates/format";
@@ -24,63 +25,72 @@ export function CapsuleOpenedContent({
   const mediaAssetId = content?.media_asset_id ?? null;
   const hasVisibleContent = Boolean(normalizedNote || mediaAssetId);
 
-  if (!hasVisibleContent) {
-    return (
-      <Card>
-        <View style={styles.container}>
-          <AppText variant="subtitle">Memory content</AppText>
-          <AppText color="textSecondary" variant="bodyMuted">
-            We opened this capsule, but its content has not loaded yet.
-          </AppText>
-          <AppText color="textSecondary" variant="caption">
-            Opened {openedLabel}
-          </AppText>
+  return (
+    <View style={styles.container}>
+      <CapsuleHero capsule={capsule} emoji="💌" />
+
+      {hasVisibleContent ? (
+        <Card>
+          <View style={styles.content}>
+            <AppText color="textSecondary" variant="overline">
+              Memory content
+            </AppText>
+            {normalizedNote ? (
+              <AppText style={styles.note} variant="body">
+                {normalizedNote}
+              </AppText>
+            ) : null}
+            {mediaAssetId ? (
+              <PrivateImage
+                accessibilityLabel="Capsule photo"
+                containerStyle={styles.media}
+                mediaAssetId={mediaAssetId}
+              />
+            ) : null}
+            <AppText color="textTertiary" variant="caption">
+              Opened {openedLabel}
+            </AppText>
+          </View>
+        </Card>
+      ) : (
+        <Card>
+          <EmptyState
+            compact
+            description="We opened this capsule, but its content has not loaded yet."
+            icon="cloud-offline-outline"
+            title="Memory content"
+          />
           {onRetry ? (
             <Button
               disabled={isRefreshing}
+              icon="refresh"
               loading={isRefreshing}
               onPress={onRetry}
+              size="md"
               title="Try again"
-              variant="secondary"
+              variant="outline"
             />
           ) : null}
-        </View>
-      </Card>
-    );
-  }
-
-  return (
-    <Card>
-      <View style={styles.container}>
-        <AppText variant="subtitle">Memory content</AppText>
-        {normalizedNote ? <AppText variant="body">{normalizedNote}</AppText> : null}
-        {mediaAssetId ? (
-          <PrivateImage
-            accessibilityLabel="Capsule photo"
-            containerStyle={styles.media}
-            mediaAssetId={mediaAssetId}
-          />
-        ) : null}
-        {capsule.emotional_context ? (
-          <AppText color="textSecondary" variant="bodyMuted">
-            {capsule.emotional_context}
-          </AppText>
-        ) : null}
-        <AppText color="textSecondary" variant="caption">
-          Opened {openedLabel}
-        </AppText>
-      </View>
-    </Card>
+        </Card>
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    gap: spacing.sm,
+    gap: spacing.lg,
+  },
+  content: {
+    gap: spacing.md,
+  },
+  note: {
+    fontSize: 17,
+    lineHeight: 27,
   },
   media: {
     aspectRatio: 4 / 3,
-    borderRadius: radii.sm,
+    borderRadius: radii.md,
     overflow: "hidden",
     width: "100%",
   },

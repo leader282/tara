@@ -1,23 +1,25 @@
 import { useState } from "react";
-import { StyleSheet, View } from "react-native";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 
-import { AppText, EmptyState, ErrorState, LoadingState, Screen } from "@/components/ui";
+import { useToast } from "@/components/feedback/ToastProvider";
+import { useGoBack } from "@/components/navigation/useGoBack";
+import { EmptyState, ErrorState, LoadingState, Screen } from "@/components/ui";
 import { DEFAULT_CAPSULE_UNLOCK_TIME } from "@/features/capsules/constants";
 import { CapsuleCreateForm } from "@/features/capsules/components/CapsuleCreateForm";
 import { useCreateCapsule } from "@/features/capsules/hooks/useCreateCapsule";
 import type { CreateCapsuleInput } from "@/features/capsules/types";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useCoupleHome } from "@/features/couple/hooks/useCoupleHome";
-import { parseDateTimeFromFields } from "@/lib/dates/format";
+import { formatUnlockDateTime, parseDateTimeFromFields } from "@/lib/dates/format";
 import { queryKeys } from "@/lib/query/queryKeys";
-import { spacing } from "@/theme/tokens";
 
 export function CreateCapsuleScreen() {
   const router = useRouter();
+  const goBack = useGoBack("/(couple)/capsules");
   const queryClient = useQueryClient();
+  const toast = useToast();
   const { user } = useAuth();
   const coupleHome = useCoupleHome();
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -60,6 +62,14 @@ export function CreateCapsuleScreen() {
     try {
       setSubmitError(null);
       const capsule = await createCapsuleMutation.mutateAsync(values);
+      toast.show({
+        tone: "success",
+        emoji: "🎁",
+        title: "Capsule sealed",
+        message: `It opens ${formatUnlockDateTime(unlockAtIso) ?? "on its day"}. ${
+          pairedData.partnerProfile.display_name
+        } can see it's waiting.`,
+      });
       router.replace({
         pathname: "/(couple)/capsules/[capsuleId]",
         params: { capsuleId: capsule.id },
@@ -69,9 +79,14 @@ export function CreateCapsuleScreen() {
     }
   };
 
+  const screenProps = {
+    backLabel: "Back to capsules",
+    onBack: goBack,
+  };
+
   if (coupleHome.isLoading || coupleHome.state.status === "loading") {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered {...screenProps}>
         <LoadingState label="Loading capsule setup..." />
       </Screen>
     );
@@ -79,7 +94,7 @@ export function CreateCapsuleScreen() {
 
   if (coupleHome.error) {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered {...screenProps}>
         <ErrorState
           message={coupleHome.friendlyError ?? "We couldn't open capsule creation right now."}
           onRetry={handleRetryCoupleHome}
@@ -91,7 +106,7 @@ export function CreateCapsuleScreen() {
 
   if (coupleHome.state.status === "none") {
     return (
-      <Screen contentContainerStyle={styles.content}>
+      <Screen centered {...screenProps}>
         <EmptyState
           actionLabel="Open invite setup"
           description="Pair first to create memory capsules."
@@ -104,7 +119,7 @@ export function CreateCapsuleScreen() {
 
   if (coupleHome.state.status === "waiting") {
     return (
-      <Screen contentContainerStyle={styles.content}>
+      <Screen centered {...screenProps}>
         <EmptyState
           actionLabel="View invite"
           description="Capsules unlock after your partner joins."
@@ -117,7 +132,7 @@ export function CreateCapsuleScreen() {
 
   if (coupleHome.state.status === "invariant_error") {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered {...screenProps}>
         <ErrorState
           message="Your couple setup needs attention before creating capsules."
           onRetry={handleRetryCoupleHome}
@@ -128,35 +143,18 @@ export function CreateCapsuleScreen() {
   }
 
   return (
-    <Screen contentContainerStyle={styles.content} scroll>
-      <View style={styles.header}>
-        <AppText variant="title">Create memory capsule</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          Save a note, photo, or both now and open it together later.
-        </AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          Your partner can see that a capsule exists, but its content stays private until it unlocks.
-        </AppText>
-      </View>
-
+    <Screen
+      {...screenProps}
+      scroll
+      subtitle="Save a note, photo, or both now and open it together later. Your partner can see that a capsule exists, but its content stays private until it unlocks."
+      title="Create memory capsule"
+    >
       <CapsuleCreateForm
         isSubmitting={createCapsuleMutation.isPending}
-        onCancel={() => router.replace("/(couple)/capsules")}
+        onCancel={goBack}
         onSubmit={handleSubmitCapsule}
         submitError={submitError ?? createCapsuleMutation.friendlyError}
       />
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    gap: spacing.lg,
-  },
-  centered: {
-    justifyContent: "center",
-  },
-  header: {
-    gap: spacing.sm,
-  },
-});

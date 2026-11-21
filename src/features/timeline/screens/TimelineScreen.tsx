@@ -46,6 +46,19 @@ function navigateToTimelineTarget(
   }
 }
 
+function TimelineHeader() {
+  return (
+    <View style={styles.titleBlock}>
+      <AppText accessibilityRole="header" variant="title">
+        Your private timeline
+      </AppText>
+      <AppText color="textSecondary" variant="bodyMuted">
+        Small moments you&apos;ve saved together.
+      </AppText>
+    </View>
+  );
+}
+
 export function TimelineScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -86,7 +99,7 @@ export function TimelineScreen() {
 
   if (coupleHome.isLoading || coupleHome.state.status === "loading") {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered edges={["top"]}>
         <LoadingState label="Loading your private timeline..." />
       </Screen>
     );
@@ -94,7 +107,7 @@ export function TimelineScreen() {
 
   if (coupleHome.error) {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered edges={["top"]}>
         <ErrorState
           message={coupleHome.friendlyError ?? "We couldn't open your timeline right now."}
           onRetry={handleRetryCoupleHome}
@@ -106,7 +119,7 @@ export function TimelineScreen() {
 
   if (coupleHome.state.status === "none") {
     return (
-      <Screen contentContainerStyle={styles.content}>
+      <Screen centered edges={["top"]}>
         <EmptyState
           actionLabel="Open invite setup"
           description="Your timeline appears once your couple space is active."
@@ -119,10 +132,11 @@ export function TimelineScreen() {
 
   if (coupleHome.state.status === "waiting") {
     return (
-      <Screen contentContainerStyle={styles.content}>
+      <Screen centered edges={["top"]}>
         <EmptyState
           actionLabel="View invite"
           description="Your timeline unlocks after your partner joins."
+          icon="hourglass-outline"
           onActionPress={() => router.replace("/(invite)/waiting")}
           title="Waiting for your partner"
         />
@@ -132,7 +146,7 @@ export function TimelineScreen() {
 
   if (coupleHome.state.status === "invariant_error") {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered edges={["top"]}>
         <ErrorState
           message="We found an unexpected couple setup issue. Please try again."
           onRetry={handleRetryCoupleHome}
@@ -144,7 +158,7 @@ export function TimelineScreen() {
 
   if (timeline.isLoading && timeline.items.length === 0) {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered edges={["top"]}>
         <LoadingState label="Loading your private timeline..." />
       </Screen>
     );
@@ -152,7 +166,7 @@ export function TimelineScreen() {
 
   if (timeline.error && timeline.items.length === 0) {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered edges={["top"]}>
         <ErrorState
           message={timeline.friendlyError ?? "We couldn't load timeline moments right now."}
           onRetry={handleRefreshTimeline}
@@ -163,42 +177,29 @@ export function TimelineScreen() {
   }
 
   return (
-    <Screen contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <AppText variant="title">Your private timeline</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          Small moments you&apos;ve saved together.
-        </AppText>
-      </View>
-
-      <View style={styles.listContainer}>
-        <TimelineList
-          errorMessage={timeline.items.length > 0 ? timeline.friendlyError : null}
-          hasNextPage={timeline.hasNextPage}
-          isFetchingNextPage={timeline.isFetchingNextPage}
-          isRefreshing={timeline.isRefreshing}
-          items={timeline.items}
-          onItemPress={handleTimelineItemPress}
-          onLoadMore={handleLoadMoreTimeline}
-          onRefresh={handleRefreshTimeline}
-        />
-      </View>
+    <Screen contentContainerStyle={styles.listScreen} edges={["top"]}>
+      <TimelineList
+        errorMessage={timeline.items.length > 0 ? timeline.friendlyError : null}
+        hasNextPage={timeline.hasNextPage}
+        header={<TimelineHeader />}
+        isFetchingNextPage={timeline.isFetchingNextPage}
+        isRefreshing={timeline.isRefreshing}
+        items={timeline.items}
+        onItemPress={handleTimelineItemPress}
+        onLoadMore={handleLoadMoreTimeline}
+        onRefresh={handleRefreshTimeline}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-    gap: spacing.lg,
+  listScreen: {
+    paddingBottom: 0,
+    paddingHorizontal: 0,
+    paddingTop: 0,
   },
-  centered: {
-    justifyContent: "center",
-  },
-  header: {
-    gap: spacing.sm,
-  },
-  listContainer: {
-    flex: 1,
+  titleBlock: {
+    gap: spacing.xs,
   },
 });

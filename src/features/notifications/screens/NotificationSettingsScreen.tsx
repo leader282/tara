@@ -3,7 +3,15 @@ import { StyleSheet, View } from "react-native";
 
 import { useRouter } from "expo-router";
 
-import { AppText, Card, ErrorState, LoadingState, Screen } from "@/components/ui";
+import { useGoBack } from "@/components/navigation/useGoBack";
+import {
+  AppText,
+  ErrorState,
+  InlineMessage,
+  ListGroup,
+  LoadingState,
+  Screen,
+} from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { NotificationPermissionCard } from "@/features/notifications/components/NotificationPermissionCard";
 import { NotificationPreferenceToggle } from "@/features/notifications/components/NotificationPreferenceToggle";
@@ -25,6 +33,7 @@ type PreferenceToggleField =
 
 export function NotificationSettingsScreen() {
   const router = useRouter();
+  const goBack = useGoBack("/(settings)");
   const { user } = useAuth();
   const permissionState = useNotificationPermission();
   const registerPushToken = useRegisterPushToken();
@@ -44,7 +53,7 @@ export function NotificationSettingsScreen() {
 
   if (!user?.id) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered onBack={goBack}>
         <ErrorState
           message="Please sign in to manage notification preferences."
           title="Sign-in required"
@@ -62,10 +71,7 @@ export function NotificationSettingsScreen() {
     }
   };
 
-  const handleUpdatePreference = async (
-    field: PreferenceToggleField,
-    nextValue: boolean,
-  ) => {
+  const handleUpdatePreference = async (field: PreferenceToggleField, nextValue: boolean) => {
     try {
       await notificationPreferences.upsertPreferences({
         [field]: nextValue,
@@ -75,32 +81,24 @@ export function NotificationSettingsScreen() {
     }
   };
 
-  const handleOpenQuietHoursSettings = () => {
-    router.push(QUIET_HOURS_SETTINGS_ROUTE);
-  };
-
   const initialLoading =
-    permissionState.isLoading &&
-    notificationPreferences.isLoading &&
-    !notificationPreferences.data;
+    permissionState.isLoading && notificationPreferences.isLoading && !notificationPreferences.data;
 
   if (initialLoading) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered onBack={goBack}>
         <LoadingState label="Loading notification settings..." />
       </Screen>
     );
   }
 
   return (
-    <Screen contentContainerStyle={styles.content} scroll>
-      <View style={styles.header}>
-        <AppText variant="title">Notification settings</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          Choose what Tara can gently remind you about.
-        </AppText>
-      </View>
-
+    <Screen
+      onBack={goBack}
+      scroll
+      subtitle="Choose what Tara can gently remind you about."
+      title="Notification settings"
+    >
       <NotificationPermissionCard
         canAskAgain={permissionState.canAskAgain}
         errorMessage={registerPushToken.friendlyError ?? permissionState.error}
@@ -116,108 +114,91 @@ export function NotificationSettingsScreen() {
         }
       />
 
-      <Card>
-        <View style={styles.preferenceList}>
-          <View style={styles.preferenceHeader}>
-            <AppText variant="subtitle">Reminders you want</AppText>
-            <AppText color="textSecondary" variant="bodyMuted">
-              You can adjust this anytime.
-            </AppText>
-          </View>
-
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <AppText color="textSecondary" variant="overline">
+            Reminders you want
+          </AppText>
+          <AppText color="textSecondary" variant="caption">
+            You can adjust this anytime.
+          </AppText>
+        </View>
+        <ListGroup>
           <NotificationPreferenceToggle
             accessibilityLabel="Presence pulse notification preference"
-            description="Warm pulse reminders from your couple space."
+            description="Hugs, good mornings, and other pulses from your partner."
             disabled={notificationPreferences.isUpdating}
+            icon="heart-outline"
             label="Presence pulses"
-            onValueChange={(nextValue) =>
-              void handleUpdatePreference("presenceEnabled", nextValue)
-            }
+            onValueChange={(nextValue) => void handleUpdatePreference("presenceEnabled", nextValue)}
             value={preferences.presenceEnabled}
           />
-
           <NotificationPreferenceToggle
             accessibilityLabel="Ritual notification preference"
             description="Today's ritual reminders and reveal updates."
             disabled={notificationPreferences.isUpdating}
+            icon="sparkles-outline"
+            iconTone="warning"
             label="Rituals"
-            onValueChange={(nextValue) =>
-              void handleUpdatePreference("ritualsEnabled", nextValue)
-            }
+            onValueChange={(nextValue) => void handleUpdatePreference("ritualsEnabled", nextValue)}
             value={preferences.ritualsEnabled}
           />
-
           <NotificationPreferenceToggle
             accessibilityLabel="Memory capsule notification preference"
             description="When a memory capsule becomes available to open."
             disabled={notificationPreferences.isUpdating}
+            icon="gift-outline"
             label="Memory capsules"
-            onValueChange={(nextValue) =>
-              void handleUpdatePreference("capsulesEnabled", nextValue)
-            }
+            onValueChange={(nextValue) => void handleUpdatePreference("capsulesEnabled", nextValue)}
             value={preferences.capsulesEnabled}
           />
-
           <NotificationPreferenceToggle
             accessibilityLabel="Countdown reminder preference"
             description="Gentle countdown reminders for reunion plans."
             disabled={notificationPreferences.isUpdating}
+            icon="airplane-outline"
+            iconTone="info"
             label="Countdown reminders"
-            onValueChange={(nextValue) =>
-              void handleUpdatePreference("countdownEnabled", nextValue)
-            }
+            onValueChange={(nextValue) => void handleUpdatePreference("countdownEnabled", nextValue)}
             value={preferences.countdownEnabled}
           />
-
           <NotificationPreferenceToggle
             accessibilityLabel="Respect quiet hours preference"
             description="Delay non-urgent notifications during your quiet hours."
             disabled={notificationPreferences.isUpdating}
+            icon="moon-outline"
+            iconTone="info"
             label="Respect quiet hours"
-            onValueChange={(nextValue) =>
-              void handleUpdatePreference("quietHoursEnabled", nextValue)
-            }
+            onValueChange={(nextValue) => void handleUpdatePreference("quietHoursEnabled", nextValue)}
             value={preferences.quietHoursEnabled}
           />
+        </ListGroup>
 
-          {notificationPreferences.updateError ? (
-            <AppText color="danger" variant="caption">
-              {notificationPreferences.updateError}
-            </AppText>
-          ) : null}
-        </View>
-      </Card>
+        {notificationPreferences.updateError ? (
+          <InlineMessage message={notificationPreferences.updateError} tone="danger" />
+        ) : null}
+      </View>
 
       <QuietHoursSummaryCard
-        onOpenQuietHoursSettings={handleOpenQuietHoursSettings}
+        onOpenQuietHoursSettings={() => router.push(QUIET_HOURS_SETTINGS_ROUTE)}
         quietHoursEnd={userSettings.data?.quiet_hours_end}
         quietHoursStart={userSettings.data?.quiet_hours_start}
         respectQuietHoursEnabled={preferences.quietHoursEnabled}
       />
 
       {userSettings.error ? (
-        <AppText color="textSecondary" variant="caption">
-          We couldn&apos;t load your quiet-hours summary right now.
-        </AppText>
+        <InlineMessage message="We couldn't load your quiet-hours summary right now." tone="warning" />
       ) : null}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  content: {
-    gap: spacing.lg,
-  },
-  loading: {
-    justifyContent: "center",
-  },
-  header: {
+  section: {
     gap: spacing.sm,
   },
-  preferenceList: {
-    gap: spacing.lg,
-  },
-  preferenceHeader: {
-    gap: spacing.xs,
+  sectionHeader: {
+    gap: 2,
+    marginLeft: spacing.xs,
   },
 });

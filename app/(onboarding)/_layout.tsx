@@ -1,20 +1,18 @@
 import { Redirect, Stack } from "expo-router";
-import { StyleSheet } from "react-native";
 
-import { ErrorState, LoadingState, Screen } from "@/components/ui";
+import { GateErrorScreen, GateLoadingScreen } from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useRetryAppGates } from "@/features/couple/hooks/useRetryAppGates";
 import { useOnboardingGate } from "@/features/onboarding/hooks/useOnboardingGate";
+import { colors } from "@/theme/tokens";
 
 export default function OnboardingLayout() {
   const { isAuthenticated } = useAuth();
   const { isLoading, needsOnboarding, error } = useOnboardingGate();
+  const retryGates = useRetryAppGates();
 
   if (isLoading) {
-    return (
-      <Screen contentContainerStyle={styles.loading}>
-        <LoadingState label="Setting up your Tara onboarding..." />
-      </Screen>
-    );
+    return <GateLoadingScreen label="Setting up your Tara onboarding..." />;
   }
 
   if (!isAuthenticated) {
@@ -23,12 +21,11 @@ export default function OnboardingLayout() {
 
   if (error) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
-        <ErrorState
-          message="We couldn't load your onboarding details right now. Please try again."
-          title="Couldn’t open onboarding"
-        />
-      </Screen>
+      <GateErrorScreen
+        message="We couldn't load your onboarding details right now. Please try again."
+        onRetry={retryGates}
+        title="Couldn’t open onboarding"
+      />
     );
   }
 
@@ -36,11 +33,12 @@ export default function OnboardingLayout() {
     return <Redirect href="/" />;
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <Stack
+      screenOptions={{
+        contentStyle: { backgroundColor: colors.background },
+        headerShown: false,
+      }}
+    />
+  );
 }
-
-const styles = StyleSheet.create({
-  loading: {
-    justifyContent: "center",
-  },
-});

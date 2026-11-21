@@ -4,7 +4,7 @@ import { Controller, useForm } from "react-hook-form";
 import { StyleSheet, View } from "react-native";
 import { z } from "zod";
 
-import { AppText, Button, TextField } from "@/components/ui";
+import { AppText, Button, Icon, InlineMessage, TextField } from "@/components/ui";
 import { MediaAttachmentField } from "@/features/media/components/MediaAttachmentField";
 import type { MediaAsset } from "@/features/media/types";
 import { RitualInputTypeNotice } from "@/features/rituals/components/RitualInputTypeNotice";
@@ -75,7 +75,6 @@ export function RitualResponseForm({
   onSubmit,
 }: RitualResponseFormProps) {
   const [attachedMediaAsset, setAttachedMediaAsset] = useState<MediaAsset | null>(null);
-  const [responseLength, setResponseLength] = useState(0);
   const supportsTextResponse = inputType !== "photo";
   const supportsMediaResponse = inputType !== "text";
   const ritualResponseFormSchema = buildRitualResponseFormSchema(inputType);
@@ -102,42 +101,33 @@ export function RitualResponseForm({
       {inputType !== "text" ? <RitualInputTypeNotice inputType={inputType} /> : null}
 
       {supportsTextResponse ? (
-        <>
-          <Controller
-            control={control}
-            name="textResponse"
-            render={({ field, fieldState }) => (
-              <TextField
-                accessibilityLabel="Ritual response"
-                autoCapitalize="sentences"
-                autoCorrect
-                editable={!isSubmitting}
-                errorMessage={fieldState.error?.message}
-                keyboardType="default"
-                label={inputType === "text_or_photo" ? "Your answer (optional)" : "Your answer"}
-                maxLength={MAX_RESPONSE_LENGTH}
-                multiline
-                onBlur={field.onBlur}
-                onChangeText={(nextValue) => {
-                  field.onChange(nextValue);
-                  setResponseLength(nextValue.length);
-                }}
-                placeholder={
-                  inputType === "text_or_photo"
-                    ? "Write a short answer, or add a photo below."
-                    : "Write a short answer..."
-                }
-                style={styles.input}
-                textAlignVertical="top"
-                value={field.value ?? ""}
-              />
-            )}
-          />
-
-          <AppText color="textSecondary" variant="caption">
-            {responseLength}/{MAX_RESPONSE_LENGTH}
-          </AppText>
-        </>
+        <Controller
+          control={control}
+          name="textResponse"
+          render={({ field, fieldState }) => (
+            <TextField
+              accessibilityLabel="Ritual response"
+              autoCapitalize="sentences"
+              autoCorrect
+              editable={!isSubmitting}
+              errorMessage={fieldState.error?.message}
+              keyboardType="default"
+              label={inputType === "text_or_photo" ? "Your answer (optional)" : "Your answer"}
+              maxLength={MAX_RESPONSE_LENGTH}
+              multiline
+              onBlur={field.onBlur}
+              onChangeText={field.onChange}
+              placeholder={
+                inputType === "text_or_photo"
+                  ? "Write a short answer, or add a photo below."
+                  : "Write a short answer..."
+              }
+              showCount
+              style={styles.input}
+              value={field.value ?? ""}
+            />
+          )}
+        />
       ) : null}
 
       {supportsMediaResponse ? (
@@ -163,19 +153,21 @@ export function RitualResponseForm({
       ) : null}
 
       {formState.errors.mediaAssetId?.message ? (
-        <AppText color="danger" variant="caption">
-          {formState.errors.mediaAssetId.message}
-        </AppText>
+        <InlineMessage message={formState.errors.mediaAssetId.message} tone="danger" />
       ) : null}
 
-      {submitError ? (
-        <AppText color="danger" variant="caption">
-          {submitError}
+      {submitError ? <InlineMessage message={submitError} tone="danger" /> : null}
+
+      <View style={styles.privacyRow}>
+        <Icon color="textTertiary" name="lock-closed-outline" size={14} />
+        <AppText color="textTertiary" style={styles.privacyText} variant="caption">
+          Your answer stays hidden until you&apos;ve both answered.
         </AppText>
-      ) : null}
+      </View>
 
       <Button
         disabled={!formState.isValid || isSubmitting}
+        icon="checkmark"
         loading={isSubmitting}
         onPress={handleSave}
         title={inputType === "photo" ? "Save my photo" : "Save my answer"}
@@ -186,9 +178,17 @@ export function RitualResponseForm({
 
 const styles = StyleSheet.create({
   container: {
-    gap: spacing.md,
+    gap: spacing.lg,
   },
   input: {
     minHeight: 120,
+  },
+  privacyRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.xs,
+  },
+  privacyText: {
+    flex: 1,
   },
 });

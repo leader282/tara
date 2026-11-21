@@ -5,6 +5,7 @@ export function TimelineEmptyState() {
     <Card>
       <EmptyState
         description="Pulses, rituals, capsules, and reunions will appear as you use Tara."
+        icon="albums-outline"
         title="Your shared moments will gather here."
       />
     </Card>

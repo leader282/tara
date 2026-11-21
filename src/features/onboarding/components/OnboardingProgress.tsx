@@ -9,15 +9,16 @@ type OnboardingProgressProps = {
   title: string;
 };
 
-export function OnboardingProgress({
-  currentStep,
-  totalSteps,
-  title,
-}: OnboardingProgressProps) {
+export function OnboardingProgress({ currentStep, totalSteps, title }: OnboardingProgressProps) {
   return (
-    <View style={styles.container}>
+    <View
+      accessibilityLabel={`Step ${currentStep} of ${totalSteps}: ${title}`}
+      accessibilityRole="progressbar"
+      accessibilityValue={{ min: 0, max: totalSteps, now: currentStep }}
+      style={styles.container}
+    >
       <View style={styles.metaRow}>
-        <AppText color="textSecondary" variant="caption">
+        <AppText color="primary" variant="overline">
           Step {currentStep} of {totalSteps}
         </AppText>
         <AppText color="textSecondary" variant="caption">
@@ -26,15 +27,12 @@ export function OnboardingProgress({
       </View>
 
       <View style={styles.progressTrack}>
-        {Array.from({ length: totalSteps }, (_, index) => {
-          const isActive = index < currentStep;
-          return (
-            <View
-              key={`onboarding-step-${index + 1}`}
-              style={[styles.progressSegment, isActive ? styles.progressSegmentActive : null]}
-            />
-          );
-        })}
+        {Array.from({ length: totalSteps }, (_, index) => (
+          <View
+            key={`onboarding-step-${index + 1}`}
+            style={[styles.progressSegment, index < currentStep ? styles.progressSegmentActive : null]}
+          />
+        ))}
       </View>
     </View>
   );
@@ -51,13 +49,13 @@ const styles = StyleSheet.create({
   },
   progressTrack: {
     flexDirection: "row",
-    gap: spacing.sm,
+    gap: spacing.xs,
   },
   progressSegment: {
     backgroundColor: colors.border,
     borderRadius: radii.pill,
     flex: 1,
-    height: 6,
+    height: 5,
   },
   progressSegmentActive: {
     backgroundColor: colors.primary,

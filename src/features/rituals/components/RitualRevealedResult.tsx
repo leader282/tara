@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
 
-import { AppText } from "@/components/ui";
+import { AppText, Avatar } from "@/components/ui";
 import { PrivateImage } from "@/features/media/components/PrivateImage";
 import type { RitualCompletion } from "@/features/rituals/types";
 import { formatDateTime } from "@/lib/dates/format";
@@ -31,66 +31,73 @@ function formatCompletionDate(isoDate: string | null | undefined): string | null
   return formatDateTime(parsedDate);
 }
 
+function AnswerBubble({
+  name,
+  completion,
+  isMine,
+  photoLabel,
+}: {
+  name: string;
+  completion: RitualCompletion | null;
+  isMine: boolean;
+  photoLabel: string;
+}) {
+  const responseText = getResponseText(completion);
+
+  return (
+    <View style={styles.answer}>
+      <View style={styles.answerHeader}>
+        <Avatar name={name} size={28} tone={isMine ? "primary" : "ink"} />
+        <AppText color="textSecondary" variant="label">
+          {name}
+        </AppText>
+      </View>
+      <View style={[styles.bubble, isMine ? styles.bubbleMine : null]}>
+        {responseText ? <AppText variant="body">{responseText}</AppText> : null}
+        {completion?.media_asset_id ? (
+          <PrivateImage
+            accessibilityLabel={photoLabel}
+            containerStyle={styles.mediaPreview}
+            mediaAssetId={completion.media_asset_id}
+          />
+        ) : null}
+        {!responseText && !completion?.media_asset_id ? (
+          <AppText color="textSecondary" variant="bodyMuted">
+            No response shared.
+          </AppText>
+        ) : null}
+      </View>
+    </View>
+  );
+}
+
 export function RitualRevealedResult({
   myCompletion,
   partnerCompletion,
   partnerDisplayName = "Partner",
   completedAt,
 }: RitualRevealedResultProps) {
-  const completedLabel = formatCompletionDate(completedAt ?? partnerCompletion?.created_at ?? myCompletion?.created_at);
+  const completedLabel = formatCompletionDate(
+    completedAt ?? partnerCompletion?.created_at ?? myCompletion?.created_at
+  );
 
   return (
     <View style={styles.container}>
-      <AppText variant="subtitle">Both answers are revealed</AppText>
-
-      <View style={styles.responseSection}>
-        <AppText color="textSecondary" variant="caption">
-          You
-        </AppText>
-        <View style={styles.responseCard}>
-          {getResponseText(myCompletion) ? (
-            <AppText variant="body">{getResponseText(myCompletion)}</AppText>
-          ) : null}
-          {myCompletion?.media_asset_id ? (
-            <PrivateImage
-              accessibilityLabel="Your ritual photo"
-              containerStyle={styles.mediaPreview}
-              mediaAssetId={myCompletion.media_asset_id}
-            />
-          ) : null}
-          {!getResponseText(myCompletion) && !myCompletion?.media_asset_id ? (
-            <AppText color="textSecondary" variant="bodyMuted">
-              No response shared.
-            </AppText>
-          ) : null}
-        </View>
+      <View style={styles.header}>
+        <AppText style={styles.headerEmoji}>✨</AppText>
+        <AppText variant="subtitle">Both answers are revealed</AppText>
       </View>
 
-      <View style={styles.responseSection}>
-        <AppText color="textSecondary" variant="caption">
-          {partnerDisplayName}
-        </AppText>
-        <View style={styles.responseCard}>
-          {getResponseText(partnerCompletion) ? (
-            <AppText variant="body">{getResponseText(partnerCompletion)}</AppText>
-          ) : null}
-          {partnerCompletion?.media_asset_id ? (
-            <PrivateImage
-              accessibilityLabel={`${partnerDisplayName} ritual photo`}
-              containerStyle={styles.mediaPreview}
-              mediaAssetId={partnerCompletion.media_asset_id}
-            />
-          ) : null}
-          {!getResponseText(partnerCompletion) && !partnerCompletion?.media_asset_id ? (
-            <AppText color="textSecondary" variant="bodyMuted">
-              No response shared.
-            </AppText>
-          ) : null}
-        </View>
-      </View>
+      <AnswerBubble
+        completion={partnerCompletion}
+        isMine={false}
+        name={partnerDisplayName}
+        photoLabel={`${partnerDisplayName} ritual photo`}
+      />
+      <AnswerBubble completion={myCompletion} isMine name="You" photoLabel="Your ritual photo" />
 
       {completedLabel ? (
-        <AppText color="textSecondary" variant="caption">
+        <AppText color="textTertiary" variant="caption">
           Completed {completedLabel}
         </AppText>
       ) : null}
@@ -100,22 +107,38 @@ export function RitualRevealedResult({
 
 const styles = StyleSheet.create({
   container: {
-    gap: spacing.md,
+    gap: spacing.lg,
   },
-  responseSection: {
-    gap: spacing.xs,
-  },
-  responseCard: {
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.border,
-    borderRadius: radii.md,
-    borderWidth: StyleSheet.hairlineWidth,
+  header: {
+    alignItems: "center",
+    flexDirection: "row",
     gap: spacing.sm,
-    padding: spacing.md,
+  },
+  headerEmoji: {
+    fontSize: 20,
+    lineHeight: 26,
+  },
+  answer: {
+    gap: spacing.sm,
+  },
+  answerHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  bubble: {
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radii.lg,
+    borderTopLeftRadius: radii.xs,
+    gap: spacing.sm,
+    padding: spacing.lg,
+  },
+  bubbleMine: {
+    backgroundColor: colors.primarySoft,
   },
   mediaPreview: {
     aspectRatio: 4 / 3,
-    borderRadius: radii.sm,
+    borderRadius: radii.md,
     overflow: "hidden",
     width: "100%",
   },

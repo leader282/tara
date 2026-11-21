@@ -1,31 +1,42 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, type TextInput, View } from "react-native";
 
-import { AppText, Button, Card, ErrorState, LoadingState, Screen, TextField } from "@/components/ui";
+import { useToast } from "@/components/feedback/ToastProvider";
+import { useGoBack } from "@/components/navigation/useGoBack";
+import {
+  Button,
+  Card,
+  DateField,
+  ErrorState,
+  InlineMessage,
+  LoadingState,
+  Screen,
+  TextField,
+} from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { TimezoneField } from "@/features/profile/components/TimezoneField";
 import { useSettingsProfile } from "@/features/settings/hooks/useSettingsProfile";
 import { useUpdateSettingsProfile } from "@/features/settings/hooks/useUpdateSettingsProfile";
 import {
   settingsProfileFormSchema,
   type SettingsProfileFormInput,
 } from "@/features/settings/schemas";
+import { toDateKey } from "@/lib/dates/calendar";
 import { getDeviceTimeZone } from "@/lib/dates/timezone";
 import { spacing } from "@/theme/tokens";
 
 export function ProfileSettingsScreen() {
+  const goBack = useGoBack("/(settings)");
+  const toast = useToast();
   const { user } = useAuth();
   const settingsProfileQuery = useSettingsProfile(user?.id);
   const updateSettingsProfileMutation = useUpdateSettingsProfile();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const countryRef = useRef<TextInput>(null);
 
-  const {
-    control,
-    handleSubmit,
-    formState,
-    reset,
-  } = useForm<SettingsProfileFormInput>({
+  const { control, handleSubmit, formState, reset } = useForm<SettingsProfileFormInput>({
     defaultValues: {
       displayName: "",
       timezone: getDeviceTimeZone(),
@@ -66,6 +77,12 @@ export function ProfileSettingsScreen() {
         country: values.country ?? null,
         birthday: values.birthday ?? null,
       });
+      reset(values);
+      toast.show({
+        tone: "success",
+        title: "Profile saved",
+        message: "Your partner will see the update right away.",
+      });
     } catch {
       setSubmitError(updateSettingsProfileMutation.friendlyError ?? "We couldn't save profile settings.");
     }
@@ -73,18 +90,15 @@ export function ProfileSettingsScreen() {
 
   if (!user?.id) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
-        <ErrorState
-          message="Please sign in to edit profile settings."
-          title="Sign-in required"
-        />
+      <Screen centered onBack={goBack}>
+        <ErrorState message="Please sign in to edit profile settings." title="Sign-in required" />
       </Screen>
     );
   }
 
   if (settingsProfileQuery.isLoading && !settingsProfileQuery.data) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered onBack={goBack}>
         <LoadingState label="Loading profile settings..." />
       </Screen>
     );
@@ -92,7 +106,7 @@ export function ProfileSettingsScreen() {
 
   if (settingsProfileQuery.error && !settingsProfileQuery.data) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered onBack={goBack}>
         <ErrorState
           message="We couldn't load profile settings right now."
           onRetry={() => {
@@ -105,14 +119,12 @@ export function ProfileSettingsScreen() {
   }
 
   return (
-    <Screen contentContainerStyle={styles.content} scroll>
-      <View style={styles.header}>
-        <AppText variant="title">Profile settings</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          Update how your side of Tara appears in your couple space.
-        </AppText>
-      </View>
-
+    <Screen
+      onBack={goBack}
+      scroll
+      subtitle="Update how your side of Tara appears in your couple space."
+      title="Profile settings"
+    >
       <Card>
         <View style={styles.form}>
           <Controller
@@ -125,6 +137,7 @@ export function ProfileSettingsScreen() {
                 autoCorrect={false}
                 errorMessage={fieldState.error?.message}
                 label="Display name"
+                leftIcon="person-outline"
                 onBlur={field.onBlur}
                 onChangeText={field.onChange}
                 placeholder="How your partner sees your name"
@@ -138,74 +151,74 @@ export function ProfileSettingsScreen() {
             control={control}
             name="timezone"
             render={({ field, fieldState }) => (
-              <TextField
-                accessibilityLabel="Timezone"
-                autoCapitalize="none"
-                autoCorrect={false}
+              <TimezoneField
                 errorMessage={fieldState.error?.message}
-                label="Timezone"
                 onBlur={field.onBlur}
-                onChangeText={field.onChange}
-                placeholder="Asia/Kolkata"
-                returnKeyType="next"
+                onChange={field.onChange}
                 value={field.value ?? ""}
               />
             )}
           />
 
-          <Controller
-            control={control}
-            name="city"
-            render={({ field, fieldState }) => (
-              <TextField
-                accessibilityLabel="City"
-                autoCapitalize="words"
-                autoCorrect={false}
-                errorMessage={fieldState.error?.message}
-                label="City (optional)"
-                onBlur={field.onBlur}
-                onChangeText={field.onChange}
-                placeholder="City"
-                returnKeyType="next"
-                value={field.value ?? ""}
-              />
-            )}
-          />
+          <View style={styles.row}>
+            <Controller
+              control={control}
+              name="city"
+              render={({ field, fieldState }) => (
+                <TextField
+                  accessibilityLabel="City"
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  containerStyle={styles.rowField}
+                  errorMessage={fieldState.error?.message}
+                  label="City (optional)"
+                  onBlur={field.onBlur}
+                  onChangeText={field.onChange}
+                  onSubmitEditing={() => countryRef.current?.focus()}
+                  placeholder="City"
+                  returnKeyType="next"
+                  submitBehavior="submit"
+                  value={field.value ?? ""}
+                />
+              )}
+            />
 
-          <Controller
-            control={control}
-            name="country"
-            render={({ field, fieldState }) => (
-              <TextField
-                accessibilityLabel="Country"
-                autoCapitalize="words"
-                autoCorrect={false}
-                errorMessage={fieldState.error?.message}
-                label="Country (optional)"
-                onBlur={field.onBlur}
-                onChangeText={field.onChange}
-                placeholder="Country"
-                returnKeyType="next"
-                value={field.value ?? ""}
-              />
-            )}
-          />
+            <Controller
+              control={control}
+              name="country"
+              render={({ field, fieldState }) => (
+                <TextField
+                  accessibilityLabel="Country"
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  containerStyle={styles.rowField}
+                  errorMessage={fieldState.error?.message}
+                  label="Country (optional)"
+                  onBlur={field.onBlur}
+                  onChangeText={field.onChange}
+                  placeholder="Country"
+                  ref={countryRef}
+                  returnKeyType="done"
+                  value={field.value ?? ""}
+                />
+              )}
+            />
+          </View>
 
           <Controller
             control={control}
             name="birthday"
             render={({ field, fieldState }) => (
-              <TextField
+              <DateField
                 accessibilityLabel="Birthday"
-                autoCapitalize="none"
-                autoCorrect={false}
+                clearable
                 errorMessage={fieldState.error?.message}
-                keyboardType="numbers-and-punctuation"
+                helperText="Only your partner can see this."
                 label="Birthday (optional)"
-                onBlur={field.onBlur}
-                onChangeText={field.onChange}
-                placeholder="YYYY-MM-DD"
-                returnKeyType="done"
+                maxDate={toDateKey(new Date())}
+                onChange={field.onChange}
+                placeholder="Add your birthday"
+                sheetTitle="Your birthday"
                 value={field.value ?? ""}
               />
             )}
@@ -213,20 +226,13 @@ export function ProfileSettingsScreen() {
         </View>
       </Card>
 
-      {submitError ? (
-        <AppText color="danger" variant="caption">
-          {submitError}
-        </AppText>
-      ) : null}
-
-      {updateSettingsProfileMutation.isSuccess ? (
-        <AppText color="success" variant="caption">
-          Profile settings saved.
-        </AppText>
-      ) : null}
+      {submitError ? <InlineMessage message={submitError} tone="danger" /> : null}
 
       <Button
-        disabled={!isValid || updateSettingsProfileMutation.isPending}
+        disabled={
+          !isDirty || !isValid || updateSettingsProfileMutation.isPending
+        }
+        icon="checkmark"
         loading={updateSettingsProfileMutation.isPending}
         onPress={onSubmit}
         title="Save profile settings"
@@ -236,16 +242,14 @@ export function ProfileSettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: {
+  form: {
     gap: spacing.lg,
   },
-  loading: {
-    justifyContent: "center",
-  },
-  header: {
-    gap: spacing.sm,
-  },
-  form: {
+  row: {
+    flexDirection: "row",
     gap: spacing.md,
+  },
+  rowField: {
+    flex: 1,
   },
 });

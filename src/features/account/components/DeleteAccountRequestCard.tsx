@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Button, TextField } from "@/components/ui";
+import { useToast } from "@/components/feedback/ToastProvider";
+import { AppText, Button, InlineMessage, TextField } from "@/components/ui";
+import { ConsequenceList } from "@/features/account/components/ConsequenceList";
 import {
   ACCOUNT_DELETION_CONFIRMATION,
   ACCOUNT_DELETION_REASON_MAX_LENGTH,
@@ -10,7 +12,7 @@ import type { AccountDeletionRequest } from "@/features/account/types";
 import { SettingsDangerZone } from "@/features/settings/components/SettingsDangerZone";
 import { ConfirmationField } from "@/features/settings/components/ConfirmationField";
 import { formatDateTime } from "@/lib/dates/format";
-import { spacing } from "@/theme/tokens";
+import { colors, radii, spacing } from "@/theme/tokens";
 
 type DeleteAccountRequestCardProps = {
   currentRequest: AccountDeletionRequest | null;
@@ -61,13 +63,15 @@ export function DeleteAccountRequestCard({
   onRequest,
   onCancelPending,
 }: DeleteAccountRequestCardProps) {
+  const toast = useToast();
   const [confirmation, setConfirmation] = useState("");
   const [reason, setReason] = useState("");
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const isConfirmationMatched = confirmation.trim() === ACCOUNT_DELETION_CONFIRMATION;
   const canCancelPending = currentRequest?.status === "pending";
-  const hasActiveRequest = currentRequest?.status === "pending" || currentRequest?.status === "processing";
+  const hasActiveRequest =
+    currentRequest?.status === "pending" || currentRequest?.status === "processing";
   const scheduledFor = formatTimestamp(currentRequest?.scheduled_for ?? null);
 
   const statusLines = useMemo(() => {
@@ -105,28 +109,23 @@ export function DeleteAccountRequestCard({
   return (
     <SettingsDangerZone
       description="This creates a server-side deletion request. Final deletion completes only after backend processing."
-      title="Request account deletion"
+      icon="trash-outline"
+      title="Delete account"
     >
-      <View style={styles.consequences}>
-        <AppText color="textSecondary" variant="caption">
-          - Deletion request is scheduled, not immediate.
-        </AppText>
-        <AppText color="textSecondary" variant="caption">
-          - Push tokens will be disabled.
-        </AppText>
-        <AppText color="textSecondary" variant="caption">
-          - Active couple space will be archived.
-        </AppText>
-        <AppText color="textSecondary" variant="caption">
-          - Final deletion requires server-side completion.
-        </AppText>
-      </View>
+      <ConsequenceList
+        items={[
+          "Deletion request is scheduled, not immediate.",
+          "Push tokens will be disabled.",
+          "Active couple space will be archived.",
+          "Final deletion requires server-side completion.",
+        ]}
+      />
 
       {currentRequest ? (
         <View style={styles.statusBlock}>
-          <AppText variant="body">Current request: {toStatusLabel(currentRequest.status)}</AppText>
+          <AppText variant="label">Current request: {toStatusLabel(currentRequest.status)}</AppText>
           {statusLines.map((line) => (
-            <AppText key={line} color="textSecondary" variant="caption">
+            <AppText color="textSecondary" key={line} variant="caption">
               {line}
             </AppText>
           ))}
@@ -155,29 +154,18 @@ export function DeleteAccountRequestCard({
           setReason(value);
         }}
         placeholder="Optional context to help support review this request."
+        showCount
+        style={styles.reasonInput}
         value={reason}
       />
 
-      {requestErrorMessage ? (
-        <AppText color="danger" variant="caption">
-          {requestErrorMessage}
-        </AppText>
-      ) : null}
-
-      {cancelErrorMessage ? (
-        <AppText color="danger" variant="caption">
-          {cancelErrorMessage}
-        </AppText>
-      ) : null}
-
-      {successMessage ? (
-        <AppText color="success" variant="caption">
-          {successMessage}
-        </AppText>
-      ) : null}
+      {requestErrorMessage ? <InlineMessage message={requestErrorMessage} tone="danger" /> : null}
+      {cancelErrorMessage ? <InlineMessage message={cancelErrorMessage} tone="danger" /> : null}
+      {successMessage ? <InlineMessage message={successMessage} tone="success" /> : null}
 
       <Button
         disabled={hasActiveRequest || !isConfirmationMatched || isRequesting}
+        icon="trash-outline"
         loading={isRequesting}
         onPress={() => {
           const submit = async () => {
@@ -188,6 +176,11 @@ export function DeleteAccountRequestCard({
               });
               setConfirmation("");
               setSuccessMessage("Deletion request submitted. You can track status here.");
+              toast.show({
+                tone: "warning",
+                title: "Deletion request submitted",
+                message: "You can cancel it here while it's still scheduled.",
+              });
             } catch {
               // Friendly errors are shown from the parent hook.
             }
@@ -212,6 +205,11 @@ export function DeleteAccountRequestCard({
               try {
                 await onCancelPending(currentRequest.id);
                 setSuccessMessage("Pending deletion request canceled.");
+                toast.show({
+                  tone: "success",
+                  title: "Deletion request canceled",
+                  message: "Your account stays exactly as it is.",
+                });
               } catch {
                 // Friendly errors are shown from the parent hook.
               }
@@ -220,7 +218,7 @@ export function DeleteAccountRequestCard({
             void cancelRequest();
           }}
           title="Cancel pending deletion request"
-          variant="secondary"
+          variant="outline"
         />
       ) : null}
     </SettingsDangerZone>
@@ -228,10 +226,13 @@ export function DeleteAccountRequestCard({
 }
 
 const styles = StyleSheet.create({
-  consequences: {
-    gap: spacing.xs,
-  },
   statusBlock: {
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radii.md,
     gap: spacing.xs,
+    padding: spacing.md,
+  },
+  reasonInput: {
+    minHeight: 88,
   },
 });

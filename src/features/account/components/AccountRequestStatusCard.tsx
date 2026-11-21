@@ -1,11 +1,12 @@
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Card } from "@/components/ui";
+import { AppText, Badge, type BadgeTone, Card, Divider } from "@/components/ui";
 import { spacing } from "@/theme/tokens";
 
 type AccountRequestStatusCardProps = {
   title: string;
   statusLabel: string;
+  statusTone?: BadgeTone;
   description?: string;
   details?: string[];
 };
@@ -13,6 +14,7 @@ type AccountRequestStatusCardProps = {
 export function AccountRequestStatusCard({
   title,
   statusLabel,
+  statusTone = "neutral",
   description,
   details = [],
 }: AccountRequestStatusCardProps) {
@@ -20,10 +22,10 @@ export function AccountRequestStatusCard({
     <Card>
       <View style={styles.container}>
         <View style={styles.header}>
-          <AppText variant="subtitle">{title}</AppText>
-          <AppText color="textSecondary" variant="caption">
-            {statusLabel}
+          <AppText style={styles.title} variant="subtitle">
+            {title}
           </AppText>
+          <Badge label={statusLabel} tone={statusTone} />
         </View>
 
         {description ? (
@@ -33,13 +35,16 @@ export function AccountRequestStatusCard({
         ) : null}
 
         {details.length > 0 ? (
-          <View style={styles.details}>
-            {details.map((detail) => (
-              <AppText key={detail} color="textSecondary" variant="caption">
-                {detail}
-              </AppText>
-            ))}
-          </View>
+          <>
+            <Divider />
+            <View style={styles.details}>
+              {details.map((detail) => (
+                <AppText color="textSecondary" key={detail} variant="caption">
+                  {detail}
+                </AppText>
+              ))}
+            </View>
+          </>
         ) : null}
       </View>
     </Card>
@@ -48,12 +53,16 @@ export function AccountRequestStatusCard({
 
 const styles = StyleSheet.create({
   container: {
-    gap: spacing.sm,
+    gap: spacing.md,
   },
   header: {
     alignItems: "center",
     flexDirection: "row",
+    gap: spacing.md,
     justifyContent: "space-between",
+  },
+  title: {
+    flex: 1,
   },
   details: {
     gap: spacing.xs,

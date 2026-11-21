@@ -1,8 +1,9 @@
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Button, Card } from "@/components/ui";
+import { AppText, Badge, Button, Card } from "@/components/ui";
 import { formatDateTime } from "@/lib/dates/format";
-import { spacing } from "@/theme/tokens";
+import { colors, radii, spacing } from "@/theme/tokens";
+import { fontFamilies } from "@/theme/typography";
 
 type InviteCodeCardProps = {
   inviteCode: string;
@@ -43,20 +44,26 @@ export function InviteCodeCard({
         </View>
 
         <View style={styles.codeBlock}>
-          <AppText variant="title">{inviteCode}</AppText>
+          <AppText
+            accessibilityHint="Long-press to copy"
+            accessibilityLabel={`Invite code ${inviteCode}`}
+            align="center"
+            selectable
+            style={styles.code}
+          >
+            {inviteCode}
+          </AppText>
         </View>
 
         {formattedExpiry ? (
-          <AppText color="textSecondary" variant="caption">
-            Expires: {formattedExpiry}
-          </AppText>
+          <Badge icon="time-outline" label={`Expires ${formattedExpiry}`} style={styles.expiry} />
         ) : null}
 
         <Button
+          icon="share-outline"
           loading={isSharing}
           onPress={onSharePress}
           title="Share invite"
-          variant="secondary"
         />
       </View>
     </Card>
@@ -72,5 +79,22 @@ const styles = StyleSheet.create({
   },
   codeBlock: {
     alignItems: "center",
+    backgroundColor: colors.primarySoft,
+    borderColor: "#EBC9C2",
+    borderRadius: radii.md,
+    borderStyle: "dashed",
+    borderWidth: 1.5,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xl,
+  },
+  code: {
+    color: colors.primaryStrong,
+    fontFamily: fontFamilies.bold,
+    fontSize: 22,
+    letterSpacing: 1.5,
+    lineHeight: 30,
+  },
+  expiry: {
+    alignSelf: "center",
   },
 });

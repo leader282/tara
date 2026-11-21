@@ -1,4 +1,5 @@
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Animated, Pressable, StyleSheet } from "react-native";
 
 import { AppText } from "@/components/ui";
 import { PulseTypeIcon } from "@/features/presence/components/PulseTypeIcon";
@@ -9,7 +10,6 @@ type PresencePulseButtonProps = {
   option: PresencePulseOption;
   selected: boolean;
   disabled?: boolean;
-  loading?: boolean;
   onPress: (type: PresencePulseType) => void;
 };
 
@@ -17,64 +17,73 @@ export function PresencePulseButton({
   option,
   selected,
   disabled = false,
-  loading = false,
   onPress,
 }: PresencePulseButtonProps) {
-  const isDisabled = disabled || loading;
+  const [scale] = useState(() => new Animated.Value(1));
+
+  useEffect(() => {
+    if (!selected) {
+      return;
+    }
+
+    scale.setValue(0.9);
+    Animated.spring(scale, {
+      toValue: 1,
+      damping: 8,
+      stiffness: 260,
+      useNativeDriver: true,
+    }).start();
+  }, [scale, selected]);
 
   return (
     <Pressable
       accessibilityLabel={option.accessibilityLabel}
       accessibilityRole="button"
-      accessibilityState={{ selected, disabled: isDisabled, busy: loading }}
-      disabled={isDisabled}
+      accessibilityState={{ selected, disabled }}
+      disabled={disabled}
       onPress={() => onPress(option.type)}
       style={({ pressed }) => [
-        styles.button,
-        selected ? styles.selectedButton : null,
-        pressed ? styles.pressedButton : null,
-        isDisabled ? styles.disabledButton : null,
+        styles.tile,
+        selected ? { backgroundColor: option.tint, borderColor: option.accent } : null,
+        pressed && !selected ? styles.tilePressed : null,
+        disabled && !selected ? styles.tileDisabled : null,
       ]}
     >
-      <View style={styles.buttonContent}>
-        {loading ? (
-          <ActivityIndicator color={colors.primary} size="small" />
-        ) : (
-          <PulseTypeIcon compact type={option.type} />
-        )}
-        <AppText variant="body">{option.shortLabel}</AppText>
-      </View>
+      <Animated.View style={{ transform: [{ scale }] }}>
+        <PulseTypeIcon size={44} surface={selected} type={option.type} />
+      </Animated.View>
+      <AppText
+        align="center"
+        color={selected ? "textPrimary" : "textSecondary"}
+        numberOfLines={1}
+        style={styles.label}
+        variant={selected ? "label" : "caption"}
+      >
+        {option.shortLabel}
+      </AppText>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {
+  tile: {
     alignItems: "center",
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderRadius: radii.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    justifyContent: "center",
-    minHeight: 76,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    width: "48%",
-  },
-  selectedButton: {
-    backgroundColor: colors.surfaceMuted,
-    borderColor: colors.primary,
     borderWidth: 1,
+    gap: spacing.xs,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.md,
   },
-  pressedButton: {
-    opacity: 0.85,
+  tilePressed: {
+    backgroundColor: colors.surfaceMuted,
   },
-  disabledButton: {
+  tileDisabled: {
     opacity: 0.6,
   },
-  buttonContent: {
-    alignItems: "center",
-    gap: spacing.sm,
-    justifyContent: "center",
+  label: {
+    fontSize: 12,
+    lineHeight: 16,
   },
 });

@@ -4,11 +4,20 @@ import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Button, Card, ErrorState, LoadingState, Screen } from "@/components/ui";
+import {
+  Button,
+  Card,
+  ErrorState,
+  InlineMessage,
+  LoadingState,
+  Screen,
+  SectionHeader,
+} from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { LoveSignalSelector } from "@/features/onboarding/components/LoveSignalSelector";
+import { OnboardingHeader } from "@/features/onboarding/components/OnboardingHeader";
 import { OnboardingOptionCard } from "@/features/onboarding/components/OnboardingOptionCard";
-import { OnboardingProgress } from "@/features/onboarding/components/OnboardingProgress";
+import { EMOTIONAL_TONE_COPY, NOTIFICATION_TONE_COPY } from "@/features/onboarding/constants";
 import {
   emotionalPreferencesSchema,
   type EmotionalPreferencesInput,
@@ -24,49 +33,6 @@ import {
 import { useUserSettings } from "@/features/profile/hooks/useUserSettings";
 import { useUpdateUserSettings } from "@/features/profile/hooks/useUpdateUserSettings";
 import { spacing } from "@/theme/tokens";
-
-const TOTAL_STEPS = 4;
-
-const emotionalToneCopy: Record<EmotionalTone, { label: string; description: string }> = {
-  soft: {
-    label: "Soft",
-    description: "Gentle and calm check-ins.",
-  },
-  playful: {
-    label: "Playful",
-    description: "Light, cute moments that keep things fun.",
-  },
-  grounding: {
-    label: "Grounding",
-    description: "Steady connection when life feels busy.",
-  },
-  romantic: {
-    label: "Romantic",
-    description: "More affection in your everyday rhythm.",
-  },
-  minimal: {
-    label: "Minimal",
-    description: "Simple, low-noise ways to stay close.",
-  },
-};
-
-const notificationToneCopy: Record<
-  NotificationTone,
-  { label: string; description: string }
-> = {
-  gentle: {
-    label: "Gentle",
-    description: "Warm and calm reminders.",
-  },
-  minimal: {
-    label: "Minimal",
-    description: "Quiet and low-key nudges.",
-  },
-  playful: {
-    label: "Playful",
-    description: "A little extra spark in tone.",
-  },
-};
 
 const emotionSet = new Set<string>(EMOTIONAL_TONES);
 const loveSignalSet = new Set<string>(LOVE_SIGNALS);
@@ -118,11 +84,8 @@ export function EmotionalOnboardingScreen() {
     const preferredSignals = (settings?.preferred_love_signals ?? []).filter(isLoveSignal);
 
     reset({
-      emotionalTone: isEmotionalTone(settings?.emotional_tone)
-        ? settings.emotional_tone
-        : "soft",
-      preferredLoveSignals:
-        preferredSignals.length > 0 ? preferredSignals : ["thinking_of_you"],
+      emotionalTone: isEmotionalTone(settings?.emotional_tone) ? settings.emotional_tone : "soft",
+      preferredLoveSignals: preferredSignals.length > 0 ? preferredSignals : ["thinking_of_you"],
       notificationTone: isNotificationTone(settings?.notification_tone)
         ? settings.notification_tone
         : "gentle",
@@ -151,48 +114,44 @@ export function EmotionalOnboardingScreen() {
 
   if (!user?.id) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
-        <ErrorState
-          message="Please sign in to continue your onboarding."
-          title="Sign-in required"
-        />
+      <Screen centered>
+        <ErrorState message="Please sign in to continue your onboarding." title="Sign-in required" />
       </Screen>
     );
   }
 
   if (userSettingsQuery.isLoading && !userSettingsQuery.data) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered>
         <LoadingState label="Loading your preferences..." />
       </Screen>
     );
   }
 
   return (
-    <Screen contentContainerStyle={styles.content} scroll>
-      <OnboardingProgress currentStep={2} title="Emotional preferences" totalSteps={TOTAL_STEPS} />
-
-      <View style={styles.header}>
-        <AppText variant="title">How should Tara feel between you two?</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          Pick the emotional tone and signals that feel supportive, never pressure-filled.
-        </AppText>
-      </View>
+    <Screen onBack={() => router.back()} scroll>
+      <OnboardingHeader
+        step={2}
+        stepTitle="Emotional preferences"
+        subtitle="Pick the emotional tone and signals that feel supportive, never pressure-filled."
+        title="How should Tara feel between you two?"
+      />
 
       <Card>
         <View style={styles.section}>
-          <AppText variant="subtitle">Emotional tone</AppText>
+          <SectionHeader title="Emotional tone" />
           <Controller
             control={control}
             name="emotionalTone"
             render={({ field }) => (
               <View style={styles.options}>
                 {EMOTIONAL_TONES.map((tone) => {
-                  const option = emotionalToneCopy[tone];
+                  const option = EMOTIONAL_TONE_COPY[tone];
                   return (
                     <OnboardingOptionCard
-                      key={tone}
                       description={option.description}
+                      emoji={option.emoji}
+                      key={tone}
                       label={option.label}
                       onPress={() => field.onChange(tone)}
                       selected={field.value === tone}
@@ -207,7 +166,7 @@ export function EmotionalOnboardingScreen() {
 
       <Card>
         <View style={styles.section}>
-          <AppText variant="subtitle">Preferred love signals</AppText>
+          <SectionHeader description="Choose as many as you like." title="Preferred love signals" />
           <Controller
             control={control}
             name="preferredLoveSignals"
@@ -224,18 +183,19 @@ export function EmotionalOnboardingScreen() {
 
       <Card>
         <View style={styles.section}>
-          <AppText variant="subtitle">Notification tone</AppText>
+          <SectionHeader title="Notification tone" />
           <Controller
             control={control}
             name="notificationTone"
             render={({ field }) => (
               <View style={styles.options}>
                 {NOTIFICATION_TONES.map((tone) => {
-                  const option = notificationToneCopy[tone];
+                  const option = NOTIFICATION_TONE_COPY[tone];
                   return (
                     <OnboardingOptionCard
-                      key={tone}
                       description={option.description}
+                      emoji={option.emoji}
+                      key={tone}
                       label={option.label}
                       onPress={() => field.onChange(tone)}
                       selected={field.value === tone}
@@ -249,19 +209,17 @@ export function EmotionalOnboardingScreen() {
       </Card>
 
       {userSettingsQuery.error ? (
-        <AppText color="textSecondary" variant="caption">
-          We couldn&apos;t load saved preferences, but you can continue with fresh choices.
-        </AppText>
+        <InlineMessage
+          message="We couldn't load saved preferences, but you can continue with fresh choices."
+          tone="warning"
+        />
       ) : null}
 
-      {submitError ? (
-        <AppText color="danger" variant="caption">
-          {submitError}
-        </AppText>
-      ) : null}
+      {submitError ? <InlineMessage message={submitError} tone="danger" /> : null}
 
       <Button
         disabled={!isValid || updateUserSettingsMutation.isPending}
+        iconRight="arrow-forward"
         loading={updateUserSettingsMutation.isPending}
         onPress={onSubmit}
         title="Continue"
@@ -271,17 +229,8 @@ export function EmotionalOnboardingScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: {
-    gap: spacing.lg,
-  },
-  loading: {
-    justifyContent: "center",
-  },
-  header: {
-    gap: spacing.sm,
-  },
   section: {
-    gap: spacing.md,
+    gap: spacing.lg,
   },
   options: {
     gap: spacing.sm,

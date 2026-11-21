@@ -37,6 +37,9 @@
     "supabase:types": "supabase gen types typescript --local --schema public | awk 'NF{last=NR} {lines[NR]=$0} END{for(i=1;i<=last;i++) print lines[i]}' > src/lib/supabase/database.types.ts"
   },
   "dependencies": {
+    "@expo-google-fonts/fraunces": "^0.4.1",
+    "@expo-google-fonts/plus-jakarta-sans": "^0.4.2",
+    "@expo/vector-icons": "^15.0.2",
     "@hookform/resolvers": "^5.4.0",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@sentry/react-native": "~7.11.0",
@@ -48,6 +51,7 @@
     "expo-dev-client": "~56.0.28",
     "expo-device": "~56.0.4",
     "expo-file-system": "~56.0.7",
+    "expo-font": "~56.0.7",
     "expo-image-manipulator": "~56.0.26",
     "expo-image-picker": "~56.0.25",
     "expo-linking": "~56.0.19",

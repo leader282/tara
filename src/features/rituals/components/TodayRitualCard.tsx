@@ -1,13 +1,12 @@
-import type { ReactNode } from "react";
 import { StyleSheet, View } from "react-native";
 
-import { Card, EmptyState, ErrorState, LoadingState } from "@/components/ui";
+import { Card, EmptyState, ErrorState, Skeleton } from "@/components/ui";
 import { RitualLockedState } from "@/features/rituals/components/RitualLockedState";
 import { RitualPromptCard } from "@/features/rituals/components/RitualPromptCard";
 import { RitualResponseForm } from "@/features/rituals/components/RitualResponseForm";
 import { RitualRevealedResult } from "@/features/rituals/components/RitualRevealedResult";
 import type { TodayRitualState } from "@/features/rituals/types";
-import { spacing } from "@/theme/tokens";
+import { radii, spacing } from "@/theme/tokens";
 
 type TodayRitualCardProps = {
   state: TodayRitualState;
@@ -22,18 +21,6 @@ type TodayRitualCardProps = {
   onRetry?: () => void;
 };
 
-function StateCard({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  return (
-    <Card>
-      <View style={styles.stateCardContent}>{children}</View>
-    </Card>
-  );
-}
-
 export function TodayRitualCard({
   state,
   partnerDisplayName = "Partner",
@@ -44,28 +31,30 @@ export function TodayRitualCard({
 }: TodayRitualCardProps) {
   if (state.status === "loading") {
     return (
-      <Card>
-        <LoadingState label="Loading today's ritual..." />
-      </Card>
+      <View style={styles.container}>
+        <Skeleton height={260} radius={radii.xl} />
+        <Skeleton height={180} radius={radii.lg} />
+      </View>
     );
   }
 
   if (state.status === "error") {
     return (
-      <StateCard>
+      <Card>
         <ErrorState message={state.message} onRetry={onRetry} title="Couldn't load today's ritual" />
-      </StateCard>
+      </Card>
     );
   }
 
   if (state.status === "unavailable") {
     return (
-      <StateCard>
+      <Card>
         <EmptyState
           description={state.message ?? "Today's ritual will appear once your couple space is ready."}
+          icon="sparkles-outline"
           title="Today's ritual is resting"
         />
-      </StateCard>
+      </Card>
     );
   }
 
@@ -74,7 +63,7 @@ export function TodayRitualCard({
   return (
     <View style={styles.container}>
       <RitualPromptCard coupleRitual={ritual.coupleRitual} template={ritual.template} />
-      <StateCard>
+      <Card>
         {state.status === "not_started" ? (
           <RitualResponseForm
             inputType={ritual.template.input_type}
@@ -94,7 +83,9 @@ export function TodayRitualCard({
           />
         ) : null}
 
-        {state.status === "completed_by_me_waiting" ? <RitualLockedState /> : null}
+        {state.status === "completed_by_me_waiting" ? (
+          <RitualLockedState partnerDisplayName={partnerDisplayName} />
+        ) : null}
 
         {state.status === "revealed" ? (
           <RitualRevealedResult
@@ -104,16 +95,13 @@ export function TodayRitualCard({
             partnerDisplayName={partnerDisplayName}
           />
         ) : null}
-      </StateCard>
+      </Card>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    gap: spacing.md,
-  },
-  stateCardContent: {
     gap: spacing.md,
   },
 });

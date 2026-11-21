@@ -1,9 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import { StyleSheet, View } from "react-native";
 
-import { AppText, Button, Card, ErrorState, LoadingState, Screen } from "@/components/ui";
+import { useToast } from "@/components/feedback/ToastProvider";
+import { useGoBack } from "@/components/navigation/useGoBack";
+import { Button, Card, ErrorState, InlineMessage, LoadingState, Screen } from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { QuietHoursFields } from "@/features/onboarding/components/QuietHoursFields";
 import { useSettingsProfile } from "@/features/settings/hooks/useSettingsProfile";
@@ -12,7 +13,7 @@ import {
   quietHoursSettingsFormSchema,
   type QuietHoursSettingsFormInput,
 } from "@/features/settings/schemas";
-import { spacing } from "@/theme/tokens";
+import { formatTimeKey } from "@/lib/dates/calendar";
 
 function toHHmm(value: string | null): string {
   if (!value) {
@@ -23,6 +24,8 @@ function toHHmm(value: string | null): string {
 }
 
 export function QuietHoursSettingsScreen() {
+  const goBack = useGoBack("/(settings)");
+  const toast = useToast();
   const { user } = useAuth();
   const settingsProfileQuery = useSettingsProfile(user?.id);
   const updateQuietHoursMutation = useUpdateQuietHours();
@@ -77,28 +80,34 @@ export function QuietHoursSettingsScreen() {
         quietHoursStart: values.quietHoursEnabled ? values.quietHoursStart : null,
         quietHoursEnd: values.quietHoursEnabled ? values.quietHoursEnd : null,
       });
+      reset(values);
+      toast.show({
+        tone: "success",
+        emoji: "🌙",
+        title: "Quiet hours saved",
+        message:
+          values.quietHoursEnabled && values.quietHoursStart && values.quietHoursEnd
+            ? `Tara will stay quiet from ${formatTimeKey(values.quietHoursStart)} to ${formatTimeKey(values.quietHoursEnd)}.`
+            : "Quiet hours are off for now.",
+      });
     } catch {
       setSubmitError(
-        updateQuietHoursMutation.friendlyError ??
-          "We couldn't save quiet hours settings right now.",
+        updateQuietHoursMutation.friendlyError ?? "We couldn't save quiet hours settings right now.",
       );
     }
   });
 
   if (!user?.id) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
-        <ErrorState
-          message="Please sign in to edit quiet hours."
-          title="Sign-in required"
-        />
+      <Screen centered onBack={goBack}>
+        <ErrorState message="Please sign in to edit quiet hours." title="Sign-in required" />
       </Screen>
     );
   }
 
   if (settingsProfileQuery.isLoading && !settingsProfileQuery.data) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered onBack={goBack}>
         <LoadingState label="Loading quiet hours..." />
       </Screen>
     );
@@ -106,7 +115,7 @@ export function QuietHoursSettingsScreen() {
 
   if (settingsProfileQuery.error && !settingsProfileQuery.data) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered onBack={goBack}>
         <ErrorState
           message="We couldn't load quiet hours settings right now."
           onRetry={() => {
@@ -119,17 +128,7 @@ export function QuietHoursSettingsScreen() {
   }
 
   return (
-    <Screen contentContainerStyle={styles.content} scroll>
-      <View style={styles.header}>
-        <AppText variant="title">Quiet hours</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          Tara should respect your rest.
-        </AppText>
-        <AppText color="textSecondary" variant="caption">
-          When notifications are enabled, quiet hours delay non-urgent push scheduling.
-        </AppText>
-      </View>
-
+    <Screen onBack={goBack} scroll subtitle="Tara should respect your rest." title="Quiet hours">
       <Card>
         <Controller
           control={control}
@@ -139,15 +138,15 @@ export function QuietHoursSettingsScreen() {
               onChangeEnabled={(nextValue) => {
                 field.onChange(nextValue);
                 if (!nextValue) {
-                  setValue("quietHoursStart", "", { shouldValidate: true });
-                  setValue("quietHoursEnd", "", { shouldValidate: true });
+                  setValue("quietHoursStart", "", { shouldDirty: true, shouldValidate: true });
+                  setValue("quietHoursEnd", "", { shouldDirty: true, shouldValidate: true });
                 }
               }}
               onChangeQuietHoursEnd={(value) =>
-                setValue("quietHoursEnd", value, { shouldValidate: true })
+                setValue("quietHoursEnd", value, { shouldDirty: true, shouldValidate: true })
               }
               onChangeQuietHoursStart={(value) =>
-                setValue("quietHoursStart", value, { shouldValidate: true })
+                setValue("quietHoursStart", value, { shouldDirty: true, shouldValidate: true })
               }
               quietHoursEnabled={quietHoursEnabled}
               quietHoursEnd={quietHoursEnd}
@@ -159,20 +158,17 @@ export function QuietHoursSettingsScreen() {
         />
       </Card>
 
-      {submitError ? (
-        <AppText color="danger" variant="caption">
-          {submitError}
-        </AppText>
-      ) : null}
+      <InlineMessage
+        icon="moon-outline"
+        message="When notifications are enabled, quiet hours delay non-urgent push scheduling."
+        tone="neutral"
+      />
 
-      {updateQuietHoursMutation.isSuccess ? (
-        <AppText color="success" variant="caption">
-          Quiet hours saved.
-        </AppText>
-      ) : null}
+      {submitError ? <InlineMessage message={submitError} tone="danger" /> : null}
 
       <Button
-        disabled={!isValid || updateQuietHoursMutation.isPending}
+        disabled={!isDirty || !isValid || updateQuietHoursMutation.isPending}
+        icon="checkmark"
         loading={updateQuietHoursMutation.isPending}
         onPress={onSubmit}
         title="Save quiet hours"
@@ -180,15 +176,3 @@ export function QuietHoursSettingsScreen() {
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    gap: spacing.lg,
-  },
-  loading: {
-    justifyContent: "center",
-  },
-  header: {
-    gap: spacing.sm,
-  },
-});

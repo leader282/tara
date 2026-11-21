@@ -3,9 +3,19 @@ import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Button, Card, EmptyState, ErrorState, LoadingState, Screen, TextField } from "@/components/ui";
-import { useRouter } from "expo-router";
-
+import { useToast } from "@/components/feedback/ToastProvider";
+import { useGoBack } from "@/components/navigation/useGoBack";
+import {
+  Button,
+  Card,
+  DateField,
+  EmptyState,
+  ErrorState,
+  InlineMessage,
+  LoadingState,
+  Screen,
+  SectionHeader,
+} from "@/components/ui";
 import { useActiveCoupleState } from "@/features/couple/hooks/useActiveCoupleState";
 import { OnboardingOptionCard } from "@/features/onboarding/components/OnboardingOptionCard";
 import { SETTINGS_COUPLE_THEME_OPTIONS, SETTINGS_RITUAL_FREQUENCIES } from "@/features/settings/constants";
@@ -15,25 +25,33 @@ import {
   coupleSettingsFormSchema,
   type CoupleSettingsFormInput,
 } from "@/features/settings/schemas";
+import { toDateKey } from "@/lib/dates/calendar";
 import { spacing } from "@/theme/tokens";
 
-const ritualFrequencyCopy: Record<(typeof SETTINGS_RITUAL_FREQUENCIES)[number], { label: string; description: string }> = {
+const ritualFrequencyCopy: Record<
+  (typeof SETTINGS_RITUAL_FREQUENCIES)[number],
+  { label: string; description: string; emoji: string }
+> = {
   daily: {
     label: "Daily",
     description: "A ritual each day when it feels right.",
+    emoji: "☀️",
   },
   few_times_week: {
     label: "Few times a week",
     description: "A gentle rhythm through the week.",
+    emoji: "🌤️",
   },
   weekly: {
     label: "Weekly",
     description: "One shared ritual each week.",
+    emoji: "📅",
   },
 };
 
 export function CoupleSettingsScreen() {
-  const router = useRouter();
+  const goBack = useGoBack("/(settings)");
+  const toast = useToast();
   const activeCoupleState = useActiveCoupleState();
   const pairedCoupleId =
     activeCoupleState.state.status === "paired" ? activeCoupleState.state.couple.id : null;
@@ -41,12 +59,7 @@ export function CoupleSettingsScreen() {
   const updateCoupleSettingsMutation = useUpdateCoupleSettings();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const {
-    control,
-    handleSubmit,
-    formState,
-    reset,
-  } = useForm<CoupleSettingsFormInput>({
+  const { control, handleSubmit, formState, reset } = useForm<CoupleSettingsFormInput>({
     defaultValues: {
       anniversaryDate: "",
       ritualFrequency: "daily",
@@ -81,10 +94,16 @@ export function CoupleSettingsScreen() {
         ritualFrequency: values.ritualFrequency,
         theme: values.theme ?? null,
       });
+      reset(values);
+      toast.show({
+        tone: "success",
+        emoji: "💞",
+        title: "Couple settings saved",
+        message: "These shared settings apply to both of you.",
+      });
     } catch {
       setSubmitError(
-        updateCoupleSettingsMutation.friendlyError ??
-          "We couldn't save couple settings right now.",
+        updateCoupleSettingsMutation.friendlyError ?? "We couldn't save couple settings right now.",
       );
     }
   });
@@ -94,7 +113,7 @@ export function CoupleSettingsScreen() {
 
   if (activeCoupleState.isLoading || pairedStatus === "loading") {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered onBack={goBack}>
         <LoadingState label="Loading couple settings..." />
       </Screen>
     );
@@ -102,12 +121,11 @@ export function CoupleSettingsScreen() {
 
   if (activeCoupleState.error) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered onBack={goBack}>
         <ErrorState
           message="We couldn't load your couple status right now."
-          onRetry={() => {
-            void router.replace("/(settings)");
-          }}
+          onRetry={goBack}
+          retryLabel="Back to settings"
           title="Couple settings unavailable"
         />
       </Screen>
@@ -116,11 +134,12 @@ export function CoupleSettingsScreen() {
 
   if (pairedStatus !== "paired" || !pairedCoupleId) {
     return (
-      <Screen contentContainerStyle={styles.content}>
+      <Screen centered onBack={goBack}>
         <EmptyState
           actionLabel="Back to settings"
           description="Couple settings unlock after your private space is fully paired."
-          onActionPress={() => router.replace("/(settings)")}
+          icon="heart-outline"
+          onActionPress={goBack}
           title="Available after pairing"
         />
       </Screen>
@@ -129,7 +148,7 @@ export function CoupleSettingsScreen() {
 
   if (coupleSettingsQuery.isLoading && !coupleSettingsQuery.data) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered onBack={goBack}>
         <LoadingState label="Loading shared couple settings..." />
       </Screen>
     );
@@ -137,7 +156,7 @@ export function CoupleSettingsScreen() {
 
   if (coupleSettingsQuery.error && !coupleSettingsQuery.data) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
+      <Screen centered onBack={goBack}>
         <ErrorState
           message="We couldn't load current couple settings right now."
           onRetry={() => {
@@ -150,36 +169,30 @@ export function CoupleSettingsScreen() {
   }
 
   return (
-    <Screen contentContainerStyle={styles.content} scroll>
-      <View style={styles.header}>
-        <AppText variant="title">Couple settings</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          Manage shared settings without changing couple status or membership.
-        </AppText>
-      </View>
-
+    <Screen
+      onBack={goBack}
+      scroll
+      subtitle="Manage shared settings without changing couple status or membership."
+      title="Couple settings"
+    >
       <Card>
         <View style={styles.section}>
-          <AppText variant="subtitle">Anniversary date</AppText>
+          <SectionHeader title="Anniversary" />
           <Controller
             control={control}
             name="anniversaryDate"
             render={({ field, fieldState }) => (
-              <View style={styles.inputGroup}>
-                <TextField
-                  accessibilityLabel="Anniversary date"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  errorMessage={fieldState.error?.message}
-                  keyboardType="numbers-and-punctuation"
-                  label="Anniversary date (optional)"
-                  onBlur={field.onBlur}
-                  onChangeText={field.onChange}
-                  placeholder="YYYY-MM-DD"
-                  returnKeyType="done"
-                  value={field.value ?? ""}
-                />
-              </View>
+              <DateField
+                accessibilityLabel="Anniversary date"
+                clearable
+                errorMessage={fieldState.error?.message}
+                label="Anniversary date (optional)"
+                maxDate={toDateKey(new Date())}
+                onChange={field.onChange}
+                placeholder="When did your story begin?"
+                sheetTitle="Your anniversary"
+                value={field.value ?? ""}
+              />
             )}
           />
         </View>
@@ -187,7 +200,7 @@ export function CoupleSettingsScreen() {
 
       <Card>
         <View style={styles.section}>
-          <AppText variant="subtitle">Ritual frequency</AppText>
+          <SectionHeader title="Ritual frequency" />
           <Controller
             control={control}
             name="ritualFrequency"
@@ -197,8 +210,9 @@ export function CoupleSettingsScreen() {
                   const copy = ritualFrequencyCopy[option];
                   return (
                     <OnboardingOptionCard
-                      key={option}
                       description={copy.description}
+                      emoji={copy.emoji}
+                      key={option}
                       label={copy.label}
                       onPress={() => field.onChange(option)}
                       selected={field.value === option}
@@ -214,7 +228,7 @@ export function CoupleSettingsScreen() {
       {shouldShowThemeOptionCards ? (
         <Card>
           <View style={styles.section}>
-            <AppText variant="subtitle">Theme</AppText>
+            <SectionHeader title="Theme" />
             <Controller
               control={control}
               name="theme"
@@ -235,26 +249,20 @@ export function CoupleSettingsScreen() {
         </Card>
       ) : null}
 
-      {submitError ? (
-        <AppText color="danger" variant="caption">
-          {submitError}
-        </AppText>
-      ) : null}
+      {submitError ? <InlineMessage message={submitError} tone="danger" /> : null}
 
       {coupleSettingsQuery.error && coupleSettingsQuery.data ? (
-        <AppText color="textSecondary" variant="caption">
-          Showing last known values while refreshing shared settings.
-        </AppText>
-      ) : null}
-
-      {updateCoupleSettingsMutation.isSuccess ? (
-        <AppText color="success" variant="caption">
-          Couple settings saved.
-        </AppText>
+        <InlineMessage
+          message="Showing last known values while refreshing shared settings."
+          tone="warning"
+        />
       ) : null}
 
       <Button
-        disabled={!isValid || updateCoupleSettingsMutation.isPending}
+        disabled={
+          !isDirty || !isValid || updateCoupleSettingsMutation.isPending
+        }
+        icon="checkmark"
         loading={updateCoupleSettingsMutation.isPending}
         onPress={onSubmit}
         title="Save couple settings"
@@ -264,22 +272,10 @@ export function CoupleSettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: {
+  section: {
     gap: spacing.lg,
   },
-  loading: {
-    justifyContent: "center",
-  },
-  header: {
-    gap: spacing.sm,
-  },
-  section: {
-    gap: spacing.md,
-  },
   options: {
-    gap: spacing.sm,
-  },
-  inputGroup: {
     gap: spacing.sm,
   },
 });

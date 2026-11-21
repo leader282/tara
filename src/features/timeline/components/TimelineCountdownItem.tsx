@@ -1,6 +1,6 @@
 import { StyleSheet, View } from "react-native";
 
-import { AppText } from "@/components/ui";
+import { TimelineMetaLine } from "@/features/timeline/components/TimelineMetaLine";
 import type { TimelineDisplayItem } from "@/features/timeline/types";
 import { formatMeetupDateTime } from "@/lib/dates/format";
 import { spacing } from "@/theme/tokens";
@@ -21,12 +21,14 @@ export function TimelineCountdownItem({ item }: TimelineCountdownItemProps) {
 
   return (
     <View style={styles.container}>
-      <AppText color="textSecondary" variant="caption">
-        {meetupLabel ? `Next meetup: ${meetupLabel}.` : "Your reunion countdown was updated."}
-      </AppText>
-      <AppText color="textSecondary" variant="caption">
-        {hasLocation ? "Location details were updated." : "No location set for this update."}
-      </AppText>
+      <TimelineMetaLine
+        icon="calendar-outline"
+        label={meetupLabel ? `Next meetup: ${meetupLabel}.` : "Your reunion countdown was updated."}
+      />
+      <TimelineMetaLine
+        icon="location-outline"
+        label={hasLocation ? "Location details were updated." : "No location set for this update."}
+      />
     </View>
   );
 }

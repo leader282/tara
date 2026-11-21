@@ -2,9 +2,10 @@ import { Component, type ErrorInfo, type PropsWithChildren } from "react";
 import { StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/ui/AppText";
+import { BrandMark } from "@/components/ui/BrandMark";
 import { Button } from "@/components/ui/Button";
 import { captureException } from "@/lib/monitoring/sentry";
-import { colors, spacing } from "@/theme/tokens";
+import { colors, layout, spacing } from "@/theme/tokens";
 
 type ErrorBoundaryProps = PropsWithChildren<{
   onRetry?: () => void;
@@ -40,12 +41,16 @@ class RootErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState
       return (
         <View style={styles.screen}>
           <View style={styles.messageContainer}>
-            <AppText style={styles.message} variant="subtitle">
-              Something went wrong. Please restart Tara.
-            </AppText>
-            <View style={styles.action}>
-              <Button onPress={this.handleRetry} title="Try again" variant="secondary" />
+            <BrandMark size={56} />
+            <View style={styles.copy}>
+              <AppText align="center" variant="headline">
+                Something went wrong
+              </AppText>
+              <AppText align="center" color="textSecondary" variant="bodyMuted">
+                Your space is safe. Try again, or restart Tara if this keeps happening.
+              </AppText>
             </View>
+            <Button icon="refresh" onPress={this.handleRetry} style={styles.action} title="Try again" />
           </View>
         </View>
       );
@@ -60,23 +65,22 @@ export function ErrorBoundary({ children, onRetry }: ErrorBoundaryProps) {
 }
 
 const styles = StyleSheet.create({
-  action: {
-    marginTop: spacing.md,
-    minWidth: 180,
-  },
   screen: {
     alignItems: "center",
     backgroundColor: colors.background,
     flex: 1,
     justifyContent: "center",
-    paddingHorizontal: spacing.xl,
-  },
-  message: {
-    textAlign: "center",
+    paddingHorizontal: layout.gutter,
   },
   messageContainer: {
     alignItems: "center",
-    justifyContent: "center",
-    maxWidth: 320,
+    gap: spacing.xl,
+    maxWidth: 340,
+  },
+  copy: {
+    gap: spacing.sm,
+  },
+  action: {
+    minWidth: 200,
   },
 });

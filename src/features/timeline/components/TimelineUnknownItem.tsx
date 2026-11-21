@@ -1,9 +1,5 @@
-import { AppText } from "@/components/ui";
+import { TimelineMetaLine } from "@/features/timeline/components/TimelineMetaLine";
 
 export function TimelineUnknownItem() {
-  return (
-    <AppText color="textSecondary" variant="caption">
-      This shared moment is saved safely.
-    </AppText>
-  );
+  return <TimelineMetaLine icon="shield-checkmark-outline" label="This shared moment is saved safely." />;
 }

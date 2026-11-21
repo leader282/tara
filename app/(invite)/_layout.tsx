@@ -1,22 +1,20 @@
 import { Redirect, Stack } from "expo-router";
-import { StyleSheet } from "react-native";
 
-import { ErrorState, LoadingState, Screen } from "@/components/ui";
+import { GateErrorScreen, GateLoadingScreen } from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useActiveCoupleState } from "@/features/couple/hooks/useActiveCoupleState";
+import { useRetryAppGates } from "@/features/couple/hooks/useRetryAppGates";
 import { useOnboardingGate } from "@/features/onboarding/hooks/useOnboardingGate";
+import { colors } from "@/theme/tokens";
 
 export default function InviteLayout() {
   const { isAuthenticated, isInitializing } = useAuth();
   const onboardingGate = useOnboardingGate();
   const coupleGate = useActiveCoupleState();
+  const retryGates = useRetryAppGates();
 
   if (isInitializing || onboardingGate.isLoading) {
-    return (
-      <Screen contentContainerStyle={styles.loading}>
-        <LoadingState label="Preparing your private invite space..." />
-      </Screen>
-    );
+    return <GateLoadingScreen label="Preparing your private invite space..." />;
   }
 
   if (!isAuthenticated) {
@@ -25,12 +23,11 @@ export default function InviteLayout() {
 
   if (onboardingGate.error) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
-        <ErrorState
-          message="We couldn't open invite setup right now. Please try again."
-          title="Couldn’t open invite flow"
-        />
-      </Screen>
+      <GateErrorScreen
+        message="We couldn't open invite setup right now. Please try again."
+        onRetry={retryGates}
+        title="Couldn’t open invite flow"
+      />
     );
   }
 
@@ -39,21 +36,16 @@ export default function InviteLayout() {
   }
 
   if (coupleGate.isLoading || coupleGate.state.status === "loading") {
-    return (
-      <Screen contentContainerStyle={styles.loading}>
-        <LoadingState label="Preparing your private invite space..." />
-      </Screen>
-    );
+    return <GateLoadingScreen label="Preparing your private invite space..." />;
   }
 
   if (coupleGate.error) {
     return (
-      <Screen contentContainerStyle={styles.loading}>
-        <ErrorState
-          message="We couldn't load your couple status right now. Please try again."
-          title="Still preparing your invite space"
-        />
-      </Screen>
+      <GateErrorScreen
+        message="We couldn't load your couple status right now. Please try again."
+        onRetry={retryGates}
+        title="Still preparing your invite space"
+      />
     );
   }
 
@@ -64,7 +56,12 @@ export default function InviteLayout() {
   const isWaitingForPartner = coupleGate.state.status === "waiting";
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack
+      screenOptions={{
+        contentStyle: { backgroundColor: colors.background },
+        headerShown: false,
+      }}
+    >
       <Stack.Protected guard={!isWaitingForPartner}>
         <Stack.Screen name="index" />
         <Stack.Screen name="create" />
@@ -77,9 +74,3 @@ export default function InviteLayout() {
     </Stack>
   );
 }
-
-const styles = StyleSheet.create({
-  loading: {
-    justifyContent: "center",
-  },
-});

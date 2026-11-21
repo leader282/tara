@@ -1,25 +1,30 @@
-import { StyleSheet, View } from "react-native";
+import { useState } from "react";
+import { RefreshControl } from "react-native";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 
-import { AppText, EmptyState, ErrorState, LoadingState, Screen } from "@/components/ui";
+import { useToast } from "@/components/feedback/ToastProvider";
+import { EmptyState, ErrorState, LoadingState, Screen } from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useCoupleHome } from "@/features/couple/hooks/useCoupleHome";
 import { RitualHistoryList } from "@/features/rituals/components/RitualHistoryList";
 import { TodayRitualCard } from "@/features/rituals/components/TodayRitualCard";
+import { getRitualSavedToast } from "@/features/rituals/feedback";
 import { useCompleteRitual } from "@/features/rituals/hooks/useCompleteRitual";
 import { useRitualHistory } from "@/features/rituals/hooks/useRitualHistory";
 import { useRitualRealtime } from "@/features/rituals/hooks/useRitualRealtime";
 import { useTodayRitual } from "@/features/rituals/hooks/useTodayRitual";
 import { queryKeys } from "@/lib/query/queryKeys";
-import { spacing } from "@/theme/tokens";
+import { colors } from "@/theme/tokens";
 
 export function RitualsHomeScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const toast = useToast();
   const { user } = useAuth();
   const coupleHome = useCoupleHome();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const pairedData = coupleHome.state.status === "paired" ? coupleHome.state.data : null;
   const coupleId = pairedData?.couple.id ?? null;
@@ -42,6 +47,22 @@ export function RitualsHomeScreen() {
     });
   };
 
+  const handleRefresh = async () => {
+    if (!coupleId) {
+      return;
+    }
+
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        todayRitual.refetch(),
+        queryClient.invalidateQueries({ queryKey: queryKeys.rituals.historyList(coupleId) }),
+      ]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const handleOpenRitualDetail = (ritualId: string) => {
     router.push({
       pathname: "/(couple)/rituals/[ritualId]",
@@ -59,11 +80,12 @@ export function RitualsHomeScreen() {
     mediaAssetId?: string | null;
   }) => {
     try {
-      await completeRitualMutation.mutateAsync({
+      const result = await completeRitualMutation.mutateAsync({
         coupleRitualId,
         textResponse,
         mediaAssetId,
       });
+      toast.show(getRitualSavedToast(result.is_revealed, partnerDisplayName));
     } catch {
       // Friendly message comes from mutation state.
     }
@@ -71,7 +93,7 @@ export function RitualsHomeScreen() {
 
   if (coupleHome.isLoading || coupleHome.state.status === "loading") {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered edges={["top"]}>
         <LoadingState label="Loading your ritual space..." />
       </Screen>
     );
@@ -79,7 +101,7 @@ export function RitualsHomeScreen() {
 
   if (coupleHome.error) {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered edges={["top"]}>
         <ErrorState
           message={coupleHome.friendlyError ?? "We couldn't load your ritual space right now."}
           onRetry={handleRetryCoupleHome}
@@ -91,7 +113,7 @@ export function RitualsHomeScreen() {
 
   if (coupleHome.state.status === "none") {
     return (
-      <Screen contentContainerStyle={styles.content}>
+      <Screen centered edges={["top"]}>
         <EmptyState
           actionLabel="Open invite setup"
           description="Your rituals unlock once your couple space is active."
@@ -104,10 +126,11 @@ export function RitualsHomeScreen() {
 
   if (coupleHome.state.status === "waiting") {
     return (
-      <Screen contentContainerStyle={styles.content}>
+      <Screen centered edges={["top"]}>
         <EmptyState
           actionLabel="View invite"
           description="Daily rituals will appear once your partner joins."
+          icon="hourglass-outline"
           onActionPress={() => router.replace("/(invite)/waiting")}
           title="Waiting for your partner"
         />
@@ -117,7 +140,7 @@ export function RitualsHomeScreen() {
 
   if (coupleHome.state.status === "invariant_error") {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered edges={["top"]}>
         <ErrorState
           message="We found an unexpected couple setup issue. Please try again."
           onRetry={handleRetryCoupleHome}
@@ -128,14 +151,20 @@ export function RitualsHomeScreen() {
   }
 
   return (
-    <Screen contentContainerStyle={styles.content} scroll>
-      <View style={styles.header}>
-        <AppText variant="title">Rituals</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          Small prompts you both answer in your own time, from wherever you are.
-        </AppText>
-      </View>
-
+    <Screen
+      edges={["top"]}
+      refreshControl={
+        <RefreshControl
+          colors={[colors.primary]}
+          onRefresh={() => void handleRefresh()}
+          refreshing={isRefreshing}
+          tintColor={colors.primary}
+        />
+      }
+      scroll
+      subtitle="Small prompts you both answer in your own time, from wherever you are."
+      title="Rituals"
+    >
       <TodayRitualCard
         isSubmitting={completeRitualMutation.isPending}
         onRetry={() => {
@@ -165,15 +194,3 @@ export function RitualsHomeScreen() {
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    gap: spacing.lg,
-  },
-  centered: {
-    justifyContent: "center",
-  },
-  header: {
-    gap: spacing.sm,
-  },
-});

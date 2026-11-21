@@ -10,6 +10,7 @@ export function CapsuleEmptyState({ onCreatePress }: CapsuleEmptyStateProps) {
       <EmptyState
         actionLabel="Create your first capsule"
         description="Save a note now and open it together on a future day."
+        emoji="🎁"
         onActionPress={onCreatePress}
         title="No memory capsules yet"
       />

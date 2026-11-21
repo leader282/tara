@@ -1,9 +1,9 @@
-import { StyleSheet, View } from "react-native";
-
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
-import { AppText, Button, EmptyState, ErrorState, LoadingState, Screen } from "@/components/ui";
+import { useToast } from "@/components/feedback/ToastProvider";
+import { useGoBack } from "@/components/navigation/useGoBack";
+import { EmptyState, ErrorState, LoadingState, Screen } from "@/components/ui";
 import { CapsuleLockedState } from "@/features/capsules/components/CapsuleLockedState";
 import { CapsuleOpenableState } from "@/features/capsules/components/CapsuleOpenableState";
 import { CapsuleOpenedContent } from "@/features/capsules/components/CapsuleOpenedContent";
@@ -14,11 +14,12 @@ import { useOpenCapsule } from "@/features/capsules/hooks/useOpenCapsule";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useCoupleHome } from "@/features/couple/hooks/useCoupleHome";
 import { queryKeys } from "@/lib/query/queryKeys";
-import { spacing } from "@/theme/tokens";
 
 export function CapsuleDetailScreen() {
   const router = useRouter();
+  const goBack = useGoBack("/(couple)/capsules");
   const queryClient = useQueryClient();
+  const toast = useToast();
   const params = useLocalSearchParams<{ capsuleId?: string | string[] }>();
   const { user } = useAuth();
   const coupleHome = useCoupleHome();
@@ -63,14 +64,25 @@ export function CapsuleDetailScreen() {
       await queryClient.invalidateQueries({
         queryKey: queryKeys.capsules.detail(routeCapsuleId, currentUserId),
       });
+      toast.show({
+        tone: "success",
+        emoji: "💌",
+        title: "Capsule opened",
+        message: "A little piece of your past, waiting just for you two.",
+      });
     } catch {
       // Friendly API errors are exposed by the mutation hook.
     }
   };
 
+  const screenProps = {
+    backLabel: "Back to capsules",
+    onBack: goBack,
+  };
+
   if (coupleHome.isLoading || coupleHome.state.status === "loading") {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered {...screenProps}>
         <LoadingState label="Loading capsule detail..." />
       </Screen>
     );
@@ -78,7 +90,7 @@ export function CapsuleDetailScreen() {
 
   if (coupleHome.error) {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered {...screenProps}>
         <ErrorState
           message={coupleHome.friendlyError ?? "We couldn't open this capsule right now."}
           onRetry={handleRetryCoupleHome}
@@ -90,7 +102,7 @@ export function CapsuleDetailScreen() {
 
   if (coupleHome.state.status === "none") {
     return (
-      <Screen contentContainerStyle={styles.content}>
+      <Screen centered {...screenProps}>
         <EmptyState description="Pair first to view memory capsules." title="Capsule unavailable" />
       </Screen>
     );
@@ -98,7 +110,7 @@ export function CapsuleDetailScreen() {
 
   if (coupleHome.state.status === "waiting") {
     return (
-      <Screen contentContainerStyle={styles.content}>
+      <Screen centered {...screenProps}>
         <EmptyState
           actionLabel="View invite"
           description="Capsule details unlock after your partner joins."
@@ -111,7 +123,7 @@ export function CapsuleDetailScreen() {
 
   if (coupleHome.state.status === "invariant_error") {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered {...screenProps}>
         <ErrorState
           message="We found an unexpected couple setup issue. Please try again."
           onRetry={handleRetryCoupleHome}
@@ -123,7 +135,7 @@ export function CapsuleDetailScreen() {
 
   if (!routeCapsuleId) {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered {...screenProps}>
         <ErrorState
           message="This capsule link looks incomplete. Please open it again from your capsule list."
           title="Capsule not found"
@@ -134,7 +146,7 @@ export function CapsuleDetailScreen() {
 
   if (capsuleDetail.isLoading) {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered {...screenProps}>
         <LoadingState label="Loading capsule detail..." />
       </Screen>
     );
@@ -142,7 +154,7 @@ export function CapsuleDetailScreen() {
 
   if (capsuleDetail.error || !capsuleDetail.detail) {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered {...screenProps}>
         <ErrorState
           message={capsuleDetail.friendlyError ?? "We couldn't open this capsule right now."}
           onRetry={handleRetryCapsuleDetail}
@@ -158,14 +170,7 @@ export function CapsuleDetailScreen() {
   const isOpened = Boolean(capsule.opened_at);
 
   return (
-    <Screen contentContainerStyle={styles.content} scroll>
-      <View style={styles.header}>
-        <AppText variant="title">Capsule detail</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          A calm space for this memory.
-        </AppText>
-      </View>
-
+    <Screen {...screenProps} scroll subtitle="A calm space for this memory." title="Capsule detail">
       {isOpened ? (
         <CapsuleOpenedContent
           capsule={capsule}
@@ -197,26 +202,6 @@ export function CapsuleDetailScreen() {
       {!isOpened && !isReadyToOpen && !detail.isCreatedByMe ? (
         <CapsuleLockedState capsule={capsule} />
       ) : null}
-
-      <Button
-        onPress={() => {
-          router.replace("/(couple)/capsules");
-        }}
-        title="Back to capsules"
-        variant="ghost"
-      />
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  content: {
-    gap: spacing.lg,
-  },
-  centered: {
-    justifyContent: "center",
-  },
-  header: {
-    gap: spacing.sm,
-  },
-});

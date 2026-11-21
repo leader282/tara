@@ -3,13 +3,16 @@ import { StyleSheet, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
-import { AppText, Button, EmptyState, ErrorState, LoadingState, Screen } from "@/components/ui";
+import { useToast } from "@/components/feedback/ToastProvider";
+import { useGoBack } from "@/components/navigation/useGoBack";
+import { Card, EmptyState, ErrorState, LoadingState, Screen } from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useCoupleHome } from "@/features/couple/hooks/useCoupleHome";
 import { RitualLockedState } from "@/features/rituals/components/RitualLockedState";
 import { RitualPromptCard } from "@/features/rituals/components/RitualPromptCard";
 import { RitualResponseForm } from "@/features/rituals/components/RitualResponseForm";
 import { RitualRevealedResult } from "@/features/rituals/components/RitualRevealedResult";
+import { getRitualSavedToast } from "@/features/rituals/feedback";
 import { useCompleteRitual } from "@/features/rituals/hooks/useCompleteRitual";
 import { useRitualDetail } from "@/features/rituals/hooks/useRitualDetail";
 import { useRitualRealtime } from "@/features/rituals/hooks/useRitualRealtime";
@@ -18,8 +21,10 @@ import { spacing } from "@/theme/tokens";
 
 export function RitualDetailScreen() {
   const router = useRouter();
+  const goBack = useGoBack("/(couple)/rituals");
   const params = useLocalSearchParams<{ ritualId?: string | string[] }>();
   const queryClient = useQueryClient();
+  const toast = useToast();
   const { user } = useAuth();
   const coupleHome = useCoupleHome();
 
@@ -66,19 +71,25 @@ export function RitualDetailScreen() {
     }
 
     try {
-      await completeRitualMutation.mutateAsync({
+      const result = await completeRitualMutation.mutateAsync({
         coupleRitualId: routeRitualId,
         textResponse,
         mediaAssetId,
       });
+      toast.show(getRitualSavedToast(result.is_revealed, partnerDisplayName));
     } catch {
       // Friendly message comes from mutation state.
     }
   };
 
+  const screenProps = {
+    backLabel: "Back to rituals",
+    onBack: goBack,
+  };
+
   if (coupleHome.isLoading || coupleHome.state.status === "loading") {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered {...screenProps}>
         <LoadingState label="Loading ritual details..." />
       </Screen>
     );
@@ -86,7 +97,7 @@ export function RitualDetailScreen() {
 
   if (coupleHome.error) {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered {...screenProps}>
         <ErrorState
           message={coupleHome.friendlyError ?? "We couldn't load ritual details right now."}
           onRetry={handleRetryCoupleHome}
@@ -98,7 +109,7 @@ export function RitualDetailScreen() {
 
   if (coupleHome.state.status === "none") {
     return (
-      <Screen contentContainerStyle={styles.content}>
+      <Screen centered {...screenProps}>
         <EmptyState description="Pair first to view ritual details." title="Ritual unavailable" />
       </Screen>
     );
@@ -106,7 +117,7 @@ export function RitualDetailScreen() {
 
   if (coupleHome.state.status === "waiting") {
     return (
-      <Screen contentContainerStyle={styles.content}>
+      <Screen centered {...screenProps}>
         <EmptyState
           actionLabel="View invite"
           description="Ritual details unlock after your partner joins."
@@ -119,7 +130,7 @@ export function RitualDetailScreen() {
 
   if (coupleHome.state.status === "invariant_error") {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered {...screenProps}>
         <ErrorState
           message="We found an unexpected couple setup issue. Please try again."
           onRetry={handleRetryCoupleHome}
@@ -131,7 +142,7 @@ export function RitualDetailScreen() {
 
   if (!routeRitualId) {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered {...screenProps}>
         <ErrorState
           message="This ritual link looks incomplete. Please open it again from ritual history."
           title="Ritual not found"
@@ -142,7 +153,7 @@ export function RitualDetailScreen() {
 
   if (ritualDetail.isLoading) {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered {...screenProps}>
         <LoadingState label="Loading ritual details..." />
       </Screen>
     );
@@ -150,7 +161,7 @@ export function RitualDetailScreen() {
 
   if (ritualDetail.error || !ritualDetail.ritual) {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered {...screenProps}>
         <ErrorState
           message={ritualDetail.friendlyError ?? "We couldn't open this ritual right now."}
           onRetry={handleRetryRitualDetail}
@@ -163,61 +174,48 @@ export function RitualDetailScreen() {
   const detail = ritualDetail.ritual;
 
   return (
-    <Screen contentContainerStyle={styles.content} scroll>
-      <View style={styles.header}>
-        <AppText variant="title">Ritual detail</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          A calm space for one shared prompt.
-        </AppText>
-      </View>
-
-      <RitualPromptCard coupleRitual={detail.coupleRitual} heading="Ritual detail" template={detail.template} />
-
-      <View style={styles.stateSection}>
-        {!detail.revealState.hasCompleted ? (
-          <RitualResponseForm
-            inputType={detail.template.input_type}
-            isSubmitting={completeRitualMutation.isPending}
-            onSubmit={handleSubmitResponse}
-            submitError={completeRitualMutation.friendlyError}
-          />
-        ) : null}
-
-        {detail.revealState.hasCompleted && !detail.revealState.isRevealed ? (
-          <RitualLockedState />
-        ) : null}
-
-        {detail.revealState.isRevealed ? (
-          <RitualRevealedResult
-            completedAt={detail.coupleRitual.updated_at}
-            myCompletion={detail.myCompletion}
-            partnerCompletion={detail.partnerCompletion}
-            partnerDisplayName={partnerDisplayName}
-          />
-        ) : null}
-      </View>
-
-      <Button
-        onPress={() => {
-          router.replace("/(couple)/rituals");
-        }}
-        title="Back to rituals"
-        variant="ghost"
+    <Screen
+      {...screenProps}
+      scroll
+      subtitle="A calm space for one shared prompt."
+      title="Ritual detail"
+    >
+      <RitualPromptCard
+        coupleRitual={detail.coupleRitual}
+        heading="Shared prompt"
+        template={detail.template}
       />
+
+      <Card>
+        <View style={styles.stateSection}>
+          {!detail.revealState.hasCompleted ? (
+            <RitualResponseForm
+              inputType={detail.template.input_type}
+              isSubmitting={completeRitualMutation.isPending}
+              onSubmit={handleSubmitResponse}
+              submitError={completeRitualMutation.friendlyError}
+            />
+          ) : null}
+
+          {detail.revealState.hasCompleted && !detail.revealState.isRevealed ? (
+            <RitualLockedState partnerDisplayName={partnerDisplayName} />
+          ) : null}
+
+          {detail.revealState.isRevealed ? (
+            <RitualRevealedResult
+              completedAt={detail.coupleRitual.updated_at}
+              myCompletion={detail.myCompletion}
+              partnerCompletion={detail.partnerCompletion}
+              partnerDisplayName={partnerDisplayName}
+            />
+          ) : null}
+        </View>
+      </Card>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  content: {
-    gap: spacing.lg,
-  },
-  centered: {
-    justifyContent: "center",
-  },
-  header: {
-    gap: spacing.sm,
-  },
   stateSection: {
     gap: spacing.md,
   },

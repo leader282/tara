@@ -1,7 +1,7 @@
-import { StyleSheet, Switch, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
-import { AppText, TextField } from "@/components/ui";
-import { colors, spacing } from "@/theme/tokens";
+import { SwitchRow, TimeField } from "@/components/ui";
+import { spacing } from "@/theme/tokens";
 
 type QuietHoursFieldsProps = {
   quietHoursEnabled: boolean;
@@ -27,42 +27,37 @@ export function QuietHoursFields({
   return (
     <View style={styles.container}>
       <View style={styles.switchRow}>
-        <View style={styles.switchCopy}>
-          <AppText variant="body">Enable quiet hours</AppText>
-          <AppText color="textSecondary" variant="bodyMuted">
-            Tara should respect your rest.
-          </AppText>
-        </View>
-        <Switch
+        <SwitchRow
           accessibilityLabel="Enable quiet hours"
+          description="Tara should respect your rest."
+          icon="moon-outline"
+          iconTone="info"
           onValueChange={onChangeEnabled}
-          trackColor={{ false: colors.border, true: colors.primary }}
+          title="Enable quiet hours"
           value={quietHoursEnabled}
         />
       </View>
 
       {quietHoursEnabled ? (
         <View style={styles.timeFields}>
-          <TextField
+          <TimeField
             accessibilityLabel="Quiet hours start time"
-            autoCapitalize="none"
-            autoCorrect={false}
+            defaultTime="22:00"
             errorMessage={quietHoursStartError}
-            keyboardType="numbers-and-punctuation"
             label="Quiet hours start"
-            onChangeText={onChangeQuietHoursStart}
-            placeholder="22:00"
+            onChange={onChangeQuietHoursStart}
+            placeholder="Choose when rest begins"
+            sheetTitle="Quiet hours start"
             value={quietHoursStart}
           />
-          <TextField
+          <TimeField
             accessibilityLabel="Quiet hours end time"
-            autoCapitalize="none"
-            autoCorrect={false}
+            defaultTime="07:00"
             errorMessage={quietHoursEndError}
-            keyboardType="numbers-and-punctuation"
             label="Quiet hours end"
-            onChangeText={onChangeQuietHoursEnd}
-            placeholder="07:00"
+            onChange={onChangeQuietHoursEnd}
+            placeholder="Choose when rest ends"
+            sheetTitle="Quiet hours end"
             value={quietHoursEnd}
           />
         </View>
@@ -76,16 +71,10 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
   },
   switchRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: spacing.md,
-    justifyContent: "space-between",
-  },
-  switchCopy: {
-    flex: 1,
-    gap: spacing.xs,
+    marginHorizontal: -spacing.lg,
+    marginVertical: -spacing.md,
   },
   timeFields: {
-    gap: spacing.md,
+    gap: spacing.lg,
   },
 });

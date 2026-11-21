@@ -1,11 +1,15 @@
-import { FlatList, StyleSheet, View } from "react-native";
+import { type ReactElement } from "react";
+import { FlatList, RefreshControl, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AppText } from "@/components/ui";
+import { AppText, InlineMessage } from "@/components/ui";
 import { TimelineEmptyState } from "@/features/timeline/components/TimelineEmptyState";
 import { TimelineItemCard } from "@/features/timeline/components/TimelineItemCard";
 import { TimelineLoadingFooter } from "@/features/timeline/components/TimelineLoadingFooter";
 import type { TimelineDisplayItem } from "@/features/timeline/types";
-import { spacing } from "@/theme/tokens";
+import { toDateKey } from "@/lib/dates/calendar";
+import { formatDate } from "@/lib/dates/format";
+import { colors, layout, spacing } from "@/theme/tokens";
 
 type TimelineListProps = {
   items: TimelineDisplayItem[];
@@ -13,10 +17,42 @@ type TimelineListProps = {
   isFetchingNextPage: boolean;
   hasNextPage: boolean;
   errorMessage?: string | null;
+  header?: ReactElement;
   onRefresh: () => void;
   onLoadMore: () => void;
   onItemPress: (item: TimelineDisplayItem) => void;
 };
+
+function getDayKey(isoString: string): string {
+  const date = new Date(isoString);
+  return Number.isNaN(date.getTime()) ? "unknown" : toDateKey(date);
+}
+
+function formatDayLabel(isoString: string): string {
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) {
+    return "Earlier";
+  }
+
+  const today = new Date();
+  const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+  const dayKey = toDateKey(date);
+
+  if (dayKey === toDateKey(today)) {
+    return "Today";
+  }
+
+  if (dayKey === toDateKey(yesterday)) {
+    return "Yesterday";
+  }
+
+  return formatDate(date, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    ...(date.getFullYear() === today.getFullYear() ? {} : { year: "numeric" }),
+  });
+}
 
 export function TimelineList({
   items,
@@ -24,10 +60,13 @@ export function TimelineList({
   isFetchingNextPage,
   hasNextPage,
   errorMessage = null,
+  header,
   onRefresh,
   onLoadMore,
   onItemPress,
 }: TimelineListProps) {
+  const insets = useSafeAreaInsets();
+
   const handleEndReached = () => {
     if (!hasNextPage || isFetchingNextPage || items.length === 0) {
       return;
@@ -38,7 +77,11 @@ export function TimelineList({
 
   return (
     <FlatList
-      contentContainerStyle={[styles.content, items.length === 0 ? styles.emptyContent : null]}
+      contentContainerStyle={[
+        styles.content,
+        { paddingTop: insets.top + spacing.lg },
+        items.length === 0 ? styles.emptyContent : null,
+      ]}
       data={items}
       ItemSeparatorComponent={ItemSeparator}
       keyExtractor={(item) => item.id}
@@ -46,19 +89,50 @@ export function TimelineList({
       ListEmptyComponent={TimelineEmptyState}
       ListFooterComponent={<TimelineLoadingFooter visible={isFetchingNextPage} />}
       ListHeaderComponent={
-        errorMessage && items.length > 0 ? (
-          <View style={styles.errorBanner}>
-            <AppText color="danger" variant="caption">
-              {errorMessage}
-            </AppText>
-          </View>
-        ) : null
+        <View style={styles.header}>
+          {header}
+          {errorMessage && items.length > 0 ? (
+            <InlineMessage message={errorMessage} tone="danger" />
+          ) : null}
+        </View>
       }
       onEndReached={handleEndReached}
       onEndReachedThreshold={0.4}
-      onRefresh={onRefresh}
-      refreshing={isRefreshing}
-      renderItem={({ item }) => <TimelineItemCard item={item} onPress={onItemPress} />}
+      refreshControl={
+        <RefreshControl
+          colors={[colors.primary]}
+          onRefresh={onRefresh}
+          refreshing={isRefreshing}
+          tintColor={colors.primary}
+        />
+      }
+      renderItem={({ item, index }) => {
+        const previous = items[index - 1];
+        const next = items[index + 1];
+        const dayKey = getDayKey(item.createdAt);
+        const isFirstOfDay = !previous || getDayKey(previous.createdAt) !== dayKey;
+        const isLastOfDay = !next || getDayKey(next.createdAt) !== dayKey;
+
+        return (
+          <View>
+            {isFirstOfDay ? (
+              <AppText
+                color="textSecondary"
+                style={[styles.dayLabel, index > 0 ? styles.dayLabelSpaced : null]}
+                variant="overline"
+              >
+                {formatDayLabel(item.createdAt)}
+              </AppText>
+            ) : null}
+            <TimelineItemCard
+              isFirst={isFirstOfDay}
+              isLast={isLastOfDay}
+              item={item}
+              onPress={onItemPress}
+            />
+          </View>
+        );
+      }}
       showsVerticalScrollIndicator={false}
     />
   );
@@ -70,16 +144,24 @@ function ItemSeparator() {
 
 const styles = StyleSheet.create({
   content: {
-    paddingBottom: spacing.xl,
+    paddingBottom: spacing["2xl"],
+    paddingHorizontal: layout.gutter,
   },
   emptyContent: {
     flexGrow: 1,
-    justifyContent: "center",
+  },
+  header: {
+    gap: spacing.lg,
+    marginBottom: spacing.lg,
   },
   separator: {
     height: spacing.md,
   },
-  errorBanner: {
+  dayLabel: {
     marginBottom: spacing.md,
+    marginLeft: 54,
+  },
+  dayLabelSpaced: {
+    marginTop: spacing.md,
   },
 });

@@ -1,9 +1,20 @@
-import { StyleSheet, View } from "react-native";
+import { useState } from "react";
+import { RefreshControl, StyleSheet, View } from "react-native";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 
-import { AppText, Button, Card, EmptyState, ErrorState, LoadingState, Screen } from "@/components/ui";
+import {
+  AppText,
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  Icon,
+  LoadingState,
+  Screen,
+  Skeleton,
+} from "@/components/ui";
 import { CapsuleEmptyState } from "@/features/capsules/components/CapsuleEmptyState";
 import { CapsuleList } from "@/features/capsules/components/CapsuleList";
 import { useCapsuleRealtime } from "@/features/capsules/hooks/useCapsuleRealtime";
@@ -11,13 +22,14 @@ import { useCapsules } from "@/features/capsules/hooks/useCapsules";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useCoupleHome } from "@/features/couple/hooks/useCoupleHome";
 import { queryKeys } from "@/lib/query/queryKeys";
-import { spacing } from "@/theme/tokens";
+import { colors, radii, spacing } from "@/theme/tokens";
 
 export function CapsulesHomeScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const coupleHome = useCoupleHome();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const pairedData = coupleHome.state.status === "paired" ? coupleHome.state.data : null;
   const coupleId = pairedData?.couple.id ?? null;
@@ -47,6 +59,21 @@ export function CapsulesHomeScreen() {
     });
   };
 
+  const handleRefresh = async () => {
+    if (!coupleId || !currentUserId) {
+      return;
+    }
+
+    setIsRefreshing(true);
+    try {
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.capsules.list(coupleId, currentUserId),
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const handleOpenCreate = () => {
     router.push("/(couple)/capsules/create");
   };
@@ -60,7 +87,7 @@ export function CapsulesHomeScreen() {
 
   if (coupleHome.isLoading || coupleHome.state.status === "loading") {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered edges={["top"]}>
         <LoadingState label="Loading your memory capsules..." />
       </Screen>
     );
@@ -68,7 +95,7 @@ export function CapsulesHomeScreen() {
 
   if (coupleHome.error) {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered edges={["top"]}>
         <ErrorState
           message={coupleHome.friendlyError ?? "We couldn't open memory capsules right now."}
           onRetry={handleRetryCoupleHome}
@@ -80,7 +107,7 @@ export function CapsulesHomeScreen() {
 
   if (coupleHome.state.status === "none") {
     return (
-      <Screen contentContainerStyle={styles.content}>
+      <Screen centered edges={["top"]}>
         <EmptyState
           actionLabel="Open invite setup"
           description="Memory capsules appear once your couple space is active."
@@ -93,10 +120,11 @@ export function CapsulesHomeScreen() {
 
   if (coupleHome.state.status === "waiting") {
     return (
-      <Screen contentContainerStyle={styles.content}>
+      <Screen centered edges={["top"]}>
         <EmptyState
           actionLabel="View invite"
           description="You can start capsules as soon as your partner joins."
+          icon="hourglass-outline"
           onActionPress={() => router.replace("/(invite)/waiting")}
           title="Waiting for your partner"
         />
@@ -106,7 +134,7 @@ export function CapsulesHomeScreen() {
 
   if (coupleHome.state.status === "invariant_error") {
     return (
-      <Screen contentContainerStyle={styles.centered}>
+      <Screen centered edges={["top"]}>
         <ErrorState
           message="We found an unexpected couple setup issue. Please try again."
           onRetry={handleRetryCoupleHome}
@@ -117,27 +145,39 @@ export function CapsulesHomeScreen() {
   }
 
   return (
-    <Screen contentContainerStyle={styles.content} scroll>
-      <View style={styles.header}>
-        <AppText variant="title">Memory capsules</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          Save something for a future day.
-        </AppText>
-      </View>
-
+    <Screen
+      edges={["top"]}
+      refreshControl={
+        <RefreshControl
+          colors={[colors.primary]}
+          onRefresh={() => void handleRefresh()}
+          refreshing={isRefreshing}
+          tintColor={colors.primary}
+        />
+      }
+      scroll
+      subtitle="Save something for a future day."
+      title="Memory capsules"
+    >
       <Card>
         <View style={styles.createCard}>
-          <AppText color="textSecondary" variant="bodyMuted">
-            Your partner can see that a capsule exists, and the note opens later.
-          </AppText>
-          <Button onPress={handleOpenCreate} title="Create capsule" />
+          <View style={styles.createHeader}>
+            <View style={styles.createIcon}>
+              <Icon color="primaryStrong" name="gift" size={22} />
+            </View>
+            <AppText color="textSecondary" style={styles.createCopy} variant="bodyMuted">
+              Your partner can see that a capsule exists, and the note opens later.
+            </AppText>
+          </View>
+          <Button icon="add" onPress={handleOpenCreate} title="Create capsule" />
         </View>
       </Card>
 
       {capsules.isLoading ? (
-        <Card>
-          <LoadingState label="Loading memory capsules..." />
-        </Card>
+        <View style={styles.skeletonList}>
+          <Skeleton height={96} radius={radii.lg} />
+          <Skeleton height={96} radius={radii.lg} />
+        </View>
       ) : null}
 
       {!capsules.isLoading && capsules.error ? (
@@ -162,16 +202,26 @@ export function CapsulesHomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: {
+  createCard: {
     gap: spacing.lg,
   },
-  centered: {
+  createHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.md,
+  },
+  createIcon: {
+    alignItems: "center",
+    backgroundColor: colors.primarySoft,
+    borderRadius: radii.md,
+    height: 48,
     justifyContent: "center",
+    width: 48,
   },
-  header: {
-    gap: spacing.sm,
+  createCopy: {
+    flex: 1,
   },
-  createCard: {
+  skeletonList: {
     gap: spacing.md,
   },
 });

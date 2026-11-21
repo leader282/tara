@@ -14,6 +14,21 @@ export const NOTIFICATION_PERMISSION_STATES = [
   "provisional",
 ] as const;
 
+export const NOTIFICATION_TYPE_EMOJI: Record<(typeof NOTIFICATION_TYPES)[number], string> = {
+  presence_pulse: "💌",
+  ritual_ready: "✨",
+  ritual_reminder: "📝",
+  capsule_unlocked: "🎁",
+  countdown_reminder: "✈️",
+  system_test: "🔔",
+};
+
+export const PARTNER_NOTIFICATION_TYPES: readonly string[] = [
+  "presence_pulse",
+  "ritual_ready",
+  "capsule_unlocked",
+];
+
 export const NOTIFICATION_ANDROID_CHANNEL_ID = "tara-gentle-updates";
 export const NOTIFICATION_ANDROID_CHANNEL_NAME = "Gentle updates";
 

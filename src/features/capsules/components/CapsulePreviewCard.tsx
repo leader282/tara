@@ -1,9 +1,9 @@
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Button, Card } from "@/components/ui";
+import { AppText, Button, Card, InlineMessage } from "@/components/ui";
+import { CapsuleHero } from "@/features/capsules/components/CapsuleHero";
 import { PrivateImage } from "@/features/media/components/PrivateImage";
 import type { MemoryCapsule } from "@/features/capsules/types";
-import { formatCapsuleCountdown, formatUnlockDateTime } from "@/lib/dates/format";
 import { radii, spacing } from "@/theme/tokens";
 
 type CapsulePreviewCardProps = {
@@ -21,37 +21,25 @@ export function CapsulePreviewCard({
   isRefreshing = false,
   onRetry,
 }: CapsulePreviewCardProps) {
-  const unlockLabel = formatUnlockDateTime(capsule.unlock_at) ?? "Unlock date unavailable";
-  const countdownLabel = formatCapsuleCountdown(capsule.unlock_at, capsule.opened_at);
   const normalizedNote = note?.trim();
   const hasPreviewContent = Boolean(normalizedNote || mediaAssetId);
 
   return (
-    <Card>
-      <View style={styles.container}>
-        <AppText variant="subtitle">{capsule.title}</AppText>
-        <AppText color="textSecondary" variant="bodyMuted">
-          You can preview your note. Your partner sees only capsule metadata until it unlocks.
-        </AppText>
+    <View style={styles.container}>
+      <CapsuleHero capsule={capsule} emoji="🔒" />
 
-        {capsule.emotional_context ? (
-          <AppText color="textSecondary" variant="bodyMuted">
-            {capsule.emotional_context}
-          </AppText>
-        ) : null}
+      <InlineMessage
+        icon="eye-outline"
+        message="You can preview your note. Your partner sees only capsule metadata until it unlocks."
+        tone="info"
+      />
 
-        <View style={styles.meta}>
-          <AppText color="textSecondary" variant="caption">
-            Unlocks {unlockLabel}
-          </AppText>
-          <AppText color="textSecondary" variant="caption">
-            {countdownLabel}
-          </AppText>
-        </View>
-
+      <Card>
         {hasPreviewContent ? (
           <View style={styles.preview}>
-            <AppText variant="subtitle">Your content preview</AppText>
+            <AppText color="textSecondary" variant="overline">
+              Your content preview
+            </AppText>
             {normalizedNote ? <AppText variant="body">{normalizedNote}</AppText> : null}
             {mediaAssetId ? (
               <PrivateImage
@@ -69,33 +57,31 @@ export function CapsulePreviewCard({
             {onRetry ? (
               <Button
                 disabled={isRefreshing}
+                icon="refresh"
                 loading={isRefreshing}
                 onPress={onRetry}
+                size="md"
                 title="Try again"
-                variant="secondary"
+                variant="outline"
               />
             ) : null}
           </View>
         )}
-      </View>
-    </Card>
+      </Card>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    gap: spacing.sm,
-  },
-  meta: {
-    gap: spacing.xs,
+    gap: spacing.lg,
   },
   preview: {
-    gap: spacing.sm,
-    marginTop: spacing.sm,
+    gap: spacing.md,
   },
   media: {
     aspectRatio: 4 / 3,
-    borderRadius: radii.sm,
+    borderRadius: radii.md,
     overflow: "hidden",
     width: "100%",
   },
