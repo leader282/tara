@@ -2,7 +2,7 @@
   "expo": {
     "name": "Tara",
     "slug": "tara",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "scheme": "tara",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -35,12 +35,12 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.leader282.tara",
-      "buildNumber": "1"
+      "buildNumber": "2"
     },
     "android": {
       "predictiveBackGestureEnabled": false,
       "package": "com.leader282.tara",
-      "versionCode": 1,
+      "versionCode": 2,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundImage": "./assets/adaptive-icon-background.png",

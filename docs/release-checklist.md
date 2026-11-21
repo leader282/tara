@@ -3,6 +3,33 @@
 This checklist is for QA/release hardening only.  
 Phase 14F does **not** include public store submission.
 
+## 1.1.0 internal build
+
+Ships the redesigned UI, the fixes found in two-device E2E testing, live couple updates, and the
+new notification copy. Distribution stays internal; the public-store gates below still apply.
+
+Already done on the hosted project: migrations through
+`20261121152018_couple_live_updates.sql` are applied, and `process-notification-queue` runs the
+new copy and sound rules. CI is green on `main`, and the two-device Maestro journey passed 32/32
+on a release build (before live couple updates landed).
+
+- [ ] `supabase migration list --linked` shows no local migration missing from the hosted project.
+- [ ] The journey passes on a fresh release build: `npm run e2e:build:android`, install the APK on
+      both emulators, then `npm run e2e:maestro:journey -- --build release` (see `.maestro/README.md`).
+- [ ] Version is `1.1.0` (Android `versionCode` 2, iOS `buildNumber` 2). The runtime version follows
+      the app version, so over-the-air updates for 1.1.0 never reach 1.0.0 builds.
+- [ ] `eas build --profile preview --platform all`, then install over 1.0.0 on both partners' phones.
+
+On two physical phones signed in as a couple:
+
+- [ ] Pushes arrive for a pulse, a revealed ritual, an unlocked capsule, and the daily ritual reminder
+      (13:30 UTC); only partner-initiated ones play a sound, and none show notes or answers.
+- [ ] Quiet hours hold pushes until they end.
+- [ ] A reunion edit and an unpair on one phone show up on the other without a refresh.
+- [ ] A photo capsule uploads from the gallery and from the camera, and opens on the other phone.
+- [ ] The new fonts, icons, and splash screen render correctly on iOS and Android.
+- [ ] Sentry shows no new errors for release `tara@1.1.0`.
+
 ## Release scope confirmation
 
 - [ ] This release includes documentation, QA hardening, and reliability validation only.
