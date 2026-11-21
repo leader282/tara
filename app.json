@@ -35,7 +35,10 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.leader282.tara",
-      "buildNumber": "2"
+      "buildNumber": "2",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "predictiveBackGestureEnabled": false,
