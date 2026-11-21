@@ -125,7 +125,8 @@ export function AccountSafetyScreen() {
         onConfirm={async (confirmation) => {
           await leaveCoupleMutation.mutateAsync(confirmation);
           await new Promise((resolve) => setTimeout(resolve, 500));
-          router.replace("/");
+          // Not "/": inside the settings group that resolves to the settings home.
+          router.replace("/(invite)");
         }}
       />
 
