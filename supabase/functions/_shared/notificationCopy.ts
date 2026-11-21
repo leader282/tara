@@ -1,41 +1,76 @@
 const MAX_DATA_DEPTH = 4;
 const MAX_DATA_KEYS_PER_OBJECT = 40;
+const MAX_TITLE_LENGTH = 80;
+const MAX_BODY_LENGTH = 180;
 
 const SENSITIVE_KEY_PATTERN =
   /(note|response|media|image|photo|location|lat|lng|message|optional|read|seen|receipt|url)/i;
 
 const FALLBACK_COPY_BY_TYPE: Record<string, { title: string; body: string }> = {
   presence_pulse: {
-    title: "A gentle pulse from your partner",
-    body: "Open Tara whenever you feel ready to reconnect.",
+    title: "💌 Your partner sent you a pulse",
+    body: "A little moment of closeness is waiting in Tara.",
   },
   ritual_ready: {
-    title: "Your ritual is ready",
-    body: "Open Tara whenever you want to see your shared ritual.",
+    title: "✨ Your answers are revealed",
+    body: "See what you both shared in today's ritual.",
   },
   ritual_reminder: {
-    title: "A gentle ritual reminder",
-    body: "Today's ritual is ready whenever you have a quiet moment.",
+    title: "📝 Today's ritual is waiting",
+    body: "A small prompt for you two. Answer whenever you have a quiet moment.",
   },
   capsule_unlocked: {
-    title: "A memory capsule is ready",
-    body: "A memory capsule can now be opened in Tara.",
+    title: "🎁 A memory capsule is ready",
+    body: "It can be opened now. Share the moment together in Tara.",
   },
   countdown_reminder: {
-    title: "A reunion moment is coming up",
+    title: "✈️ Your reunion is getting closer",
     body: "Take a quiet moment with Tara whenever it feels right.",
   },
   system_test: {
-    title: "Notification test",
+    title: "🔔 Notification test",
     body: "This is a Tara notification test.",
   },
 };
+
+const PARTNER_INITIATED_TYPES = new Set(["presence_pulse", "ritual_ready", "capsule_unlocked"]);
 
 function fallbackCopyForType(notificationType: string): { title: string; body: string } {
   return FALLBACK_COPY_BY_TYPE[notificationType] ?? {
     title: "A Tara update is waiting",
     body: "Open Tara whenever you feel ready.",
   };
+}
+
+function isControlCharacter(character: string): boolean {
+  const codePoint = character.codePointAt(0) ?? 0;
+  return codePoint < 0x20 || (codePoint >= 0x7f && codePoint <= 0x9f);
+}
+
+function cleanCopy(value: string | null | undefined, maxLength: number): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalized = Array.from(value)
+    .map((character) => (isControlCharacter(character) ? " " : character))
+    .join("")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (normalized.length === 0) {
+    return null;
+  }
+
+  const characters = Array.from(normalized);
+  if (characters.length <= maxLength) {
+    return normalized;
+  }
+
+  return `${characters.slice(0, maxLength - 1).join("").trimEnd()}…`;
+}
+
+export function shouldPlaySound(notificationType: string): boolean {
+  return PARTNER_INITIATED_TYPES.has(notificationType);
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -98,12 +133,23 @@ function sanitizeJsonValue(value: unknown, depth: number): unknown {
   }
 }
 
+/**
+ * Queue rows are written only by security-definer database functions, whose contract keeps
+ * notes, ritual responses, capsule content, media, and locations out of title and body.
+ */
 export function getSafeNotificationCopy(
   notificationType: string,
-  _title: string | null | undefined,
-  _body: string | null | undefined,
+  title: string | null | undefined,
+  body: string | null | undefined,
 ): { title: string; body: string } {
-  return fallbackCopyForType(notificationType);
+  const safeTitle = cleanCopy(title, MAX_TITLE_LENGTH);
+  const safeBody = cleanCopy(body, MAX_BODY_LENGTH);
+
+  if (!safeTitle || !safeBody) {
+    return fallbackCopyForType(notificationType);
+  }
+
+  return { title: safeTitle, body: safeBody };
 }
 
 export function sanitizeNotificationData(data: unknown): Record<string, unknown> {

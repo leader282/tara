@@ -25,7 +25,7 @@ Tara is a private space for exactly two partners. Tara does not provide public p
 
 ## Notifications
 
-Tara notifications are designed to be privacy-safe on lock screens. Notification copy should stay generic and avoid private notes, ritual responses, capsule content, media paths, or exact location. Delivery should respect the recipient's quiet-hours settings.
+Tara notifications are designed to be privacy-safe on lock screens. Notification copy names your partner and the kind of moment they shared (for example, a hug, a good-morning pulse, or a revealed ritual), but never includes private notes, ritual responses, capsule titles or content, media paths, or exact location. Delivery should respect the recipient's quiet-hours settings.
 
 ## Account Deletion And Export
 

@@ -7,7 +7,7 @@ import {
   sendExpoPushMessages,
 } from "../_shared/expoPush.ts";
 import type { ExpoPushMessage } from "../_shared/expoPush.ts";
-import { getSafeNotificationCopy } from "../_shared/notificationCopy.ts";
+import { getSafeNotificationCopy, shouldPlaySound } from "../_shared/notificationCopy.ts";
 import {
   createSupabaseAdminClient,
   getCronSecret,
@@ -403,6 +403,7 @@ Deno.serve(async (request) => {
           title: safeCopy.title,
           body: safeCopy.body,
           data: queueRow.data,
+          sound: shouldPlaySound(queueRow.type) ? "default" : undefined,
         });
 
         if (!message) {
