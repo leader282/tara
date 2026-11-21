@@ -8,6 +8,11 @@ import { coupleRitualRowSchema } from "@/features/rituals/schemas";
 import { queryKeys } from "@/lib/query/queryKeys";
 import { supabase } from "@/lib/supabase/client";
 
+// supabase.channel() returns the existing channel for a reused name, and adding listeners to
+// an already-subscribed channel throws, so the rituals tab and an open ritual detail each need
+// their own name.
+let nextChannelId = 0;
+
 export function useRitualRealtime(
   coupleId: string | null | undefined,
   enabled = true
@@ -30,8 +35,9 @@ export function useRitualRealtime(
       channelRef.current = null;
     }
 
+    nextChannelId += 1;
     const channel = supabase
-      .channel(`ritual-updates-${coupleId}`)
+      .channel(`ritual-updates-${coupleId}-${nextChannelId}`)
       .on(
         "postgres_changes",
         {
