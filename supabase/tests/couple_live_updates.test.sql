@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(4);
+select plan(5);
 
 insert into auth.users (id)
 values
@@ -37,6 +37,18 @@ select ok(
       and tablename = 'couple_members'
   ),
   'realtime: membership changes are published'
+);
+
+select is(
+  (
+    select string_agg(tablename::text, ',' order by tablename)
+    from pg_catalog.pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename in ('timeline_items', 'profiles', 'couple_settings')
+  ),
+  'couple_settings,profiles,timeline_items',
+  'realtime: timeline, profile, and couple settings changes are published'
 );
 
 set local role authenticated;

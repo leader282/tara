@@ -420,3 +420,6 @@ verify_jwt = false
 
 [functions.process-account-deletion-requests]
 verify_jwt = false
+
+[functions.prune-couple-history]
+verify_jwt = false

@@ -289,13 +289,17 @@ export type Database = {
         Row: {
           couple_id: string
           created_at: string
+          duration_ms: number | null
           height: number | null
           id: string
           media_type: string
+          memory_capsule_id: string | null
           mime_type: string
           owner_id: string
           purpose: string
+          ritual_completion_id: string | null
           size_bytes: number | null
+          sort_order: number | null
           storage_path: string
           upload_status: string
           uploaded_at: string | null
@@ -304,13 +308,17 @@ export type Database = {
         Insert: {
           couple_id: string
           created_at?: string
+          duration_ms?: number | null
           height?: number | null
           id?: string
           media_type: string
+          memory_capsule_id?: string | null
           mime_type: string
           owner_id: string
           purpose?: string
+          ritual_completion_id?: string | null
           size_bytes?: number | null
+          sort_order?: number | null
           storage_path: string
           upload_status?: string
           uploaded_at?: string | null
@@ -319,13 +327,17 @@ export type Database = {
         Update: {
           couple_id?: string
           created_at?: string
+          duration_ms?: number | null
           height?: number | null
           id?: string
           media_type?: string
+          memory_capsule_id?: string | null
           mime_type?: string
           owner_id?: string
           purpose?: string
+          ritual_completion_id?: string | null
           size_bytes?: number | null
+          sort_order?: number | null
           storage_path?: string
           upload_status?: string
           uploaded_at?: string | null
@@ -337,6 +349,20 @@ export type Database = {
             columns: ["couple_id"]
             isOneToOne: false
             referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_assets_memory_capsule_id_fkey"
+            columns: ["memory_capsule_id"]
+            isOneToOne: false
+            referencedRelation: "memory_capsules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_assets_ritual_completion_id_fkey"
+            columns: ["ritual_completion_id"]
+            isOneToOne: false
+            referencedRelation: "ritual_completions"
             referencedColumns: ["id"]
           },
         ]
@@ -953,10 +979,17 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      claim_storage_cleanup_batch: {
+        Args: { p_limit?: number }
+        Returns: {
+          storage_path: string
+        }[]
+      }
       complete_ritual: {
         Args: {
           p_couple_ritual_id: string
           p_media_asset_id?: string
+          p_media_asset_ids?: string[]
           p_text_response?: string
         }
         Returns: {
@@ -965,6 +998,10 @@ export type Database = {
           is_revealed: boolean
           status: string
         }[]
+      }
+      complete_storage_cleanup: {
+        Args: { p_storage_paths: string[] }
+        Returns: number
       }
       create_couple_with_invite: {
         Args: {
@@ -983,6 +1020,7 @@ export type Database = {
         Args: {
           p_emotional_context?: string
           p_media_asset_id?: string
+          p_media_asset_ids?: string[]
           p_note?: string
           p_title: string
           p_unlock_at?: string
@@ -1033,13 +1071,17 @@ export type Database = {
         Returns: {
           couple_id: string
           created_at: string
+          duration_ms: number | null
           height: number | null
           id: string
           media_type: string
+          memory_capsule_id: string | null
           mime_type: string
           owner_id: string
           purpose: string
+          ritual_completion_id: string | null
           size_bytes: number | null
+          sort_order: number | null
           storage_path: string
           upload_status: string
           uploaded_at: string | null
@@ -1066,6 +1108,18 @@ export type Database = {
           unlock_at: string
           unlock_type: string
           updated_at: string
+        }[]
+      }
+      prune_couple_history: {
+        Args: {
+          p_previous_rituals_to_keep?: number
+          p_timeline_days_to_keep?: number
+        }
+        Returns: {
+          deleted_media: number
+          deleted_rituals: number
+          deleted_timeline_items: number
+          queued_files: number
         }[]
       }
       register_push_token: {
@@ -1147,6 +1201,7 @@ export type Database = {
       }
       reserve_media_asset: {
         Args: {
+          p_duration_ms?: number
           p_height?: number
           p_mime_type: string
           p_purpose?: string
@@ -1155,6 +1210,7 @@ export type Database = {
         }
         Returns: {
           couple_id: string
+          duration_ms: number
           height: number
           id: string
           media_type: string
