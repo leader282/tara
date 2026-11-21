@@ -1,0 +1,47 @@
+appId: com.leader282.tara
+name: "Journey: partner sees the renamed partner and shared couple settings"
+tags:
+  - journey
+  - settings
+---
+- runFlow: ../shared/resume-to-tabs.yaml
+- tapOn:
+    id: "tab-home"
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 20000
+- scrollUntilVisible:
+    element: "Your private space"
+    direction: UP
+    timeout: 10000
+- swipe:
+    start: "50%, 25%"
+    end: "50%, 75%"
+    duration: 600
+- extendedWaitUntil:
+    visible: ${J_PARTNER_NEW_NAME}
+    timeout: 20000
+- tapOn: "Settings"
+- extendedWaitUntil:
+    visible: "Choose what feels calm, private, and supportive."
+    timeout: 15000
+- scrollUntilVisible:
+    element: "Couple settings"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Couple settings"
+- extendedWaitUntil:
+    visible: "Manage shared settings without changing couple status or membership."
+    timeout: 15000
+- scrollUntilVisible:
+    element: "Weekly"
+    direction: DOWN
+    timeout: 10000
+- assertVisible:
+    text: "Weekly"
+    checked: true
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible: "Choose what feels calm, private, and supportive."
+    timeout: 10000

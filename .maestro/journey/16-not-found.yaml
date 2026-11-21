@@ -1,0 +1,16 @@
+appId: com.leader282.tara
+name: "Journey: unknown links land on a friendly not-found screen"
+tags:
+  - journey
+  - deeplink
+---
+- runFlow: ../shared/resume-app.yaml
+- openLink: "tara://no/such/screen"
+- extendedWaitUntil:
+    visible: "Page not found"
+    timeout: 20000
+- tapOn: "Back to home"
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 20000

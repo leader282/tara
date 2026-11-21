@@ -1,0 +1,226 @@
+appId: com.leader282.tara
+name: "Journey: edit every settings screen"
+tags:
+  - journey
+  - settings
+---
+- runFlow: ../shared/resume-to-tabs.yaml
+- tapOn:
+    id: "tab-home"
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 20000
+- scrollUntilVisible:
+    element: "Settings"
+    direction: UP
+    timeout: 10000
+- tapOn: "Settings"
+- extendedWaitUntil:
+    visible: "Choose what feels calm, private, and supportive."
+    timeout: 15000
+- assertVisible: "Paired with .+"
+- assertVisible: ${J_EMAIL}
+
+# Profile: onboarding answers are prefilled, and a rename saves.
+- tapOn: "Profile"
+- extendedWaitUntil:
+    visible: "Profile settings"
+    timeout: 15000
+- assertVisible: ${J_CITY}
+- scrollUntilVisible:
+    element: "Birthday, .*14, 1996"
+    direction: DOWN
+    timeout: 10000
+- scrollUntilVisible:
+    element: "Display name"
+    direction: UP
+    timeout: 10000
+- tapOn: "Display name"
+- eraseText: 60
+- inputText: ${J_NEW_NAME}
+- runFlow: ../shared/hide-keyboard.yaml
+- scrollUntilVisible:
+    element: "Save profile settings"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Save profile settings"
+- extendedWaitUntil:
+    visible: "Profile saved"
+    timeout: 20000
+# The toast covers the header back button until it hides.
+- extendedWaitUntil:
+    notVisible: "Profile saved"
+    timeout: 15000
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible: "Choose what feels calm, private, and supportive."
+    timeout: 10000
+- assertVisible: ${J_NEW_NAME}
+
+# Emotional preferences: onboarding choices persisted; switch the tone.
+- tapOn: "Emotional preferences"
+- extendedWaitUntil:
+    visible: "Adjust this whenever you want.*"
+    timeout: 15000
+- assertVisible:
+    text: "Playful"
+    checked: true
+- tapOn: "Romantic"
+- scrollUntilVisible:
+    element: "Save emotional preferences"
+    direction: DOWN
+    timeout: 15000
+- tapOn: "Save emotional preferences"
+- extendedWaitUntil:
+    visible: "Emotional preferences saved"
+    timeout: 20000
+- extendedWaitUntil:
+    notVisible: "Emotional preferences saved"
+    timeout: 15000
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible: "Choose what feels calm, private, and supportive."
+    timeout: 10000
+
+# Quiet hours: onboarding times persisted; move the start earlier.
+- tapOn: "Quiet hours"
+- extendedWaitUntil:
+    visible: "Quiet hours start time, 11:30.PM"
+    timeout: 15000
+- assertVisible: "Quiet hours end time, 6:45.AM"
+- tapOn: "Quiet hours start time, .*"
+- extendedWaitUntil:
+    visible: "10 o'clock"
+    timeout: 10000
+- waitForAnimationToEnd
+- tapOn: "10 o'clock"
+- tapOn: "0 minutes"
+- tapOn: "Done"
+- waitForAnimationToEnd
+- assertVisible: "Quiet hours start time, 10:00.PM"
+- scrollUntilVisible:
+    element: "Save quiet hours"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Save quiet hours"
+- extendedWaitUntil:
+    visible: "Quiet hours saved"
+    timeout: 20000
+- extendedWaitUntil:
+    notVisible: "Quiet hours saved"
+    timeout: 15000
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible: "Choose what feels calm, private, and supportive."
+    timeout: 10000
+
+# Notifications: a preference toggle persists across visits.
+- tapOn: "Notifications"
+- extendedWaitUntil:
+    visible: "Choose what Tara can gently remind you about."
+    timeout: 15000
+- scrollUntilVisible:
+    element: "Memory capsule notification preference"
+    direction: DOWN
+    timeout: 10000
+- assertVisible:
+    text: "Memory capsule notification preference"
+    checked: true
+- tapOn: "Memory capsule notification preference"
+- extendedWaitUntil:
+    visible:
+      text: "Memory capsule notification preference"
+      checked: false
+    timeout: 10000
+- scrollUntilVisible:
+    element: "Adjust quiet hours"
+    direction: DOWN
+    timeout: 10000
+- assertVisible: ".*10:00.PM.*6:45.AM.*"
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible: "Choose what feels calm, private, and supportive."
+    timeout: 10000
+- tapOn: "Notifications"
+- scrollUntilVisible:
+    element: "Memory capsule notification preference"
+    direction: DOWN
+    timeout: 10000
+- assertVisible:
+    text: "Memory capsule notification preference"
+    checked: false
+- tapOn: "Memory capsule notification preference"
+- extendedWaitUntil:
+    visible:
+      text: "Memory capsule notification preference"
+      checked: true
+    timeout: 10000
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible: "Choose what feels calm, private, and supportive."
+    timeout: 10000
+
+# Couple settings: the anniversary chosen at creation shows; change the rhythm.
+- scrollUntilVisible:
+    element: "Couple settings"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Couple settings"
+- extendedWaitUntil:
+    visible: "Manage shared settings without changing couple status or membership."
+    timeout: 15000
+- assertVisible: "Anniversary date, .*14, [0-9]{4}"
+- scrollUntilVisible:
+    element: "Weekly"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Weekly"
+- scrollUntilVisible:
+    element: "Save couple settings"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Save couple settings"
+- extendedWaitUntil:
+    visible: "Couple settings saved"
+    timeout: 20000
+- extendedWaitUntil:
+    notVisible: "Couple settings saved"
+    timeout: 15000
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible: "Choose what feels calm, private, and supportive."
+    timeout: 10000
+
+# Privacy center links through to account safety.
+- scrollUntilVisible:
+    element: "Privacy center"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Privacy center"
+- extendedWaitUntil:
+    visible: "How your space stays private"
+    timeout: 10000
+- scrollUntilVisible:
+    element: "Open account and safety controls"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Open account and safety controls"
+- extendedWaitUntil:
+    visible: "Current account status"
+    timeout: 15000
+- assertVisible: "Paired"
+# Back on the privacy center, still scrolled down to the link that was tapped.
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible: "Open account and safety controls"
+    timeout: 10000
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible: "Choose what feels calm, private, and supportive."
+    timeout: 10000
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 15000

@@ -9,14 +9,15 @@ tags:
 - runFlow: ../shared/sign-in.yaml
 
 - extendedWaitUntil:
-    visible: "Your private space"
+    visible:
+      id: "couple-home"
     timeout: 30000
 # Reach the presence pulse panel in two steps (matches paired-core). A single
 # scroll straight to the note field is unreliable under concurrent two-device
 # load, so settle on the panel header first, then the note field.
 - scrollUntilVisible:
     element:
-      text: "Presence pulse"
+      text: "Send a little love"
     direction: DOWN
     timeout: 20000
     waitToSettleTimeoutMs: 1000
@@ -30,14 +31,14 @@ tags:
 - tapOn: "Send a hug pulse"
 - tapOn: "Optional pulse note"
 - inputText: ${E2E_PULSE_NOTE}
-- hideKeyboard
+- runFlow: ../shared/hide-keyboard.yaml
 - scrollUntilVisible:
     element:
-      text: "Send pulse"
+      text: ${"Send hug to " + E2E_PARTNER_NAME}
     direction: DOWN
     timeout: 20000
     waitToSettleTimeoutMs: 1000
-- tapOn: "Send pulse"
+- tapOn: ${"Send hug to " + E2E_PARTNER_NAME}
 - extendedWaitUntil:
-    visible: "Sent hug with care."
+    visible: ${"Hug sent to " + E2E_PARTNER_NAME}
     timeout: 20000

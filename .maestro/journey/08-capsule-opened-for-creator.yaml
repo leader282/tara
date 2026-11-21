@@ -1,0 +1,25 @@
+appId: com.leader282.tara
+name: "Journey: creator sees the capsule turn opened live"
+tags:
+  - journey
+  - capsules
+  - realtime
+---
+# Still on the capsule list from creating it; no launchApp, so the change must arrive live.
+- extendedWaitUntil:
+    visible:
+      text: "Opened"
+      childOf: ${"Open memory capsule " + J_CAPSULE_TITLE}
+    timeout: 45000
+- tapOn: ${"Open memory capsule " + J_CAPSULE_TITLE}
+- extendedWaitUntil:
+    visible: "Capsule detail"
+    timeout: 15000
+- scrollUntilVisible:
+    element: ${J_CAPSULE_EXPECTED_CONTENT}
+    direction: DOWN
+    timeout: 15000
+- tapOn: "Back to capsules"
+- extendedWaitUntil:
+    visible: "Memory capsules"
+    timeout: 10000

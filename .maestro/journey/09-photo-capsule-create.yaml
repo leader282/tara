@@ -1,0 +1,90 @@
+appId: com.leader282.tara
+name: "Journey: create a photo capsule from the gallery"
+tags:
+  - journey
+  - capsules
+  - media
+---
+- runFlow: ../shared/resume-to-tabs.yaml
+- tapOn:
+    id: "tab-capsules"
+- extendedWaitUntil:
+    visible: "Memory capsules"
+    timeout: 20000
+- tapOn: "Create capsule"
+- extendedWaitUntil:
+    visible: "Create memory capsule"
+    timeout: 15000
+- tapOn: "Capsule title"
+- inputText: ${J_CAPSULE_TITLE}
+- runFlow: ../shared/hide-keyboard.yaml
+
+- scrollUntilVisible:
+    element: "Choose a photo from your library"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Choose a photo from your library"
+# Android asks for photo access before the system picker opens.
+- extendedWaitUntil:
+    visible: ".*(Allow|photos and videos|Photo picker|Photos|Albums).*"
+    timeout: 20000
+- runFlow:
+    when:
+      visible: "Allow all"
+    commands:
+      - tapOn: "Allow all"
+- runFlow:
+    when:
+      visible: "^Allow$"
+    commands:
+      - tapOn: "^Allow$"
+- extendedWaitUntil:
+    visible: "Photo taken on.*|.*tara-e2e-photo.*"
+    timeout: 20000
+- tapOn:
+    text: "Photo taken on.*|.*tara-e2e-photo.*"
+    index: 0
+- runFlow:
+    when:
+      visible: "^Done$|^Add$|^Select$"
+    commands:
+      - tapOn: "^Done$|^Add$|^Select$"
+
+- extendedWaitUntil:
+    visible: "Create memory capsule"
+    timeout: 20000
+- extendedWaitUntil:
+    visible: "Attached private photo|Selected photo preview"
+    timeout: 60000
+# The preview pushes the upload status and photo actions below the fold.
+- scrollUntilVisible:
+    element: "Uploaded"
+    direction: DOWN
+    timeout: 60000
+- assertNotVisible: "Failed"
+- scrollUntilVisible:
+    element: "Remove photo"
+    direction: DOWN
+    timeout: 15000
+
+- scrollUntilVisible:
+    element: "Save capsule"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Save capsule"
+- extendedWaitUntil:
+    visible: "Capsule detail"
+    timeout: 20000
+# The "Capsule sealed" toast covers the header back button until it hides.
+- extendedWaitUntil:
+    notVisible: "Capsule sealed"
+    timeout: 15000
+- assertVisible: ${J_CAPSULE_TITLE}
+- scrollUntilVisible:
+    element: "Your capsule photo"
+    direction: DOWN
+    timeout: 20000
+- tapOn: "Back to capsules"
+- extendedWaitUntil:
+    visible: ${"Open memory capsule " + J_CAPSULE_TITLE}
+    timeout: 15000

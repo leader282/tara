@@ -1,0 +1,29 @@
+appId: com.leader282.tara
+name: "Journey: first partner answers today's ritual"
+tags:
+  - journey
+  - rituals
+---
+- runFlow: ../shared/resume-to-tabs.yaml
+- tapOn:
+    id: "tab-rituals"
+- extendedWaitUntil:
+    visible: "Small prompts you both answer in your own time, from wherever you are."
+    timeout: 20000
+- extendedWaitUntil:
+    visible: "Ritual response"
+    timeout: 30000
+- tapOn: "Ritual response"
+- inputText: ${J_RITUAL_ANSWER}
+- runFlow: ../shared/hide-keyboard.yaml
+- scrollUntilVisible:
+    element: "Save my answer"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Save my answer"
+- extendedWaitUntil:
+    visible: "You'll see both answers when you've both completed this."
+    timeout: 20000
+- assertVisible: "Your answer is saved."
+- assertVisible: ${"Waiting on " + J_PARTNER_NAME + ".*"}
+- assertNotVisible: ${J_RITUAL_ANSWER}

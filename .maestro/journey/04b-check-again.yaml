@@ -1,0 +1,17 @@
+appId: com.leader282.tara
+name: "Journey: waiting partner taps Check again"
+tags:
+  - journey
+  - invite
+---
+- runFlow: ../shared/resume-app.yaml
+- runFlow:
+    when:
+      visible: "Check again"
+    commands:
+      - tapOn: "Check again"
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 30000
+- assertVisible: ${J_PARTNER_NAME}

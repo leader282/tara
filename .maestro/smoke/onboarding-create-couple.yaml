@@ -9,7 +9,6 @@ env:
   E2E_PASSWORD: "TaraE2E!123"
   E2E_DISPLAY_NAME: "Tara E2E"
   E2E_TIMEZONE: "Asia/Kolkata"
-  E2E_ANNIVERSARY: "2024-02-14"
 ---
 - runFlow: ../shared/launch-app.yaml
 - evalScript: '${output.email = typeof E2E_SMOKE_EMAIL !== "undefined" && E2E_SMOKE_EMAIL ? E2E_SMOKE_EMAIL : "tara.e2e+" + Date.now() + "@example.com"}'
@@ -24,12 +23,14 @@ env:
     timeout: 10000
 - tapOn: "Email"
 - inputText: ${output.email}
+# The keyboard can cover the next field.
+- runFlow: ../shared/hide-keyboard.yaml
 - tapOn: "Password"
 - inputText: ${E2E_PASSWORD}
-- hideKeyboard
+- runFlow: ../shared/hide-keyboard.yaml
 - tapOn: "Confirm password"
 - inputText: ${E2E_PASSWORD}
-- hideKeyboard
+- runFlow: ../shared/hide-keyboard.yaml
 - tapOn: "Create account"
 
 - extendedWaitUntil:
@@ -37,10 +38,11 @@ env:
     timeout: 30000
 - tapOn: "Display name"
 - inputText: ${E2E_DISPLAY_NAME}
+- runFlow: ../shared/hide-keyboard.yaml
 - tapOn: "Timezone"
 - eraseText: 100
 - inputText: ${E2E_TIMEZONE}
-- hideKeyboard
+- runFlow: ../shared/hide-keyboard.yaml
 - scrollUntilVisible:
     element:
       text: "Continue"
@@ -80,9 +82,16 @@ env:
 - extendedWaitUntil:
     visible: "Create your couple space"
     timeout: 10000
-- tapOn: "Anniversary date"
-- inputText: ${E2E_ANNIVERSARY}
-- hideKeyboard
+# Picker fields expose "<label>, <current value>" as their accessible name on Android.
+- tapOn: "Anniversary date, .*"
+- extendedWaitUntil:
+    visible: "Your anniversary"
+    timeout: 10000
+- waitForAnimationToEnd
+# The calendar opens on the current month and caps the anniversary at today, so
+# the 1st is always selectable. Day cells are labelled like "November 1, 2026".
+- tapOn: "[A-Za-z]+ 1, [0-9]{4}"
+- waitForAnimationToEnd
 - tapOn: "Create and continue"
 
 - extendedWaitUntil:

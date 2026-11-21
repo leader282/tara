@@ -28,6 +28,8 @@
     "e2e:maestro:data:cleanup": "node scripts/e2e/supabase-e2e-data.mjs cleanup",
     "e2e:maestro:data:cleanup:all": "node scripts/e2e/supabase-e2e-data.mjs cleanup --all",
     "e2e:maestro:full": "node scripts/e2e/run-maestro-full-suite.mjs",
+    "e2e:maestro:journey": "node scripts/e2e/run-two-device-journey.mjs",
+    "e2e:build:android": "node scripts/e2e/build-android-release.mjs",
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:status": "supabase status",

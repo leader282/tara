@@ -1,0 +1,42 @@
+appId: com.leader282.tara
+name: "Journey: open an unlocked capsule"
+tags:
+  - journey
+  - capsules
+---
+# No launchApp: the unlock has to reach the open capsule list live.
+- tapOn:
+    id: "tab-capsules"
+- extendedWaitUntil:
+    visible: "Memory capsules"
+    timeout: 20000
+- extendedWaitUntil:
+    visible:
+      text: "Ready to open"
+      childOf: ${"Open memory capsule " + J_CAPSULE_TITLE}
+    timeout: 45000
+- tapOn: ${"Open memory capsule " + J_CAPSULE_TITLE}
+- extendedWaitUntil:
+    visible: "Capsule detail"
+    timeout: 15000
+- extendedWaitUntil:
+    visible: "Open capsule"
+    timeout: 15000
+- tapOn: "Open capsule"
+- extendedWaitUntil:
+    visible: "Capsule opened"
+    timeout: 20000
+# The toast covers the header back button until it hides.
+- extendedWaitUntil:
+    notVisible: "Capsule opened"
+    timeout: 15000
+- scrollUntilVisible:
+    element: ${J_CAPSULE_EXPECTED_CONTENT}
+    direction: DOWN
+    timeout: 15000
+- tapOn: "Back to capsules"
+- extendedWaitUntil:
+    visible:
+      text: "Opened"
+      childOf: ${"Open memory capsule " + J_CAPSULE_TITLE}
+    timeout: 15000

@@ -1,0 +1,61 @@
+appId: com.leader282.tara
+name: "Journey: plan a reunion with date, time, and place"
+tags:
+  - journey
+  - reunion
+---
+- runFlow: ../shared/resume-to-tabs.yaml
+- tapOn:
+    id: "tab-home"
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 20000
+- scrollUntilVisible:
+    element: "Set a date"
+    direction: UP
+    timeout: 15000
+- tapOn: "Set a date"
+- extendedWaitUntil:
+    visible: "Plan your reunion"
+    timeout: 15000
+
+- tapOn: "Meetup date, .*"
+- extendedWaitUntil:
+    visible: "When will you be together\\?"
+    timeout: 10000
+- waitForAnimationToEnd
+- tapOn: "Next month"
+- tapOn: "[A-Za-z]+ 24, [0-9]{4}"
+- waitForAnimationToEnd
+- assertVisible: "Meetup date, .*24, [0-9]{4}"
+
+- tapOn: "Meetup time, .*"
+- extendedWaitUntil:
+    visible: "What time\\?"
+    timeout: 10000
+- waitForAnimationToEnd
+- tapOn: "6 o'clock"
+- tapOn: "PM"
+- tapOn: "30 minutes"
+- tapOn: "Done"
+- waitForAnimationToEnd
+- assertVisible: "Meetup time, 6:30.PM"
+
+- tapOn: "Meetup location"
+- inputText: ${J_MEETUP_LOCATION}
+- runFlow: ../shared/hide-keyboard.yaml
+- scrollUntilVisible:
+    element: "Save meetup"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Save meetup"
+- extendedWaitUntil:
+    visible: "Reunion saved"
+    timeout: 20000
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 15000
+- assertVisible: "Reunion countdown: [0-9]+ days until you're together"
+- assertVisible: ".*6:30.PM.*${J_MEETUP_LOCATION}.*"

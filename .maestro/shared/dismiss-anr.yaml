@@ -1,0 +1,10 @@
+appId: com.leader282.tara
+---
+# A dev-client launch on a CPU-starved emulator can stall long enough for Android to show
+# its "isn't responding" dialog over the app. Waiting lets the app finish starting.
+- runFlow:
+    when:
+      visible: ".*isn.t responding"
+    commands:
+      - tapOn: "Wait"
+      - waitForAnimationToEnd

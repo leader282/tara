@@ -1,0 +1,48 @@
+appId: com.leader282.tara
+name: "Journey: receive a partner pulse live on another tab"
+tags:
+  - journey
+  - presence
+  - realtime
+---
+- runFlow: ../shared/resume-to-tabs.yaml
+# Wait somewhere other than home: the in-app alert has to show app-wide.
+- tapOn:
+    id: "tab-timeline"
+# The runner starts the sending phone once this "Ready to watch" step completes.
+- extendedWaitUntil:
+    visible: "Your private timeline"
+    timeout: 20000
+    label: "Ready to watch for the pulse"
+- extendedWaitUntil:
+    visible: ${J_PULSE_RECEIVED_TITLE}
+    timeout: 240000
+# The alert hides after a few seconds, which a slow hierarchy read can outlast; the note and
+# sender are checked again below in Recent pulses.
+- assertVisible:
+    text: ${'"' + J_PULSE_NOTE + '"'}
+    optional: true
+- tapOn:
+    text: "Reply"
+    optional: true
+- runFlow:
+    when:
+      notVisible:
+        id: "couple-home"
+    commands:
+      - tapOn:
+          id: "tab-home"
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 15000
+- scrollUntilVisible:
+    element: "Recent pulses"
+    direction: DOWN
+    timeout: 15000
+    waitToSettleTimeoutMs: 1000
+- scrollUntilVisible:
+    element: ${J_PULSE_NOTE}
+    direction: DOWN
+    timeout: 15000
+- assertVisible: ${"From " + J_PARTNER_NAME}

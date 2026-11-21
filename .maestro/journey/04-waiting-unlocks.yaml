@@ -1,0 +1,15 @@
+appId: com.leader282.tara
+name: "Journey: waiting partner's home unlocks on its own"
+tags:
+  - journey
+  - invite
+  - realtime
+---
+# The waiting screen promises the couple home unlocks the moment the partner joins.
+# No launchApp here: bringing the app to the front refetches everything, which would
+# hide whether the screen moves on by itself.
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 30000
+- assertVisible: ${J_PARTNER_NAME}

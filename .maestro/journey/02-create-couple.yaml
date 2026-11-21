@@ -1,0 +1,45 @@
+appId: com.leader282.tara
+name: "Journey: create couple space and share invite"
+tags:
+  - journey
+  - invite
+---
+- runFlow: ../shared/resume-app.yaml
+- extendedWaitUntil:
+    visible: "Create your private space for two"
+    timeout: 30000
+- tapOn: "Create our space"
+- extendedWaitUntil:
+    visible: "Create your couple space"
+    timeout: 10000
+- runFlow:
+    when:
+      true: ${J_WITH_ANNIVERSARY == "1"}
+    commands:
+      - tapOn: "Anniversary date, .*"
+      - extendedWaitUntil:
+          visible: "Your anniversary"
+          timeout: 10000
+      - waitForAnimationToEnd
+      - tapOn: "Previous month"
+      - tapOn: "[A-Za-z]+ 14, [0-9]{4}"
+      - waitForAnimationToEnd
+      - assertVisible: "Anniversary date, .*14, [0-9]{4}"
+- tapOn: "Create and continue"
+
+- extendedWaitUntil:
+    visible: "Invite your partner"
+    timeout: 30000
+- assertVisible: "Your invite code"
+- assertVisible: "Invite code .+"
+- assertVisible: "Expires .*"
+
+# Sharing hands the invite message to the Android share sheet.
+- tapOn: "Share invite"
+- extendedWaitUntil:
+    visible: ".*Join me on Tara.*"
+    timeout: 15000
+- back
+- extendedWaitUntil:
+    visible: "Invite your partner"
+    timeout: 10000

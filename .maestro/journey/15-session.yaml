@@ -1,0 +1,74 @@
+appId: com.leader282.tara
+name: "Journey: sign out, duplicate sign-up, and sign back in"
+tags:
+  - journey
+  - auth
+---
+- runFlow: ../shared/resume-to-tabs.yaml
+- tapOn:
+    id: "tab-home"
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 20000
+- scrollUntilVisible:
+    element: "Settings"
+    direction: UP
+    timeout: 10000
+- tapOn: "Settings"
+- extendedWaitUntil:
+    visible: "Choose what feels calm, private, and supportive."
+    timeout: 15000
+- scrollUntilVisible:
+    element: "Sign out"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Sign out"
+- extendedWaitUntil:
+    visible: "Sign out of Tara\\?"
+    timeout: 10000
+- tapOn:
+    text: "Sign out"
+    below: "Sign out of Tara\\?"
+- extendedWaitUntil:
+    visible: "Welcome back"
+    timeout: 20000
+
+- tapOn: "Create one"
+- extendedWaitUntil:
+    visible: "Create your account"
+    timeout: 10000
+- tapOn: "Email"
+- waitForAnimationToEnd
+- inputText: ${J_EMAIL}
+- runFlow: ../shared/hide-keyboard.yaml
+- tapOn: "Password"
+- inputText: ${J_PASSWORD}
+- runFlow: ../shared/hide-keyboard.yaml
+- tapOn: "Confirm password"
+- inputText: ${J_PASSWORD}
+- runFlow: ../shared/hide-keyboard.yaml
+- tapOn: "Create account"
+- extendedWaitUntil:
+    visible: "An account with this email may already exist. Try signing in instead."
+    timeout: 20000
+
+- tapOn: "Sign in"
+- extendedWaitUntil:
+    visible: "Welcome back"
+    timeout: 10000
+- tapOn: "Email"
+- waitForAnimationToEnd
+- inputText: ${J_EMAIL}
+- runFlow: ../shared/hide-keyboard.yaml
+- tapOn: "Password"
+- inputText: ${J_PASSWORD}
+- runFlow: ../shared/hide-keyboard.yaml
+- tapOn:
+    text: "Sign in"
+    below: "Password"
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 30000
+- assertVisible: ${J_PARTNER_NAME}

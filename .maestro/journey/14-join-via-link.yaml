@@ -1,0 +1,20 @@
+appId: com.leader282.tara
+name: "Journey: rejoin through the shared invite link"
+tags:
+  - journey
+  - invite
+  - deeplink
+---
+- runFlow: ../shared/resume-app.yaml
+- openLink: ${J_INVITE_LINK}
+# The entry screen has a "Join with an invite code" card too, so wait for the link's code:
+# it pre-fills the field, and joining is a single tap.
+- extendedWaitUntil:
+    visible: ${J_INVITE_CODE}
+    timeout: 30000
+- tapOn: "Join couple space"
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 30000
+- assertVisible: ${J_PARTNER_NAME}

@@ -10,9 +10,11 @@ appId: com.leader282.tara
 - waitForAnimationToEnd
 - eraseText
 - inputText: ${E2E_EMAIL}
+# The keyboard can cover the next field.
+- runFlow: hide-keyboard.yaml
 - tapOn: "Password"
 - waitForAnimationToEnd
 - eraseText
 - inputText: ${E2E_PASSWORD}
-- hideKeyboard
+- runFlow: hide-keyboard.yaml
 - tapOn: "Sign in"

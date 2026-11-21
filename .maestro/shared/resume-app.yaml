@@ -1,0 +1,20 @@
+appId: com.leader282.tara
+---
+# Journey steps continue from the state the previous step left behind, so bring the
+# running app to the front without stopping it or clearing its session.
+- launchApp:
+    stopApp: false
+- waitForAnimationToEnd:
+    timeout: 5000
+# If the app process died (a crash, a revoked permission), the dev client reopens on its
+# launcher instead of the app. Reconnect to Metro; the stored session survives.
+- runFlow:
+    when:
+      visible: "DEVELOPMENT SERVERS"
+    commands:
+      - openLink: "exp+tara://expo-development-client/?url=http%3A%2F%2F10.0.2.2%3A8081"
+      - extendedWaitUntil:
+          visible: "Rituals|Create your private space for two|Your couple home is waiting|Invite your partner|Welcome back"
+          timeout: 120000
+          optional: true
+- runFlow: dismiss-anr.yaml

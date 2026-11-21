@@ -1,0 +1,80 @@
+appId: com.leader282.tara
+name: "Journey: create a memory capsule with a custom unlock time"
+tags:
+  - journey
+  - capsules
+---
+- runFlow: ../shared/resume-to-tabs.yaml
+- tapOn:
+    id: "tab-capsules"
+- extendedWaitUntil:
+    visible: "Memory capsules"
+    timeout: 20000
+- tapOn: "Create capsule"
+- extendedWaitUntil:
+    visible: "Create memory capsule"
+    timeout: 15000
+
+- tapOn: "Capsule title"
+- inputText: ${J_CAPSULE_TITLE}
+- runFlow: ../shared/hide-keyboard.yaml
+- tapOn: "Capsule note"
+- inputText: ${J_CAPSULE_NOTE}
+- runFlow: ../shared/hide-keyboard.yaml
+
+- scrollUntilVisible:
+    element: "Unlock date, .*"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Unlock date, .*"
+- extendedWaitUntil:
+    visible: "Choose an unlock date"
+    timeout: 10000
+- waitForAnimationToEnd
+- tapOn: "Next month"
+- tapOn: "[A-Za-z]+ 10, [0-9]{4}"
+- waitForAnimationToEnd
+- assertVisible: "Unlock date, .*10, [0-9]{4}"
+
+- tapOn: "Unlock time, .*"
+- extendedWaitUntil:
+    visible: "Choose an unlock time"
+    timeout: 10000
+- waitForAnimationToEnd
+- tapOn: "8 o'clock"
+- tapOn: "PM"
+- tapOn: "0 minutes"
+- tapOn: "Done"
+- waitForAnimationToEnd
+- assertVisible: "Unlock time, 8:00.PM"
+
+- scrollUntilVisible:
+    element: "Emotional context"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Emotional context"
+- inputText: ${J_CAPSULE_CONTEXT}
+- runFlow: ../shared/hide-keyboard.yaml
+- scrollUntilVisible:
+    element: "Save capsule"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Save capsule"
+
+- extendedWaitUntil:
+    visible: "Capsule detail"
+    timeout: 20000
+# The "Capsule sealed" toast covers the header back button until it hides.
+- extendedWaitUntil:
+    notVisible: "Capsule sealed"
+    timeout: 15000
+- assertVisible: ${J_CAPSULE_TITLE}
+# The creator can preview their own note before it unlocks.
+- scrollUntilVisible:
+    element: ${J_CAPSULE_NOTE}
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Back to capsules"
+- extendedWaitUntil:
+    visible: ${"Open memory capsule " + J_CAPSULE_TITLE}
+    timeout: 15000

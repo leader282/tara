@@ -1,0 +1,39 @@
+appId: com.leader282.tara
+name: "Journey: first partner sees the reveal live and opens it from history"
+tags:
+  - journey
+  - rituals
+  - realtime
+---
+# Still on the rituals tab from answering first, and no launchApp (which would refetch),
+# so the reveal has to arrive over realtime.
+- extendedWaitUntil:
+    visible: "Both answers are revealed"
+    timeout: 60000
+- scrollUntilVisible:
+    element: ${J_PARTNER_RITUAL_ANSWER}
+    direction: DOWN
+    timeout: 10000
+
+- scrollUntilVisible:
+    element: "Ritual history"
+    direction: DOWN
+    timeout: 15000
+- scrollUntilVisible:
+    element: "Open ritual details for .*"
+    direction: DOWN
+    timeout: 15000
+- tapOn: "Open ritual details for .*"
+- extendedWaitUntil:
+    visible: "Ritual detail"
+    timeout: 15000
+- assertVisible: "Shared prompt"
+- scrollUntilVisible:
+    element: ${J_PARTNER_RITUAL_ANSWER}
+    direction: DOWN
+    timeout: 10000
+- assertVisible: ${J_RITUAL_ANSWER}
+- tapOn: "Back to rituals"
+- extendedWaitUntil:
+    visible: "Ritual history"
+    timeout: 10000

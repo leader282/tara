@@ -2,35 +2,18 @@ appId: com.leader282.tara
 ---
 - stopApp
 - clearState
-- launchApp
-- waitForAnimationToEnd:
-    timeout: 10000
-- extendedWaitUntil:
-    visible: "DEVELOPMENT SERVERS|Welcome back|Runtime version: 1.0.0|This is the developer menu|Loading Tara..."
-    timeout: 90000
+# Runners pass E2E_BUILD=release when a release build is installed. It carries its own JS
+# bundle, so it starts straight into the app without the dev client's launcher or menu.
 - runFlow:
     when:
-      visible: "DEVELOPMENT SERVERS"
+      true: ${typeof E2E_BUILD !== 'undefined' && E2E_BUILD === 'release'}
     commands:
-      - tapOn:
-          point: "50%,28%"
-      - waitForAnimationToEnd
-# After connecting to the dev server the client re-downloads the full JS bundle
-# (clearState wipes the cached bundle) and the app then runs its auth bootstrap.
-# On a cold/long-running emulator this can take well over a minute, so wait for
-# the developer menu or a real app screen to appear before trying to dismiss it.
-- extendedWaitUntil:
-    visible: "This is the developer menu|Runtime version: 1.0.0|Welcome back|Loading Tara...|Loading your profile...|Preparing your couple space...|Your private space"
-    timeout: 150000
+      - launchApp
+      - extendedWaitUntil:
+          visible: "Welcome back|Loading Tara...|Loading your profile...|Preparing your couple space...|Your private space"
+          timeout: 60000
 - runFlow:
     when:
-      visible: "This is the developer menu"
-    commands:
-      - tapOn: "Continue"
-      - waitForAnimationToEnd
-- runFlow:
-    when:
-      visible: "Runtime version: 1.0.0"
-    commands:
-      - tapOn: "Close"
-      - waitForAnimationToEnd
+      true: ${typeof E2E_BUILD === 'undefined' || E2E_BUILD !== 'release'}
+    file: launch-dev-client.yaml
+- runFlow: dismiss-anr.yaml

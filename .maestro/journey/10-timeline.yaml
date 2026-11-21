@@ -1,0 +1,44 @@
+appId: com.leader282.tara
+name: "Journey: shared timeline lists every kind of moment"
+tags:
+  - journey
+  - timeline
+---
+- runFlow: ../shared/resume-to-tabs.yaml
+- tapOn:
+    id: "tab-timeline"
+- extendedWaitUntil:
+    visible: "Your private timeline"
+    timeout: 20000
+- swipe:
+    start: "50%, 30%"
+    end: "50%, 80%"
+    duration: 600
+- waitForAnimationToEnd
+# Newest first: capsules, then rituals, then the reunion updates, then pulses.
+- scrollUntilVisible:
+    element: "Capsule opened: .*"
+    direction: DOWN
+    timeout: 20000
+- scrollUntilVisible:
+    element: "Capsule created: .*"
+    direction: DOWN
+    timeout: 20000
+- scrollUntilVisible:
+    element: "Ritual completed: .*"
+    direction: DOWN
+    timeout: 20000
+- scrollUntilVisible:
+    element: "Countdown updated: .*"
+    direction: DOWN
+    timeout: 20000
+- scrollUntilVisible:
+    element: "Presence pulse: .*"
+    direction: DOWN
+    timeout: 20000
+# Each moment links back to where it happened.
+- tapOn: "Presence pulse: .*"
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 15000

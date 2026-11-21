@@ -9,14 +9,15 @@ tags:
 - runFlow: ../shared/sign-in.yaml
 
 - extendedWaitUntil:
-    visible: "Your private space"
+    visible:
+      id: "couple-home"
     timeout: 30000
 - assertVisible: ${E2E_PARTNER_NAME}
 # The partner's pulse is delivered over Supabase Realtime and rendered in the
 # "Recent pulses" card at the bottom of the home screen. The card sits below the
-# long presence-pulse picker, so reaching it takes several swipes; on a busy
-# emulator a short timeout expires mid-scroll. Allow generous time and let each
-# swipe settle so we reliably land on the card before waiting for the note.
+# pulse picker, so reaching it takes a few swipes; on a busy emulator a short
+# timeout expires mid-scroll. Allow generous time and let each swipe settle so
+# we reliably land on the card before waiting for the note.
 - scrollUntilVisible:
     element:
       text: "Recent pulses"

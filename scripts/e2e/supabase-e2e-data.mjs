@@ -169,7 +169,10 @@ async function listE2EUsers(client, runId = null) {
       ...pageUsers.filter((user) => {
         const email = user.email ?? "";
         if (runId) {
-          return email.startsWith(`${emailPrefix}.${runId}.`);
+          return (
+            email.startsWith(`${emailPrefix}.${runId}.`) ||
+            email === `${plusEmailPrefix}${runId}@${emailDomain}`
+          );
         }
 
         return email.startsWith(`${emailPrefix}.`) || email.startsWith(plusEmailPrefix);

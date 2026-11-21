@@ -1,0 +1,12 @@
+appId: com.leader282.tara
+---
+- runFlow: resume-app.yaml
+# Back out of any screen an earlier step stopped on, so this step starts from the tab bar.
+- repeat:
+    times: 4
+    while:
+      notVisible:
+        id: "tab-home"
+    commands:
+      - tapOn: "Back.*"
+      - waitForAnimationToEnd

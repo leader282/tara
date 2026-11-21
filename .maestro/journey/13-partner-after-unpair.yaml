@@ -1,0 +1,36 @@
+appId: com.leader282.tara
+name: "Journey: the other partner leaves the archived space"
+tags:
+  - journey
+  - account
+---
+# Coming back to the foreground refetches everything, which may already move this partner to
+# the invite screen. Otherwise pull to refresh from the couple home.
+- runFlow: ../shared/resume-app.yaml
+- runFlow:
+    when:
+      visible:
+        id: "tab-home"
+    commands:
+      - tapOn:
+          id: "tab-home"
+      - scrollUntilVisible:
+          element: "Your private space"
+          direction: UP
+          timeout: 10000
+          optional: true
+      - swipe:
+          start: "50%, 25%"
+          end: "50%, 75%"
+          duration: 600
+- extendedWaitUntil:
+    visible: "Create your private space for two|Your couple home is waiting"
+    timeout: 30000
+- runFlow:
+    when:
+      visible: "Open invite setup"
+    commands:
+      - tapOn: "Open invite setup"
+- extendedWaitUntil:
+    visible: "Create your private space for two"
+    timeout: 15000

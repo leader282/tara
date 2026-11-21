@@ -13,12 +13,13 @@ tags:
 - runFlow: ../shared/sign-in.yaml
 
 - extendedWaitUntil:
-    visible: "Your private space"
+    visible:
+      id: "couple-home"
     timeout: 30000
 - assertVisible: ${E2E_PARTNER_NAME}
 - scrollUntilVisible:
     element:
-      text: "Presence pulse"
+      text: "Send a little love"
     direction: DOWN
     timeout: 10000
 
@@ -30,27 +31,23 @@ tags:
 - tapOn: "Send a hug pulse"
 - tapOn: "Optional pulse note"
 - inputText: ${"A tiny E2E hello from " + E2E_RUN_ID}
-- hideKeyboard
+- runFlow: ../shared/hide-keyboard.yaml
 - scrollUntilVisible:
     element:
-      text: "Send pulse"
+      text: ${"Send hug to " + E2E_PARTNER_NAME}
     direction: DOWN
     timeout: 10000
-- tapOn: "Send pulse"
+- tapOn: ${"Send hug to " + E2E_PARTNER_NAME}
 # The confirmation toast is transient; allow generous time under load so a slow
 # round-trip to Supabase doesn't miss it.
 - extendedWaitUntil:
-    visible: "Sent hug with care."
+    visible: ${"Hug sent to " + E2E_PARTNER_NAME}
     timeout: 30000
 
-- scrollUntilVisible:
-    element:
-      text: "Open today's ritual"
-    direction: UP
-    timeout: 10000
-- tapOn: "Open today's ritual"
+- tapOn:
+    id: "tab-rituals"
 - extendedWaitUntil:
-    visible: "Rituals"
+    visible: "Small prompts you both answer in your own time, from wherever you are."
     timeout: 20000
 - assertVisible: "What is one tiny thing that helped you feel close today?"
 - runFlow:
@@ -59,7 +56,7 @@ tags:
     commands:
       - tapOn: "Ritual response"
       - inputText: ${"E2E ritual answer " + E2E_RUN_ID}
-      - hideKeyboard
+      - runFlow: ../shared/hide-keyboard.yaml
       - tapOn: "Save my answer"
 - runFlow:
     when:
@@ -71,14 +68,9 @@ tags:
       visible: "Both answers are revealed"
     commands:
       - assertVisible: ${"E2E ritual answer " + E2E_RUN_ID}
-- back
 
-- scrollUntilVisible:
-    element:
-      text: "Open memory capsules"
-    direction: DOWN
-    timeout: 10000
-- tapOn: "Open memory capsules"
+- tapOn:
+    id: "tab-capsules"
 - extendedWaitUntil:
     visible: "Memory capsules"
     timeout: 20000
@@ -95,6 +87,10 @@ tags:
 - extendedWaitUntil:
     visible: ${"E2E " + E2E_RUN_ID + " opened capsule note"}
     timeout: 15000
+# The "Capsule opened" toast covers the header back button until it hides.
+- extendedWaitUntil:
+    notVisible: "Capsule opened"
+    timeout: 15000
 - tapOn: "Back to capsules"
 
 - extendedWaitUntil:
@@ -104,21 +100,12 @@ tags:
 - extendedWaitUntil:
     visible: "Create memory capsule"
     timeout: 15000
-- evalScript: ${output.futureDate = new Date(Date.now() + 86400000 * 2).toISOString().slice(0, 10)}
 - tapOn: "Capsule title"
 - inputText: ${"E2E UI capsule " + E2E_RUN_ID}
 - tapOn: "Capsule note"
 - inputText: "Created through Maestro"
-- hideKeyboard
-- scrollUntilVisible:
-    element:
-      text: "Unlock date"
-    direction: DOWN
-    timeout: 10000
-- tapOn: "Unlock date"
-- eraseText: 100
-- inputText: ${output.futureDate}
-- hideKeyboard
+- runFlow: ../shared/hide-keyboard.yaml
+# The unlock date defaults to tomorrow, which is all this flow needs.
 - scrollUntilVisible:
     element:
       text: "Save capsule"
@@ -133,31 +120,27 @@ tags:
 - runFlow: ../shared/launch-app.yaml
 - runFlow: ../shared/sign-in.yaml
 - extendedWaitUntil:
-    visible: "Your private space"
+    visible:
+      id: "couple-home"
     timeout: 30000
 
-- scrollUntilVisible:
-    element:
-      text: "Open timeline"
-    direction: DOWN
-    timeout: 10000
-- tapOn: "Open timeline"
+- tapOn:
+    id: "tab-timeline"
 - extendedWaitUntil:
     visible: "Your private timeline"
     timeout: 20000
 - assertVisible: "Memory capsule created"
-- back
 
-- scrollUntilVisible:
-    element:
-      text: "Settings"
-    direction: DOWN
-    visibilityPercentage: 50
-    timeout: 25000
-    waitToSettleTimeoutMs: 1000
+# Settings lives in the home header.
+- tapOn:
+    id: "tab-home"
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 15000
 - tapOn: "Settings"
 - extendedWaitUntil:
-    visible: "Settings"
+    visible: "Choose what feels calm, private, and supportive."
     timeout: 15000
 - assertVisible: "Profile"
 - scrollUntilVisible:
@@ -169,6 +152,11 @@ tags:
 - tapOn: "Privacy center"
 - extendedWaitUntil:
     visible: "How your space stays private"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: "Open account and safety controls"
+    direction: DOWN
     timeout: 10000
 - tapOn: "Open account and safety controls"
 - extendedWaitUntil:

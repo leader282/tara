@@ -1,0 +1,88 @@
+appId: com.leader282.tara
+name: "Journey: notification permission and data export request"
+tags:
+  - journey
+  - notifications
+  - account
+---
+# launchApp grants every permission by default; reset notifications so the app's own
+# permission prompt shows the way it does on a fresh install.
+- launchApp:
+    stopApp: false
+    permissions:
+      notifications: unset
+# Revoking a granted permission kills the app, and the dev client reopens on its launcher
+# at its own pace. Restart the app on Metro instead of racing the launcher.
+- stopApp
+- runFlow:
+    when:
+      platform: Android
+      true: ${typeof E2E_BUILD === 'undefined' || E2E_BUILD !== 'release'}
+    commands:
+      - openLink: "exp+tara://expo-development-client/?url=http%3A%2F%2F10.0.2.2%3A8081"
+- runFlow:
+    when:
+      true: ${(typeof E2E_BUILD !== 'undefined' && E2E_BUILD === 'release') || maestro.platform === 'ios'}
+    commands:
+      - launchApp:
+          permissions:
+            notifications: unset
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 120000
+- runFlow: ../shared/dismiss-anr.yaml
+- scrollUntilVisible:
+    element: "Settings"
+    direction: UP
+    timeout: 10000
+- tapOn: "Settings"
+- extendedWaitUntil:
+    visible: "Choose what feels calm, private, and supportive."
+    timeout: 15000
+
+- tapOn: "Notifications"
+- extendedWaitUntil:
+    visible: "Choose what Tara can gently remind you about."
+    timeout: 15000
+- tapOn: "Enable gentle notifications"
+- extendedWaitUntil:
+    visible: ".*send you notifications.*"
+    timeout: 15000
+- tapOn: "^Allow$"
+# Emulators cannot get a push token, so registration explains that instead of failing silently.
+- extendedWaitUntil:
+    visible: "Push notifications require a physical device.|Gentle notifications are enabled.*"
+    timeout: 20000
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible: "Choose what feels calm, private, and supportive."
+    timeout: 10000
+
+- scrollUntilVisible:
+    element: "Account and safety"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Account and safety"
+- extendedWaitUntil:
+    visible: "Current account status"
+    timeout: 15000
+- assertVisible: "Paired"
+- scrollUntilVisible:
+    element: "Request data export"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Request data export"
+- extendedWaitUntil:
+    visible: "Request already in progress"
+    timeout: 20000
+- assertVisible: "Request received"
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible: "Choose what feels calm, private, and supportive."
+    timeout: 10000
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 15000

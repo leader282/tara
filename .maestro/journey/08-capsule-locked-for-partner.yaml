@@ -1,0 +1,35 @@
+appId: com.leader282.tara
+name: "Journey: partner watches a new capsule arrive, locked with contents hidden"
+tags:
+  - journey
+  - capsules
+  - privacy
+  - realtime
+---
+- runFlow: ../shared/resume-to-tabs.yaml
+# Open the list before the other phone creates the capsule, so it has to arrive live. The
+# runner starts the other phone once this "Ready to watch" step completes.
+- tapOn:
+    id: "tab-capsules"
+- extendedWaitUntil:
+    visible: "Memory capsules"
+    timeout: 20000
+    label: "Ready to watch for the capsule"
+- extendedWaitUntil:
+    visible: ${"Open memory capsule " + J_CAPSULE_TITLE}
+    timeout: 300000
+- assertVisible: ${J_CAPSULE_CONTEXT}
+- assertVisible:
+    text: "Locked"
+    childOf: ${"Open memory capsule " + J_CAPSULE_TITLE}
+- tapOn: ${"Open memory capsule " + J_CAPSULE_TITLE}
+- extendedWaitUntil:
+    visible: "Capsule detail"
+    timeout: 15000
+- assertVisible: ${J_CAPSULE_TITLE}
+- assertNotVisible: ${J_CAPSULE_NOTE}
+- assertNotVisible: "Open capsule"
+- tapOn: "Back to capsules"
+- extendedWaitUntil:
+    visible: "Memory capsules"
+    timeout: 10000

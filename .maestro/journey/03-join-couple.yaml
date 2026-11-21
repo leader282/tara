@@ -1,0 +1,45 @@
+appId: com.leader282.tara
+name: "Journey: partner joins with invite code"
+tags:
+  - journey
+  - invite
+---
+- runFlow: ../shared/resume-app.yaml
+- extendedWaitUntil:
+    visible: "Create your private space for two"
+    timeout: 30000
+- tapOn: "Join with code"
+- extendedWaitUntil:
+    visible: "Join with an invite code"
+    timeout: 10000
+
+- tapOn: "Invite code"
+- waitForAnimationToEnd
+- inputText: "N0TAR3ALC0D3"
+- runFlow: ../shared/hide-keyboard.yaml
+- assertVisible: "Invite code looks too short."
+- assertVisible:
+    text: "Join couple space"
+    enabled: false
+# Long enough to pass the form check, but no such invite exists on the server.
+- tapOn: "Invite code"
+- inputText: "QW56R7TY"
+- runFlow: ../shared/hide-keyboard.yaml
+- tapOn: "Join couple space"
+- extendedWaitUntil:
+    visible: "This invite is no longer available. Ask your partner for a fresh invite code."
+    timeout: 15000
+
+# Partners get the real code in the invite message, as a link that fills it in. Typing all
+# 43 characters through Maestro takes the better part of a minute.
+- openLink: ${J_INVITE_LINK}
+- extendedWaitUntil:
+    visible: ${J_INVITE_CODE}
+    timeout: 20000
+- tapOn: "Join couple space"
+
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 30000
+- assertVisible: ${J_PARTNER_NAME}

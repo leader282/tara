@@ -1,0 +1,17 @@
+appId: com.leader282.tara
+---
+# On Android, Maestro's hideKeyboard is a bare Back press: with no keyboard up it closes the
+# screen, or the app. Only press it while Gboard's full keyboard is showing; Gboard's stylus
+# toolbar has no keyboard_holder and covers no fields, so it is left alone too.
+- runFlow:
+    when:
+      platform: Android
+      visible:
+        id: "com.google.android.inputmethod.latin:id/keyboard_holder"
+    commands:
+      - hideKeyboard
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - hideKeyboard

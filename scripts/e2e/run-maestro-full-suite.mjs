@@ -1,6 +1,8 @@
 import { spawn } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { waitForDeviceToSettle } from "./android-device.mjs";
+import { installMaestroDriver, REUSE_DRIVER_ARG, stopMaestroDriverSession } from "./maestro-driver.mjs";
 
 const repoRoot = path.resolve(new URL("../..", import.meta.url).pathname);
 const dataDir = path.join(repoRoot, ".maestro", ".e2e-data");
@@ -33,6 +35,8 @@ function getRunId() {
   return sanitizeRunId(requested ?? new Date().toISOString());
 }
 
+const OUTPUT_TAIL_CHARS = 20_000;
+
 function run(command, args, options = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
@@ -41,10 +45,21 @@ function run(command, args, options = {}) {
         ...process.env,
         MAESTRO_CLI_ANALYSIS_NOTIFICATION_DISABLED: "true",
         MAESTRO_CLI_NO_ANALYTICS: "1",
+        MAESTRO_DRIVER_STARTUP_TIMEOUT: "120000",
         ...(options.env ?? {}),
       },
-      stdio: "inherit",
+      stdio: ["inherit", "pipe", "pipe"],
     });
+
+    let outputTail = "";
+    const keepTail = (stream, target) => {
+      stream.on("data", (chunk) => {
+        target.write(chunk);
+        outputTail = (outputTail + chunk.toString()).slice(-OUTPUT_TAIL_CHARS);
+      });
+    };
+    keepTail(child.stdout, process.stdout);
+    keepTail(child.stderr, process.stderr);
 
     child.on("error", reject);
     child.on("exit", (code, signal) => {
@@ -53,18 +68,40 @@ function run(command, args, options = {}) {
         return;
       }
 
-      reject(new Error(`${command} ${args.join(" ")} failed with ${signal ?? code}`));
+      const error = new Error(`${command} ${args.join(" ")} failed with ${signal ?? code}`);
+      error.outputTail = outputTail;
+      reject(error);
     });
   });
 }
 
-function runMaestro(flowPath, { device, env = {} } = {}) {
+const devicesWithDriver = new Set();
+
+async function runMaestro(flowPath, { device, env = {} } = {}) {
+  try {
+    await runMaestroOnce(flowPath, { device, env });
+  } catch (error) {
+    // No flow step ran if Maestro's on-device driver never came up, so reset it and retry once.
+    if (!device?.startsWith("emulator-") || !/did not start up in time/.test(error.outputTail ?? "")) {
+      throw error;
+    }
+    await stopMaestroDriverSession(device);
+    await installMaestroDriver(device);
+    await delay(5_000);
+    await runMaestroOnce(flowPath, { device, env });
+  }
+}
+
+function runMaestroOnce(flowPath, { device, env = {} } = {}) {
   const args = [];
   if (device) {
     args.push("--device", device);
   }
 
   args.push("test");
+  if (devicesWithDriver.has(device)) {
+    args.push(REUSE_DRIVER_ARG);
+  }
   for (const [key, value] of Object.entries(env)) {
     if (value === undefined || value === null) {
       continue;
@@ -75,6 +112,28 @@ function runMaestro(flowPath, { device, env = {} } = {}) {
   args.push(flowPath);
 
   return run("maestro", args);
+}
+
+// Password-manager save prompts cover the app. Maestro's hideKeyboard is a bare Back press,
+// so the full soft keyboard must open: not suppressed by a hardware keyboard, and not
+// replaced by Gboard's stylus toolbar, which treats injected touches as a stylus.
+async function prepareAndroidDevice(device) {
+  const settings = [
+    ["autofill_service", "null"],
+    ["show_ime_with_hard_keyboard", "1"],
+    ["stylus_handwriting_enabled", "0"],
+  ];
+  for (const [key, value] of settings) {
+    await run("adb", ["-s", device, "shell", "settings", "put", "secure", key, value]);
+  }
+  // Instant system transitions (screens, keyboard, dialogs) cut Maestro's settle waits. The
+  // app's own animations use React Native's Animated, which these scales don't affect.
+  for (const scale of ["window_animation_scale", "transition_animation_scale", "animator_duration_scale"]) {
+    await run("adb", ["-s", device, "shell", "settings", "put", "global", scale, "0"]);
+  }
+  await installMaestroDriver(device);
+  devicesWithDriver.add(device);
+  await waitForDeviceToSettle(device);
 }
 
 function loadRunData(runId) {
@@ -145,22 +204,34 @@ async function main() {
   // seeded (already-paired) owner+partner couple. Useful for fast iteration on the
   // realtime launch-timing race without re-running the full ~30 min suite.
   const realtimeOnly = hasFlag("--realtime-only");
+  // Which build is installed on the devices: the dev client on Metro, or a release build.
+  const build = getArg("--build") ?? process.env.E2E_BUILD ?? "dev";
 
   if (!androidDevice && !iosDevice) {
     throw new Error(
       "Set E2E_ANDROID_DEVICE and/or E2E_IOS_DEVICE. Use `maestro list-devices` to find ids."
     );
   }
+  if (build !== "dev" && build !== "release") {
+    throw new Error(`--build must be "dev" or "release", not "${build}".`);
+  }
 
   const results = [];
 
   try {
+    for (const device of [androidDevice, iosDevice]) {
+      if (device?.startsWith("emulator-")) {
+        await prepareAndroidDevice(device);
+      }
+    }
+
     if (!skipSetup) {
       await run("node", ["scripts/e2e/supabase-e2e-data.mjs", "setup", "--run-id", runId]);
     }
 
     const data = loadRunData(runId);
     const commonEnv = {
+      E2E_BUILD: build,
       E2E_PASSWORD: data.password,
       E2E_RUN_ID: data.runId,
       E2E_INVITE_CODE: data.invite.code,
@@ -248,6 +319,7 @@ async function main() {
               env: {
                 ...commonEnv,
                 E2E_EMAIL: data.users.partner.email,
+                E2E_PARTNER_NAME: data.users.owner.displayName,
                 E2E_PULSE_NOTE: `E2E pulse ${data.runId}`,
               },
             },

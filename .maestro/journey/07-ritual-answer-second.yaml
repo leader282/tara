@@ -1,0 +1,36 @@
+appId: com.leader282.tara
+name: "Journey: second partner answers and both answers reveal"
+tags:
+  - journey
+  - rituals
+---
+- runFlow: ../shared/resume-to-tabs.yaml
+- tapOn:
+    id: "tab-rituals"
+- extendedWaitUntil:
+    visible: "Small prompts you both answer in your own time, from wherever you are."
+    timeout: 20000
+- extendedWaitUntil:
+    visible: "Ritual response"
+    timeout: 30000
+# The partner's answer stays hidden until this side answers too.
+- assertNotVisible: ${J_PARTNER_RITUAL_ANSWER}
+- tapOn: "Ritual response"
+- inputText: ${J_RITUAL_ANSWER}
+- runFlow: ../shared/hide-keyboard.yaml
+- scrollUntilVisible:
+    element: "Save my answer"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Save my answer"
+- extendedWaitUntil:
+    visible: "Both answers are revealed"
+    timeout: 20000
+- scrollUntilVisible:
+    element: ${J_PARTNER_RITUAL_ANSWER}
+    direction: DOWN
+    timeout: 10000
+- scrollUntilVisible:
+    element: ${J_RITUAL_ANSWER}
+    direction: DOWN
+    timeout: 10000

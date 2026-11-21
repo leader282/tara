@@ -1,0 +1,62 @@
+appId: com.leader282.tara
+---
+# The dev launcher's server discovery is flaky on emulators, so connect to Metro directly
+# (10.0.2.2 is the Android emulator's alias for the host machine).
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - openLink: "exp+tara://expo-development-client/?url=http%3A%2F%2F10.0.2.2%3A8081"
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - launchApp
+- waitForAnimationToEnd:
+    timeout: 10000
+- extendedWaitUntil:
+    visible: "DEVELOPMENT SERVERS|Welcome back|Runtime version: 1.0.0|This is the developer menu.*|Loading Tara..."
+    timeout: 90000
+- runFlow:
+    when:
+      visible: "DEVELOPMENT SERVERS"
+    commands:
+      - tapOn:
+          point: "50%,28%"
+      - waitForAnimationToEnd
+# After connecting to the dev server the client re-downloads the full JS bundle
+# (clearState wipes the cached bundle) and the app then runs its auth bootstrap.
+# On a cold/long-running emulator this can take well over a minute, so wait for
+# the developer menu or a real app screen to appear before trying to dismiss it.
+- extendedWaitUntil:
+    visible: "This is the developer menu.*|Runtime version: 1.0.0|Welcome back|Loading Tara...|Loading your profile...|Preparing your couple space...|Your private space"
+    timeout: 150000
+# The dev menu can open a moment after the app's first screen renders behind it.
+- extendedWaitUntil:
+    visible: "This is the developer menu.*|Runtime version: 1.0.0"
+    timeout: 8000
+    optional: true
+- runFlow:
+    when:
+      visible: "This is the developer menu.*"
+    commands:
+      - tapOn: "Continue"
+      - waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: "Runtime version: 1.0.0"
+    commands:
+      # clearState brings back the dev client's floating Tools button, which sits on top of
+      # the home screen's Settings button and swallows taps meant for it. Expand the dev
+      # menu sheet to reach its toggle and switch it off.
+      - extendedWaitUntil:
+          visible: "Reload"
+          timeout: 10000
+      - swipe:
+          start: "50%, 85%"
+          end: "50%, 50%"
+          duration: 600
+      - waitForAnimationToEnd
+      - tapOn: "Tools button"
+      - tapOn: "Close"
+      - waitForAnimationToEnd

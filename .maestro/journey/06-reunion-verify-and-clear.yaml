@@ -1,0 +1,50 @@
+appId: com.leader282.tara
+name: "Journey: partner sees the reunion, then clears it"
+tags:
+  - journey
+  - reunion
+---
+- runFlow: ../shared/resume-to-tabs.yaml
+- tapOn:
+    id: "tab-home"
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 20000
+- scrollUntilVisible:
+    element: "Reunion countdown: .*"
+    direction: UP
+    timeout: 10000
+    optional: true
+# Pull to refresh, the way a partner would pick up a plan made on the other phone.
+- swipe:
+    start: "50%, 25%"
+    end: "50%, 75%"
+    duration: 600
+- extendedWaitUntil:
+    visible: "Reunion countdown: [0-9]+ days until you're together"
+    timeout: 20000
+- assertVisible: ".*6:30.PM.*${J_MEETUP_LOCATION}.*"
+
+- tapOn: "Edit meetup"
+- extendedWaitUntil:
+    visible: "Plan your reunion"
+    timeout: 15000
+- assertVisible: "Meetup time, 6:30.PM"
+- scrollUntilVisible:
+    element: "Clear meetup"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Clear meetup"
+- extendedWaitUntil:
+    visible: "Clear next meetup\\?"
+    timeout: 10000
+- tapOn:
+    text: "Clear meetup"
+    below: "Clear next meetup\\?"
+- extendedWaitUntil:
+    visible: "Reunion cleared"
+    timeout: 20000
+- extendedWaitUntil:
+    visible: "No reunion date yet"
+    timeout: 15000

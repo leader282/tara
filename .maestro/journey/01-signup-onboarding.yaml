@@ -1,0 +1,196 @@
+appId: com.leader282.tara
+name: "Journey: sign up and onboard"
+tags:
+  - journey
+  - auth
+  - onboarding
+# J_CUSTOM=1 walks every optional onboarding input (city, country, birthday, tone,
+# love signals, notification tone, quiet hours). Otherwise defaults are kept.
+---
+- runFlow: ../shared/launch-app.yaml
+- extendedWaitUntil:
+    visible: "Welcome back"
+    timeout: 180000
+
+# Signing in before the account exists shows the friendly credentials error.
+# The keyboard covers the fields below the focused one, so close it between fields.
+- tapOn: "Email"
+- waitForAnimationToEnd
+- inputText: ${J_EMAIL}
+- runFlow: ../shared/hide-keyboard.yaml
+- tapOn: "Password"
+- inputText: "not-the-password"
+- runFlow: ../shared/hide-keyboard.yaml
+- tapOn: "Sign in"
+- extendedWaitUntil:
+    visible: "Email or password is incorrect. Please try again."
+    timeout: 20000
+
+- tapOn: "Create one"
+- extendedWaitUntil:
+    visible: "Create your account"
+    timeout: 10000
+- tapOn: "Email"
+- waitForAnimationToEnd
+- inputText: ${J_EMAIL}
+- runFlow: ../shared/hide-keyboard.yaml
+- tapOn: "Password"
+- inputText: ${J_PASSWORD}
+- runFlow: ../shared/hide-keyboard.yaml
+- tapOn: "Confirm password"
+- inputText: ${J_PASSWORD + "x"}
+- runFlow: ../shared/hide-keyboard.yaml
+- extendedWaitUntil:
+    visible: "Passwords do not match."
+    timeout: 5000
+- tapOn: "Confirm password"
+- eraseText: 1
+- runFlow: ../shared/hide-keyboard.yaml
+- extendedWaitUntil:
+    notVisible: "Passwords do not match."
+    timeout: 5000
+- tapOn: "Create account"
+
+- extendedWaitUntil:
+    visible: "Let's set up your side of Tara"
+    timeout: 30000
+- tapOn: "Display name"
+- inputText: ${J_NAME}
+- runFlow: ../shared/hide-keyboard.yaml
+- tapOn: "Timezone"
+- eraseText: 100
+- inputText: ${J_TIMEZONE}
+- runFlow: ../shared/hide-keyboard.yaml
+- runFlow:
+    when:
+      true: ${J_TIMEZONE != "Asia/Kolkata"}
+    commands:
+      # A manually typed zone offers a one-tap way back to the device zone.
+      - assertVisible: "Use this device's time zone \\(Asia/Kolkata\\)"
+- runFlow:
+    when:
+      true: ${J_CUSTOM == "1"}
+    commands:
+      - tapOn: "City"
+      - inputText: ${J_CITY}
+      - runFlow: ../shared/hide-keyboard.yaml
+      - tapOn: "Country"
+      - inputText: ${J_COUNTRY}
+      - runFlow: ../shared/hide-keyboard.yaml
+      - scrollUntilVisible:
+          element: "Birthday, .*"
+          direction: DOWN
+          timeout: 10000
+      - tapOn: "Birthday, .*"
+      - extendedWaitUntil:
+          visible: "Your birthday"
+          timeout: 10000
+      - waitForAnimationToEnd
+      # The month title switches the sheet to a year grid (newest first). Swipe inside the
+      # grid itself: a swipe that lands on the dimmed backdrop counts as a tap and closes it.
+      - tapOn: "[A-Za-z]+ [0-9]{4}"
+      - repeat:
+          times: 10
+          while:
+            notVisible: "1996"
+          commands:
+            - swipe:
+                start: "50%, 88%"
+                end: "50%, 74%"
+                duration: 400
+      - tapOn: "1996"
+      - tapOn: "[A-Za-z]+ 14, 1996"
+      - waitForAnimationToEnd
+      - assertVisible: "Birthday, .*14, 1996"
+- scrollUntilVisible:
+    element: "Continue"
+    direction: DOWN
+    visibilityPercentage: 60
+    timeout: 25000
+    waitToSettleTimeoutMs: 1000
+- tapOn: "Continue"
+
+- extendedWaitUntil:
+    visible: "How should Tara feel between you two?"
+    timeout: 15000
+- runFlow:
+    when:
+      true: ${J_CUSTOM == "1"}
+    commands:
+      - tapOn: "Playful"
+      - scrollUntilVisible:
+          element: "Shared photos"
+          direction: DOWN
+          timeout: 10000
+      - tapOn: "Shared photos"
+      - scrollUntilVisible:
+          element: "Memory capsules"
+          direction: DOWN
+          timeout: 10000
+      - tapOn: "Memory capsules"
+      - scrollUntilVisible:
+          element: "Notification tone"
+          direction: DOWN
+          timeout: 10000
+      - scrollUntilVisible:
+          element:
+            text: "Minimal"
+            below: "Notification tone"
+          direction: DOWN
+          timeout: 10000
+      - tapOn:
+          text: "Minimal"
+          below: "Notification tone"
+- scrollUntilVisible:
+    element: "Continue"
+    direction: DOWN
+    visibilityPercentage: 60
+    timeout: 25000
+    waitToSettleTimeoutMs: 1000
+- tapOn: "Continue"
+
+- extendedWaitUntil:
+    visible: "Choose your quiet hours"
+    timeout: 15000
+- runFlow:
+    when:
+      true: ${J_CUSTOM == "1"}
+    commands:
+      - tapOn: "Enable quiet hours"
+      - extendedWaitUntil:
+          visible: "Quiet hours start time, .*"
+          timeout: 5000
+      - tapOn: "Quiet hours start time, .*"
+      - extendedWaitUntil:
+          visible: "11 o'clock"
+          timeout: 10000
+      - waitForAnimationToEnd
+      - tapOn: "11 o'clock"
+      - tapOn: "30 minutes"
+      - tapOn: "Done"
+      - waitForAnimationToEnd
+      - assertVisible: "Quiet hours start time, 11:30.PM"
+      - tapOn: "Quiet hours end time, .*"
+      - extendedWaitUntil:
+          visible: "6 o'clock"
+          timeout: 10000
+      - waitForAnimationToEnd
+      - tapOn: "6 o'clock"
+      - tapOn: "45 minutes"
+      - tapOn: "Done"
+      - waitForAnimationToEnd
+      - assertVisible: "Quiet hours end time, 6:45.AM"
+- scrollUntilVisible:
+    element: "Continue"
+    direction: DOWN
+    visibilityPercentage: 60
+    timeout: 15000
+- tapOn: "Continue"
+
+- extendedWaitUntil:
+    visible: "You're all set for now"
+    timeout: 15000
+- tapOn: "Continue to Tara"
+- extendedWaitUntil:
+    visible: "Create your private space for two"
+    timeout: 20000

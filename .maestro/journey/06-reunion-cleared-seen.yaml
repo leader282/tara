@@ -1,0 +1,24 @@
+appId: com.leader282.tara
+name: "Journey: cleared reunion reaches the other partner"
+tags:
+  - journey
+  - reunion
+---
+- runFlow: ../shared/resume-to-tabs.yaml
+- tapOn:
+    id: "tab-home"
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 20000
+- scrollUntilVisible:
+    element: "Your private space"
+    direction: UP
+    timeout: 10000
+- swipe:
+    start: "50%, 25%"
+    end: "50%, 75%"
+    duration: 600
+- extendedWaitUntil:
+    visible: "No reunion date yet"
+    timeout: 20000

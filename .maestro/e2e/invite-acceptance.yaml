@@ -21,7 +21,7 @@ tags:
 - waitForAnimationToEnd
 - eraseText
 - inputText: ${E2E_INVALID_INVITE_CODE}
-- hideKeyboard
+- runFlow: ../shared/hide-keyboard.yaml
 - tapOn: "Join couple space"
 - extendedWaitUntil:
     visible: "This invite is no longer available. Ask your partner for a fresh invite code."
@@ -43,14 +43,15 @@ tags:
 - waitForAnimationToEnd
 # Fail fast with a clear message if the field still holds a leftover/corrupted code.
 - assertVisible: ${E2E_INVITE_CODE}
-- hideKeyboard
+- runFlow: ../shared/hide-keyboard.yaml
 - tapOn: "Join couple space"
 
 - extendedWaitUntil:
-    visible: "Your private space"
+    visible:
+      id: "couple-home"
     timeout: 30000
 - scrollUntilVisible:
     element:
-      text: "Presence pulse"
+      text: "Send a little love"
     direction: DOWN
     timeout: 10000

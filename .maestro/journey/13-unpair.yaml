@@ -1,0 +1,48 @@
+appId: com.leader282.tara
+name: "Journey: unpair and archive the couple space"
+tags:
+  - journey
+  - account
+  - destructive
+---
+- runFlow: ../shared/resume-to-tabs.yaml
+- tapOn:
+    id: "tab-home"
+- extendedWaitUntil:
+    visible:
+      id: "couple-home"
+    timeout: 20000
+- scrollUntilVisible:
+    element: "Settings"
+    direction: UP
+    timeout: 10000
+- tapOn: "Settings"
+- extendedWaitUntil:
+    visible: "Choose what feels calm, private, and supportive."
+    timeout: 15000
+- scrollUntilVisible:
+    element: "Account and safety"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Account and safety"
+- extendedWaitUntil:
+    visible: "Current account status"
+    timeout: 15000
+- scrollUntilVisible:
+    element: "Unpair and archive"
+    direction: DOWN
+    timeout: 15000
+- assertVisible:
+    text: "Unpair and archive"
+    enabled: false
+- tapOn: "Type UNPAIR to continue"
+- inputText: "UNPAIR"
+- runFlow: ../shared/hide-keyboard.yaml
+- scrollUntilVisible:
+    element: "Unpair and archive"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Unpair and archive"
+- extendedWaitUntil:
+    visible: "Create your private space for two"
+    timeout: 30000

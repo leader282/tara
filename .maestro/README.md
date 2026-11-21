@@ -58,6 +58,59 @@ If both devices are provided, the runner starts a real cross-device realtime tes
 Android signs in as one partner and waits while iOS signs in as the other partner
 and sends a presence pulse through Supabase Realtime.
 
+## Run The Two-Device Journey
+
+`journey/` drives two Android emulators as two partners from a fresh sign-up through every
+feature: onboarding choices, pairing (bad code, real code, waiting screen), live pulses in both
+directions, reunion planning, ritual reveal, text and photo capsules (locked, unlocked, opened),
+timeline, every settings screen, notification permission, data export, unpair, rejoining through
+the invite link, sign-out, and an unknown link. Steps continue from the state the previous step
+left, so they run in order, and "live" steps keep one phone watching while the other acts.
+
+```sh
+E2E_SUPABASE_URL="http://127.0.0.1:54321" \
+E2E_SUPABASE_SERVICE_ROLE_KEY="<local service_role key from supabase status>" \
+npm run e2e:maestro:journey -- --device-a emulator-5554 --device-b emulator-5556
+```
+
+Add `--keep-data` to inspect a failed run and `--from-step <n> --run-id <id>` to resume it.
+Capsules can only be created with a future unlock time, so the runner moves a capsule's unlock
+time into the past in the database to stand in for the wait.
+
+Both runners prepare emulators before testing: they turn off the autofill service (its save
+password sheet covers the app), force the on-screen keyboard even with a hardware keyboard,
+turn off stylus handwriting (Gboard otherwise treats Maestro's injected touches as a stylus and
+shows a toolbar that lets Back through to the app), and turn off system animations. The AVDs
+should also have `hw.keyboard = no`. On Android, `shared/launch-app.yaml` connects the dev
+client straight to Metro at `10.0.2.2:8081` instead of relying on server discovery.
+
+The runners also install Maestro's Android driver once per device and run every flow with
+`--no-reinstall-driver`. By default Maestro installs and uninstalls the driver for every
+session, which costs minutes per run and, on a busy emulator, can outlast its startup timeout.
+
+Long runs slow emulators down; cold-boot them before a full journey
+(`emulator -avd <name> -no-snapshot-load`) and keep the machine otherwise idle while it runs.
+
+### Testing a release build
+
+Both runners default to the dev client on Metro (`--build dev`). A release build starts in
+seconds, renders much faster than the debug build, and has no dev launcher or dev menu to get
+in the way, so runs are quicker and steadier:
+
+```sh
+EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY="<local publishable key from supabase status>" \
+npm run e2e:build:android
+adb -s emulator-5554 install -r .maestro/.e2e-data/tara-e2e-release.apk
+adb -s emulator-5556 install -r .maestro/.e2e-data/tara-e2e-release.apk
+npm run e2e:maestro:journey -- --device-a emulator-5554 --device-b emulator-5556 --build release
+```
+
+The build script only builds against local Supabase (`http://10.0.2.2:54321` by default). It
+turns EAS Update off for that build, since an over-the-air update would replace the bundle with
+the production one, and allows the local stack's plain-HTTP traffic. Rebuild after app changes.
+The APK replaces the dev client on the emulator (same package); reinstall the debug build to go
+back.
+
 To keep generated test data after a failure:
 
 ```sh
@@ -166,7 +219,10 @@ run-scoped ritual templates.
 These cases need additional app affordances or native infrastructure before they
 can be automated reliably:
 
-- photo picker and camera permission branches
-- push notification delivery across APNs/FCM
-- OS share sheet behavior for invite codes
+- camera capture (the journey covers the gallery picker and private photo upload)
+- push notification delivery across APNs/FCM: the app only registers push tokens on
+  physical devices, so on emulators the journey checks the permission prompt and the
+  "requires a physical device" message, and the queue can be checked server-side
+- what happens after picking a share target (the journey only checks that the share sheet
+  opens with the invite message)
 - exact offline/network-failure branches
