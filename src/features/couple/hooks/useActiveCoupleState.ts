@@ -8,6 +8,8 @@ import type { ActiveCoupleState } from "@/features/couple/types";
 import { queryKeys } from "@/lib/query/queryKeys";
 
 const ANONYMOUS_USER_KEY = "anonymous";
+// Nothing pushes a partner's arrival to the one waiting, so the waiting screen checks.
+const WAITING_FOR_PARTNER_REFRESH_MS = 4_000;
 
 function toError(error: unknown): Error | null {
   if (!error) {
@@ -27,7 +29,13 @@ export type UseActiveCoupleStateResult = {
   isLoading: boolean;
 };
 
-export function useActiveCoupleState(): UseActiveCoupleStateResult {
+type UseActiveCoupleStateOptions = {
+  pollWhileWaiting?: boolean;
+};
+
+export function useActiveCoupleState({
+  pollWhileWaiting = false,
+}: UseActiveCoupleStateOptions = {}): UseActiveCoupleStateResult {
   const { isAuthenticated, isInitializing, user } = useAuth();
   const userId = user?.id;
 
@@ -41,6 +49,10 @@ export function useActiveCoupleState(): UseActiveCoupleStateResult {
 
       return getActiveCoupleState(userId);
     },
+    refetchInterval: (query) =>
+      pollWhileWaiting && query.state.data?.status === "waiting"
+        ? WAITING_FOR_PARTNER_REFRESH_MS
+        : false,
   });
 
   return useMemo(() => {

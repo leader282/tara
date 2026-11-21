@@ -29,7 +29,7 @@ export function InvitePartnerScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const { state, isLoading, error } = useActiveCoupleState();
+  const { state, isLoading, error } = useActiveCoupleState({ pollWhileWaiting: true });
   const waitingCoupleId = state.status === "waiting" ? state.couple.id : null;
   const inviteQuery = useActiveInvite(waitingCoupleId);
   const [shareError, setShareError] = useState<string | null>(null);
