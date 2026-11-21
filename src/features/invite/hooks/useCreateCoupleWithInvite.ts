@@ -16,6 +16,9 @@ export function useCreateCoupleWithInvite() {
         void queryClient.invalidateQueries({
           queryKey: queryKeys.couple.activeState(user.id),
         });
+        // The couple home mounts once the partner joins and doesn't refetch on mount, so drop
+        // any copy cached from an earlier couple instead of only marking it stale.
+        queryClient.removeQueries({ queryKey: queryKeys.couple.home(user.id) });
       }
 
       void queryClient.invalidateQueries({
