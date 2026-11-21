@@ -10,7 +10,8 @@ tags:
 - extendedWaitUntil:
     visible: "Memory capsules"
     timeout: 20000
-- tapOn: "Create capsule"
+# With no capsules yet, the empty state holds the only create button.
+- tapOn: "Create your first capsule"
 - extendedWaitUntil:
     visible: "Create memory capsule"
     timeout: 15000

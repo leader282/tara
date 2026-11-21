@@ -1,5 +1,5 @@
 appId: com.leader282.tara
-name: "Journey: create a photo capsule from the gallery"
+name: "Journey: create a photo capsule with the in-app camera"
 tags:
   - journey
   - capsules
@@ -20,52 +20,46 @@ tags:
 - runFlow: ../shared/hide-keyboard.yaml
 
 - scrollUntilVisible:
-    element: "Choose a photo from your library"
+    element: "Take a photo or video"
     direction: DOWN
     timeout: 10000
-- tapOn: "Choose a photo from your library"
-# Android asks for photo access before the system picker opens.
+- tapOn: "Take a photo or video"
+# Android asks for the camera the first time; release runs grant it at launch.
+- runFlow:
+    when:
+      visible: "While using the app"
+    commands:
+      - tapOn: "While using the app"
 - extendedWaitUntil:
-    visible: ".*(Allow|photos and videos|Photo picker|Photos|Albums).*"
+    visible: "Take photo"
     timeout: 20000
-- runFlow:
-    when:
-      visible: "Allow all"
-    commands:
-      - tapOn: "Allow all"
-- runFlow:
-    when:
-      visible: "^Allow$"
-    commands:
-      - tapOn: "^Allow$"
+# Each tap of the shutter adds another photo without leaving the camera.
+- tapOn: "Take photo"
 - extendedWaitUntil:
-    visible: "Photo taken on.*|.*tara-e2e-photo.*"
-    timeout: 20000
-- tapOn:
-    text: "Photo taken on.*|.*tara-e2e-photo.*"
-    index: 0
-- runFlow:
-    when:
-      visible: "^Done$|^Add$|^Select$"
-    commands:
-      - tapOn: "^Done$|^Add$|^Select$"
+    visible: "Add 1 capture"
+    timeout: 15000
+- tapOn: "Take photo"
+- extendedWaitUntil:
+    visible: "Add 2 captures"
+    timeout: 15000
+- tapOn: "Add 2 captures"
 
 - extendedWaitUntil:
-    visible: "Create memory capsule"
+    visible: "Attached photo 2"
     timeout: 20000
 - extendedWaitUntil:
-    visible: "Attached private photo|Selected photo preview"
+    notVisible: "Uploading"
     timeout: 60000
-# The preview pushes the upload status and photo actions below the fold.
+- assertNotVisible: "Upload failed"
+# Selecting a photo offers replace and delete.
+- tapOn: "Attached photo 1"
 - scrollUntilVisible:
-    element: "Uploaded"
+    element: "Delete"
     direction: DOWN
-    timeout: 60000
-- assertNotVisible: "Failed"
-- scrollUntilVisible:
-    element: "Remove photo"
-    direction: DOWN
-    timeout: 15000
+    timeout: 10000
+- assertVisible: "Replace"
+- tapOn: "Delete"
+- assertNotVisible: "Attached photo 2"
 
 - scrollUntilVisible:
     element: "Save capsule"

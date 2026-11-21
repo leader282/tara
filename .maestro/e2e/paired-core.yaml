@@ -160,6 +160,5 @@ tags:
     timeout: 10000
 - tapOn: "Open account and safety controls"
 - extendedWaitUntil:
-    visible: "Current account status"
+    visible: "Data export"
     timeout: 15000
-- assertVisible: "Paired"

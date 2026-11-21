@@ -133,11 +133,12 @@ tags:
       text: "Memory capsule notification preference"
       checked: false
     timeout: 10000
+# Scroll to the summary text itself; the card's edge can count as visible while its text is
+# still below the fold.
 - scrollUntilVisible:
-    element: "Adjust quiet hours"
+    element: ".*10:00.PM.*6:45.AM.*"
     direction: DOWN
     timeout: 10000
-- assertVisible: ".*10:00.PM.*6:45.AM.*"
 - tapOn: "Back"
 - extendedWaitUntil:
     visible: "Choose what feels calm, private, and supportive."
@@ -168,7 +169,7 @@ tags:
     timeout: 10000
 - tapOn: "Couple settings"
 - extendedWaitUntil:
-    visible: "Manage shared settings without changing couple status or membership."
+    visible: "Settings you share with your partner."
     timeout: 15000
 - assertVisible: "Anniversary date, .*14, [0-9]{4}"
 - scrollUntilVisible:
@@ -207,9 +208,8 @@ tags:
     timeout: 10000
 - tapOn: "Open account and safety controls"
 - extendedWaitUntil:
-    visible: "Current account status"
+    visible: "Data export"
     timeout: 15000
-- assertVisible: "Paired"
 # Back on the privacy center, still scrolled down to the link that was tapped.
 - tapOn: "Back"
 - extendedWaitUntil:

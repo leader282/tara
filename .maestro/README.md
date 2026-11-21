@@ -62,7 +62,7 @@ and sends a presence pulse through Supabase Realtime.
 
 `journey/` drives two Android emulators as two partners from a fresh sign-up through every
 feature: onboarding choices, pairing (bad code, real code, waiting screen), live pulses in both
-directions, reunion planning, ritual reveal, text and photo capsules (locked, unlocked, opened),
+directions, reunion planning, ritual reveal, text and camera-photo capsules (locked, unlocked, opened),
 timeline, every settings screen, notification permission, data export, unpair, rejoining through
 the invite link, sign-out, and an unknown link. Steps continue from the state the previous step
 left, so they run in order, and "live" steps keep one phone watching while the other acts.
@@ -219,10 +219,12 @@ run-scoped ritual templates.
 These cases need additional app affordances or native infrastructure before they
 can be automated reliably:
 
-- camera capture (the journey covers the gallery picker and private photo upload)
+- video recording: the journey takes photos with the in-app camera, but recording video with the
+  emulator's virtual camera crashes the emulator itself on macOS. Library videos upload and play
+  fine, so push a short MP4 to `/sdcard/Movies` to check that path by hand.
 - push notification delivery across APNs/FCM: the app only registers push tokens on
-  physical devices, so on emulators the journey checks the permission prompt and the
-  "requires a physical device" message, and the queue can be checked server-side
+  physical devices, so on emulators the journey only checks the first-use permission prompt,
+  and the queue can be checked server-side
 - what happens after picking a share target (the journey only checks that the share sheet
   opens with the invite message)
 - exact offline/network-failure branches

@@ -8,7 +8,7 @@ tags:
 # Still on the capsule list from creating it; no launchApp, so the change must arrive live.
 - extendedWaitUntil:
     visible:
-      text: "Opened"
+      text: "Opened .*"
       childOf: ${"Open memory capsule " + J_CAPSULE_TITLE}
     timeout: 45000
 - tapOn: ${"Open memory capsule " + J_CAPSULE_TITLE}

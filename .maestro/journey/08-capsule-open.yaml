@@ -12,7 +12,7 @@ tags:
     timeout: 20000
 - extendedWaitUntil:
     visible:
-      text: "Ready to open"
+      text: "Unlocked .*"
       childOf: ${"Open memory capsule " + J_CAPSULE_TITLE}
     timeout: 45000
 - tapOn: ${"Open memory capsule " + J_CAPSULE_TITLE}
@@ -37,6 +37,6 @@ tags:
 - tapOn: "Back to capsules"
 - extendedWaitUntil:
     visible:
-      text: "Opened"
+      text: "Opened .*"
       childOf: ${"Open memory capsule " + J_CAPSULE_TITLE}
     timeout: 15000

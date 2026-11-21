@@ -20,7 +20,7 @@ tags:
     timeout: 300000
 - assertVisible: ${J_CAPSULE_CONTEXT}
 - assertVisible:
-    text: "Locked"
+    text: "Unlocks .*"
     childOf: ${"Open memory capsule " + J_CAPSULE_TITLE}
 - tapOn: ${"Open memory capsule " + J_CAPSULE_TITLE}
 - extendedWaitUntil:

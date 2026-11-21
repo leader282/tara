@@ -191,6 +191,7 @@ tags:
     visible: "You're all set for now"
     timeout: 15000
 - tapOn: "Continue to Tara"
+- runFlow: ../shared/allow-notifications.yaml
 - extendedWaitUntil:
     visible: "Create your private space for two"
     timeout: 20000

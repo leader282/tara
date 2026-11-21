@@ -5,8 +5,8 @@ tags:
   - notifications
   - account
 ---
-# launchApp grants every permission by default; reset notifications so the app's own
-# permission prompt shows the way it does on a fresh install.
+# launchApp grants every permission by default; reset notifications so the app asks again the
+# way it does on a fresh install.
 - launchApp:
     stopApp: false
     permissions:
@@ -27,10 +27,15 @@ tags:
       - launchApp:
           permissions:
             notifications: unset
+# An onboarded user who has never been asked gets Android's prompt as soon as the app opens.
+- extendedWaitUntil:
+    visible: ".*send you notifications.*"
+    timeout: 120000
+- tapOn: "^Allow$"
 - extendedWaitUntil:
     visible:
       id: "couple-home"
-    timeout: 120000
+    timeout: 60000
 - runFlow: ../shared/dismiss-anr.yaml
 - scrollUntilVisible:
     element: "Settings"
@@ -45,15 +50,10 @@ tags:
 - extendedWaitUntil:
     visible: "Choose what Tara can gently remind you about."
     timeout: 15000
-- tapOn: "Enable gentle notifications"
 - extendedWaitUntil:
-    visible: ".*send you notifications.*"
-    timeout: 15000
-- tapOn: "^Allow$"
-# Emulators cannot get a push token, so registration explains that instead of failing silently.
-- extendedWaitUntil:
-    visible: "Push notifications require a physical device.|Gentle notifications are enabled.*"
+    visible: "Gentle notifications are enabled on this device."
     timeout: 20000
+- assertNotVisible: "Enable gentle notifications"
 - tapOn: "Back"
 - extendedWaitUntil:
     visible: "Choose what feels calm, private, and supportive."
@@ -65,9 +65,8 @@ tags:
     timeout: 10000
 - tapOn: "Account and safety"
 - extendedWaitUntil:
-    visible: "Current account status"
+    visible: "Data export"
     timeout: 15000
-- assertVisible: "Paired"
 - scrollUntilVisible:
     element: "Request data export"
     direction: DOWN

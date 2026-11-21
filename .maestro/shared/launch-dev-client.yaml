@@ -15,7 +15,7 @@ appId: com.leader282.tara
 - waitForAnimationToEnd:
     timeout: 10000
 - extendedWaitUntil:
-    visible: "DEVELOPMENT SERVERS|Welcome back|Runtime version: 1.0.0|This is the developer menu.*|Loading Tara..."
+    visible: "DEVELOPMENT SERVERS|Welcome back|Runtime version: .*|This is the developer menu.*|Loading Tara..."
     timeout: 90000
 - runFlow:
     when:
@@ -29,11 +29,11 @@ appId: com.leader282.tara
 # On a cold/long-running emulator this can take well over a minute, so wait for
 # the developer menu or a real app screen to appear before trying to dismiss it.
 - extendedWaitUntil:
-    visible: "This is the developer menu.*|Runtime version: 1.0.0|Welcome back|Loading Tara...|Loading your profile...|Preparing your couple space...|Your private space"
+    visible: "This is the developer menu.*|Runtime version: .*|Welcome back|Loading Tara...|Loading your profile...|Preparing your couple space...|Your private space"
     timeout: 150000
 # The dev menu can open a moment after the app's first screen renders behind it.
 - extendedWaitUntil:
-    visible: "This is the developer menu.*|Runtime version: 1.0.0"
+    visible: "This is the developer menu.*|Runtime version: .*"
     timeout: 8000
     optional: true
 - runFlow:
@@ -44,7 +44,7 @@ appId: com.leader282.tara
       - waitForAnimationToEnd
 - runFlow:
     when:
-      visible: "Runtime version: 1.0.0"
+      visible: "Runtime version: .*"
     commands:
       # clearState brings back the dev client's floating Tools button, which sits on top of
       # the home screen's Settings button and swallows taps meant for it. Expand the dev

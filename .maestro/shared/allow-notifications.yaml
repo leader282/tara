@@ -1,0 +1,13 @@
+appId: com.leader282.tara
+---
+# Once the user has finished onboarding, the app shows Android's notification permission prompt
+# if it has never been asked. Release runs grant permissions at launch, so it may not appear.
+- extendedWaitUntil:
+    visible: ".*send you notifications.*"
+    timeout: 10000
+    optional: true
+- runFlow:
+    when:
+      visible: ".*send you notifications.*"
+    commands:
+      - tapOn: "^Allow$"

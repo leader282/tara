@@ -26,9 +26,8 @@ tags:
 - tapOn: "Account and safety"
 
 - extendedWaitUntil:
-    visible: "Current account status"
+    visible: "Data export"
     timeout: 15000
-- assertVisible: "Paired"
 
 - scrollUntilVisible:
     element:
@@ -78,13 +77,12 @@ tags:
     direction: DOWN
     timeout: 20000
 
-# Requesting account deletion archives the active couple, so the account status
-# now reports the user is no longer paired. This is the same archive outcome the
-# explicit unpair button produces (the two destructive paths are mutually
-# exclusive within a single paired session).
+# Requesting account deletion archives the active couple, so the unpair card now says
+# the user is no longer paired. This is the same archive outcome the explicit unpair
+# button produces (the two destructive paths are mutually exclusive within a single
+# paired session).
 - scrollUntilVisible:
     element:
-      text: "Current account status"
+      text: "You're not paired with anyone right now."
     direction: UP
     timeout: 10000
-- assertVisible: "Not paired"

@@ -1,5 +1,5 @@
 appId: com.leader282.tara
-name: "Journey: first partner sees the reveal live and opens it from history"
+name: "Journey: first partner sees the reveal live and opens it from the timeline"
 tags:
   - journey
   - rituals
@@ -15,15 +15,26 @@ tags:
     direction: DOWN
     timeout: 10000
 
+# Today's ritual has its own card, so history only lists earlier days.
 - scrollUntilVisible:
     element: "Ritual history"
     direction: DOWN
     timeout: 15000
 - scrollUntilVisible:
-    element: "Open ritual details for .*"
+    element: "No past rituals yet"
     direction: DOWN
-    timeout: 15000
-- tapOn: "Open ritual details for .*"
+    timeout: 10000
+
+# The reveal's timeline moment also arrives live, and links to the ritual.
+- tapOn:
+    id: "tab-timeline"
+- extendedWaitUntil:
+    visible: "Your private timeline"
+    timeout: 20000
+- extendedWaitUntil:
+    visible: "Ritual completed: .*"
+    timeout: 30000
+- tapOn: "Ritual completed: .*"
 - extendedWaitUntil:
     visible: "Ritual detail"
     timeout: 15000
@@ -35,5 +46,5 @@ tags:
 - assertVisible: ${J_RITUAL_ANSWER}
 - tapOn: "Back to rituals"
 - extendedWaitUntil:
-    visible: "Ritual history"
+    visible: "Your private timeline"
     timeout: 10000

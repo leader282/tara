@@ -18,3 +18,4 @@ appId: com.leader282.tara
 - inputText: ${E2E_PASSWORD}
 - runFlow: hide-keyboard.yaml
 - tapOn: "Sign in"
+- runFlow: allow-notifications.yaml

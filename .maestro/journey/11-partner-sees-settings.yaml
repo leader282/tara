@@ -32,7 +32,7 @@ tags:
     timeout: 10000
 - tapOn: "Couple settings"
 - extendedWaitUntil:
-    visible: "Manage shared settings without changing couple status or membership."
+    visible: "Settings you share with your partner."
     timeout: 15000
 - scrollUntilVisible:
     element: "Weekly"
