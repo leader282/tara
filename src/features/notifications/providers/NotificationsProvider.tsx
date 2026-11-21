@@ -12,6 +12,7 @@ import {
   upsertNotificationPreferences,
 } from "@/features/notifications/api/notificationsApi";
 import { PARTNER_NOTIFICATION_TYPES } from "@/features/notifications/constants";
+import { useAutoRegisterPushToken } from "@/features/notifications/hooks/useAutoRegisterPushToken";
 import { useNotificationResponseHandler } from "@/features/notifications/hooks/useNotificationResponseHandler";
 import { toForegroundBanner } from "@/features/notifications/services/foregroundBanner";
 import { getNotificationPermissionStatus } from "@/features/notifications/services/notificationPermissions";
@@ -54,6 +55,7 @@ export function NotificationsProvider({ children }: PropsWithChildren) {
   const pendingResponseRef = useRef<Notifications.NotificationResponse | null>(null);
   const canHandleNotificationResponses = !isInitializing && isAuthenticated;
   const canShowForegroundBannersRef = useRef(canHandleNotificationResponses);
+  useAutoRegisterPushToken(canHandleNotificationResponses ? user?.id : null);
 
   useEffect(() => {
     canShowForegroundBannersRef.current = canHandleNotificationResponses;
