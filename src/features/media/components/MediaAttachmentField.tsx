@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { StyleSheet, View } from "react-native";
+import { Keyboard, StyleSheet, View } from "react-native";
 
 import { AppText } from "@/components/ui";
 import { MediaPickerButton } from "@/features/media/components/MediaPickerButton";
@@ -73,6 +73,9 @@ export function MediaAttachmentField({
       return;
     }
 
+    // The picker opens over the app; blur the focused text field first so Android doesn't
+    // hand focus back to it on return and raise the keyboard over the form.
+    Keyboard.dismiss();
     const result = await picker.pickFromLibrary();
     if (result.canceled) {
       return;
@@ -92,6 +95,7 @@ export function MediaAttachmentField({
       return;
     }
 
+    Keyboard.dismiss();
     const result = await picker.takePhoto();
     if (result.canceled) {
       return;
