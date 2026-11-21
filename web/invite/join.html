@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#FAF6F3" />
+    <title>Join your partner on Tara</title>
+    <meta property="og:title" content="Join me on Tara" />
+    <meta property="og:description" content="Our private space for two. Tap to open the invite." />
+    <link rel="icon" href="/brand-mark.png" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/join.js" defer></script>
+  </head>
+  <body>
+    <main class="card">
+      <img class="mark" src="/brand-mark.png" alt="" width="64" height="64" />
+      <h1>Join your partner on Tara</h1>
+
+      <section id="invite" hidden>
+        <p>You've been invited to a private space for two.</p>
+        <a id="open" class="button" href="#">Open in Tara</a>
+        <p class="hint">
+          If Tara doesn't open, open the app, tap <strong>Join with code</strong>, and paste this code:
+        </p>
+        <code id="code"></code>
+        <button id="copy" class="button secondary" type="button">Copy code</button>
+        <p id="copied" class="hint" role="status" hidden>Copied.</p>
+      </section>
+
+      <section id="missing" hidden>
+        <p>This invite link is incomplete. Ask your partner to share it again from Tara.</p>
+      </section>
+    </main>
+  </body>
+</html>

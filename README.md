@@ -47,6 +47,7 @@ supabase/tests/          Local pgTAP/RLS privacy tests
 docs/                    Architecture, QA, release, privacy, and roadmap documentation
 __tests__/               Jest unit and component tests
 assets/                  App icon and splash assets
+web/invite/              Static invite-link page (https://tara-invite.vercel.app)
 ```
 
 Canonical data flow:
@@ -227,6 +228,12 @@ npx eas build --platform android --profile preview
 ```
 
 Do not use the production profile or run `eas submit` without explicit release-owner approval and completed release signoff.
+
+EAS doesn't upload the gitignored `.env`, so the `preview` and `production` EAS environments hold the `EXPO_PUBLIC_*` values (`eas env:list --environment preview`).
+
+## Invite Links
+
+Messaging apps only make `http(s)` links tappable, so shared invites link to `https://tara-invite.vercel.app/join#<code>`. That static page (`web/invite/`) opens the app through the `tara://<code>` link and offers the code to copy. The code stays after `#`, so the page's server and link-preview crawlers never receive it. The Vercel project isn't connected to Git; redeploy after changing the page with `cd web/invite && vercel deploy --prod`.
 
 ## Observability
 
