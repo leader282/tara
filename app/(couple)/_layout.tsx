@@ -3,6 +3,7 @@ import { Redirect, Stack } from "expo-router";
 import { GateErrorScreen, GateLoadingScreen } from "@/components/ui";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useActiveCoupleState } from "@/features/couple/hooks/useActiveCoupleState";
+import { useCoupleLiveUpdates } from "@/features/couple/hooks/useCoupleLiveUpdates";
 import { useRetryAppGates } from "@/features/couple/hooks/useRetryAppGates";
 import { useOnboardingGate } from "@/features/onboarding/hooks/useOnboardingGate";
 import { PartnerPresenceAlerts } from "@/features/presence/components/PartnerPresenceAlerts";
@@ -17,6 +18,7 @@ export default function CoupleLayout() {
   const onboardingGate = useOnboardingGate();
   const coupleGate = useActiveCoupleState();
   const retryGates = useRetryAppGates();
+  useCoupleLiveUpdates(coupleGate.state.status === "paired" ? coupleGate.state.couple.id : null);
 
   if (isInitializing || onboardingGate.isLoading) {
     return <GateLoadingScreen label="Preparing your couple space..." />;
