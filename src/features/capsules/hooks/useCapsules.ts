@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { getCapsules } from "@/features/capsules/api/capsulesApi";
 import type { CapsuleListItem } from "@/features/capsules/types";
+import { getNextUnlockRefreshMs } from "@/features/capsules/unlockRefresh";
 import { toCapsuleActionMessage } from "@/lib/errors/capsuleErrorMessages";
 import { queryKeys } from "@/lib/query/queryKeys";
 
@@ -44,6 +45,8 @@ export function useCapsules(
 
       return getCapsules(coupleId, currentUserId);
     },
+    refetchInterval: (query) =>
+      getNextUnlockRefreshMs((query.state.data ?? []).map((item) => item.capsule)),
   });
 
   return useMemo(() => {

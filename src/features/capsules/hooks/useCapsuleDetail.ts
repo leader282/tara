@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { getCapsuleDetail } from "@/features/capsules/api/capsulesApi";
 import type { CapsuleDetail, CapsuleDetailStatus } from "@/features/capsules/types";
+import { getNextUnlockRefreshMs } from "@/features/capsules/unlockRefresh";
 import { toCapsuleActionMessage } from "@/lib/errors/capsuleErrorMessages";
 import { queryKeys } from "@/lib/query/queryKeys";
 
@@ -45,6 +46,11 @@ export function useCapsuleDetail(
 
       return getCapsuleDetail(capsuleId, currentUserId);
     },
+    // A capsule seen while locked may have unlocked or been opened since; the default of
+    // not refetching on mount would show the old state again.
+    refetchOnMount: "always",
+    refetchInterval: (query) =>
+      query.state.data ? getNextUnlockRefreshMs([query.state.data.capsule]) : false,
   });
 
   return useMemo(() => {

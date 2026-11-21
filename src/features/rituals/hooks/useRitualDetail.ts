@@ -44,6 +44,9 @@ export function useRitualDetail(
 
       return getRitualDetail(coupleRitualId, currentUserId);
     },
+    // A ritual seen while waiting on the partner may have been revealed since; the default of
+    // not refetching on mount would show the old state again.
+    refetchOnMount: "always",
   });
 
   return useMemo(() => {
