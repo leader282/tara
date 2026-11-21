@@ -18,7 +18,11 @@ on a release build (before live couple updates landed).
       both emulators, then `npm run e2e:maestro:journey -- --build release` (see `.maestro/README.md`).
 - [ ] Version is `1.1.0` (Android `versionCode` 2, iOS `buildNumber` 2). The runtime version follows
       the app version, so over-the-air updates for 1.1.0 never reach 1.0.0 builds.
-- [ ] `eas build --profile preview --platform all`, then install over 1.0.0 on both partners' phones.
+- [ ] The EAS `preview` environment defines `EXPO_PUBLIC_SUPABASE_URL`,
+      `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and `EXPO_PUBLIC_SENTRY_DSN` (`eas env:list --environment preview`).
+      EAS doesn't upload the gitignored `.env`, and the app stops at launch without the Supabase values.
+- [ ] `eas build --profile preview --platform android`, then install over 1.0.0 on both partners' phones.
+      iOS builds for devices need a paid Apple Developer account.
 
 On two physical phones signed in as a couple:
 
