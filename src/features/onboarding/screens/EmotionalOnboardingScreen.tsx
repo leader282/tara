@@ -105,8 +105,12 @@ export function EmotionalOnboardingScreen() {
     resolver: zodResolver(emotionalPreferencesSchema),
   });
 
+  // formState only tracks what renders read, and the early returns below skip the form,
+  // so read these up front or a first loading render leaves isValid stuck at false.
+  const { isDirty, isValid } = formState;
+
   useEffect(() => {
-    if (!userSettingsQuery.isFetched || formState.isDirty) {
+    if (!userSettingsQuery.isFetched || isDirty) {
       return;
     }
 
@@ -123,7 +127,7 @@ export function EmotionalOnboardingScreen() {
         ? settings.notification_tone
         : "gentle",
     });
-  }, [formState.isDirty, reset, userSettingsQuery.data, userSettingsQuery.isFetched]);
+  }, [isDirty, reset, userSettingsQuery.data, userSettingsQuery.isFetched]);
 
   const onSubmit = handleSubmit(async (values) => {
     if (!user?.id) {
@@ -257,7 +261,7 @@ export function EmotionalOnboardingScreen() {
       ) : null}
 
       <Button
-        disabled={!formState.isValid || updateUserSettingsMutation.isPending}
+        disabled={!isValid || updateUserSettingsMutation.isPending}
         loading={updateUserSettingsMutation.isPending}
         onPress={onSubmit}
         title="Continue"

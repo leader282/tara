@@ -42,8 +42,12 @@ export function ProfileSetupScreen() {
     resolver: zodResolver(profileSetupSchema),
   });
 
+  // formState only tracks what renders read, and the early returns below skip the form,
+  // so read these up front or a first loading render leaves isValid stuck at false.
+  const { isDirty, isValid } = formState;
+
   useEffect(() => {
-    if (!profileQuery.isFetched || formState.isDirty) {
+    if (!profileQuery.isFetched || isDirty) {
       return;
     }
 
@@ -55,7 +59,7 @@ export function ProfileSetupScreen() {
       country: profile?.country ?? "",
       birthday: profile?.birthday ?? "",
     });
-  }, [fallbackTimeZone, formState.isDirty, profileQuery.data, profileQuery.isFetched, reset]);
+  }, [fallbackTimeZone, isDirty, profileQuery.data, profileQuery.isFetched, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
     if (!user?.id) {
@@ -223,7 +227,7 @@ export function ProfileSetupScreen() {
       ) : null}
 
       <Button
-        disabled={!formState.isValid || updateProfileMutation.isPending}
+        disabled={!isValid || updateProfileMutation.isPending}
         loading={updateProfileMutation.isPending}
         onPress={onSubmit}
         title="Continue"

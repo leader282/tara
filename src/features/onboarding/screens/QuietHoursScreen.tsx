@@ -44,8 +44,12 @@ export function QuietHoursScreen() {
     resolver: zodResolver(quietHoursSchema),
   });
 
+  // formState only tracks what renders read, and the early returns below skip the form,
+  // so read these up front or a first loading render leaves isValid stuck at false.
+  const { isDirty, isValid } = formState;
+
   useEffect(() => {
-    if (!userSettingsQuery.isFetched || formState.isDirty) {
+    if (!userSettingsQuery.isFetched || isDirty) {
       return;
     }
 
@@ -58,7 +62,7 @@ export function QuietHoursScreen() {
       quietHoursStart: start,
       quietHoursEnd: end,
     });
-  }, [formState.isDirty, reset, userSettingsQuery.data, userSettingsQuery.isFetched]);
+  }, [isDirty, reset, userSettingsQuery.data, userSettingsQuery.isFetched]);
 
   const quietHoursStartValue = useWatch({ control, name: "quietHoursStart" }) ?? "";
   const quietHoursEndValue = useWatch({ control, name: "quietHoursEnd" }) ?? "";
@@ -154,7 +158,7 @@ export function QuietHoursScreen() {
       ) : null}
 
       <Button
-        disabled={!formState.isValid || updateUserSettingsMutation.isPending}
+        disabled={!isValid || updateUserSettingsMutation.isPending}
         loading={updateUserSettingsMutation.isPending}
         onPress={onSubmit}
         title="Continue"

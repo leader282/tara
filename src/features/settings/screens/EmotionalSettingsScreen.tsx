@@ -98,8 +98,12 @@ export function EmotionalSettingsScreen() {
     resolver: zodResolver(emotionalSettingsFormSchema),
   });
 
+  // formState only tracks what renders read, and the early returns below skip the form,
+  // so read these up front or a first loading render leaves isValid stuck at false.
+  const { isDirty, isValid } = formState;
+
   useEffect(() => {
-    if (!settingsProfileQuery.isFetched || formState.isDirty) {
+    if (!settingsProfileQuery.isFetched || isDirty) {
       return;
     }
 
@@ -119,7 +123,7 @@ export function EmotionalSettingsScreen() {
         ? userSettings.notification_tone
         : "gentle",
     });
-  }, [formState.isDirty, reset, settingsProfileQuery.data?.userSettings, settingsProfileQuery.isFetched]);
+  }, [isDirty, reset, settingsProfileQuery.data?.userSettings, settingsProfileQuery.isFetched]);
 
   const onSubmit = handleSubmit(async (values) => {
     const profile = settingsProfileQuery.data?.profile;
@@ -272,7 +276,7 @@ export function EmotionalSettingsScreen() {
       ) : null}
 
       <Button
-        disabled={!formState.isValid || updateSettingsProfileMutation.isPending}
+        disabled={!isValid || updateSettingsProfileMutation.isPending}
         loading={updateSettingsProfileMutation.isPending}
         onPress={onSubmit}
         title="Save emotional preferences"

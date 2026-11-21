@@ -37,8 +37,12 @@ export function ProfileSettingsScreen() {
     resolver: zodResolver(settingsProfileFormSchema),
   });
 
+  // formState only tracks what renders read, and the early returns below skip the form,
+  // so read these up front or a first loading render leaves isValid stuck at false.
+  const { isDirty, isValid } = formState;
+
   useEffect(() => {
-    if (!settingsProfileQuery.isFetched || formState.isDirty) {
+    if (!settingsProfileQuery.isFetched || isDirty) {
       return;
     }
 
@@ -50,7 +54,7 @@ export function ProfileSettingsScreen() {
       country: profile?.country ?? "",
       birthday: profile?.birthday ?? "",
     });
-  }, [formState.isDirty, reset, settingsProfileQuery.data?.profile, settingsProfileQuery.isFetched]);
+  }, [isDirty, reset, settingsProfileQuery.data?.profile, settingsProfileQuery.isFetched]);
 
   const onSubmit = handleSubmit(async (values) => {
     try {
@@ -222,7 +226,7 @@ export function ProfileSettingsScreen() {
       ) : null}
 
       <Button
-        disabled={!formState.isValid || updateSettingsProfileMutation.isPending}
+        disabled={!isValid || updateSettingsProfileMutation.isPending}
         loading={updateSettingsProfileMutation.isPending}
         onPress={onSubmit}
         title="Save profile settings"

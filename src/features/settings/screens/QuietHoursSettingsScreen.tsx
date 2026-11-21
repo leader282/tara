@@ -38,8 +38,12 @@ export function QuietHoursSettingsScreen() {
     resolver: zodResolver(quietHoursSettingsFormSchema),
   });
 
+  // formState only tracks what renders read, and the early returns below skip the form,
+  // so read these up front or a first loading render leaves isValid stuck at false.
+  const { isDirty, isValid } = formState;
+
   useEffect(() => {
-    if (!settingsProfileQuery.isFetched || formState.isDirty) {
+    if (!settingsProfileQuery.isFetched || isDirty) {
       return;
     }
 
@@ -54,7 +58,7 @@ export function QuietHoursSettingsScreen() {
       quietHoursEnd: end,
     });
   }, [
-    formState.isDirty,
+    isDirty,
     reset,
     settingsProfileQuery.data?.notificationPreferences,
     settingsProfileQuery.data?.userSettings,
@@ -168,7 +172,7 @@ export function QuietHoursSettingsScreen() {
       ) : null}
 
       <Button
-        disabled={!formState.isValid || updateQuietHoursMutation.isPending}
+        disabled={!isValid || updateQuietHoursMutation.isPending}
         loading={updateQuietHoursMutation.isPending}
         onPress={onSubmit}
         title="Save quiet hours"

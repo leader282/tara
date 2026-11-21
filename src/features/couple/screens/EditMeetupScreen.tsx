@@ -91,6 +91,10 @@ export function EditMeetupScreen() {
     resolver: zodResolver(editMeetupSchema),
   });
 
+  // formState only tracks what renders read, and the early returns below skip the form,
+  // so read these up front or a first loading render leaves isValid stuck at false.
+  const { isDirty, isValid } = formState;
+
   const pairedData = coupleHome.state.status === "paired" ? coupleHome.state.data : null;
   const initialValues = useMemo(
     () => toMeetupFormValues(pairedData?.nextMeetupAt ?? null, pairedData?.nextMeetupLocation ?? null),
@@ -102,12 +106,12 @@ export function EditMeetupScreen() {
   const formErrorMessage = submitError ?? updateNextMeetupMutation.friendlyError;
 
   useEffect(() => {
-    if (!pairedData || formState.isDirty) {
+    if (!pairedData || isDirty) {
       return;
     }
 
     reset(initialValues);
-  }, [formState.isDirty, initialValues, pairedData, reset]);
+  }, [isDirty, initialValues, pairedData, reset]);
 
   const invalidateCoupleHome = async () => {
     if (!user?.id) {
@@ -311,7 +315,7 @@ export function EditMeetupScreen() {
 
       <View style={styles.actions}>
         <Button
-          disabled={!formState.isValid || updateNextMeetupMutation.isPending}
+          disabled={!isValid || updateNextMeetupMutation.isPending}
           loading={updateNextMeetupMutation.isPending}
           onPress={onSubmit}
           title="Save meetup"

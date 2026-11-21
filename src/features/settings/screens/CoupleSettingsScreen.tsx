@@ -56,8 +56,12 @@ export function CoupleSettingsScreen() {
     resolver: zodResolver(coupleSettingsFormSchema),
   });
 
+  // formState only tracks what renders read, and the early returns below skip the form,
+  // so read these up front or a first loading render leaves isValid stuck at false.
+  const { isDirty, isValid } = formState;
+
   useEffect(() => {
-    if (!coupleSettingsQuery.isFetched || formState.isDirty) {
+    if (!coupleSettingsQuery.isFetched || isDirty) {
       return;
     }
 
@@ -67,7 +71,7 @@ export function CoupleSettingsScreen() {
       ritualFrequency: settings?.ritualFrequency ?? "daily",
       theme: settings?.theme ?? "",
     });
-  }, [coupleSettingsQuery.data, coupleSettingsQuery.isFetched, formState.isDirty, reset]);
+  }, [coupleSettingsQuery.data, coupleSettingsQuery.isFetched, isDirty, reset]);
 
   const onSubmit = handleSubmit(async (values) => {
     try {
@@ -250,7 +254,7 @@ export function CoupleSettingsScreen() {
       ) : null}
 
       <Button
-        disabled={!formState.isValid || updateCoupleSettingsMutation.isPending}
+        disabled={!isValid || updateCoupleSettingsMutation.isPending}
         loading={updateCoupleSettingsMutation.isPending}
         onPress={onSubmit}
         title="Save couple settings"
