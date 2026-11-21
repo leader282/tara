@@ -81,7 +81,7 @@ export function AcceptInviteScreen({ initialCode = "" }: AcceptInviteScreenProps
     <Screen
       onBack={goBack}
       scroll
-      subtitle="Paste the code your partner shared. Only valid invite codes can join a private couple space."
+      subtitle="Paste the code your partner shared with you."
       title="Join with an invite code"
     >
       <Card>

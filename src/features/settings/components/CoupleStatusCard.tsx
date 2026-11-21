@@ -23,8 +23,8 @@ const copyByStatus: Record<
   }
 > = {
   none: {
-    title: "No active couple yet",
-    description: "You can still manage your personal settings while your couple space is not active.",
+    title: "Not paired yet",
+    description: "Couple settings appear once you pair with your partner.",
     badge: "Not paired",
     tone: "neutral",
     icon: "person-outline",
@@ -32,8 +32,8 @@ const copyByStatus: Record<
     iconBackground: colors.surfaceMuted,
   },
   waiting: {
-    title: "Invite sent, waiting for pairing",
-    description: "Personal settings are available now. Couple-shared settings unlock after pairing.",
+    title: "Waiting for your partner",
+    description: "Couple settings appear once your partner joins with your invite.",
     badge: "Waiting",
     tone: "warning",
     icon: "hourglass-outline",
@@ -41,8 +41,8 @@ const copyByStatus: Record<
     iconBackground: colors.warningSoft,
   },
   paired: {
-    title: "Paired and active",
-    description: "You can update both personal settings and shared couple settings.",
+    title: "Paired",
+    description: "Your private space for two is active.",
     badge: "Paired",
     tone: "success",
     icon: "heart",
@@ -51,9 +51,11 @@ const copyByStatus: Record<
   },
 };
 
+// When paired, the title already says so; the badge only labels the in-between states.
 export function CoupleStatusCard({ status, partnerDisplayName }: CoupleStatusCardProps) {
   const copy = copyByStatus[status];
-  const title = status === "paired" && partnerDisplayName ? `Paired with ${partnerDisplayName}` : copy.title;
+  const isPairedWithName = status === "paired" && Boolean(partnerDisplayName);
+  const title = isPairedWithName ? `Paired with ${partnerDisplayName}` : copy.title;
 
   return (
     <Card padding="md">
@@ -69,7 +71,7 @@ export function CoupleStatusCard({ status, partnerDisplayName }: CoupleStatusCar
             {copy.description}
           </AppText>
         </View>
-        <Badge label={copy.badge} tone={copy.tone} />
+        {status === "paired" ? null : <Badge label={copy.badge} tone={copy.tone} />}
       </View>
     </Card>
   );

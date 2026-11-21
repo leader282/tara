@@ -15,7 +15,7 @@ export function CapsuleLockedState({ capsule }: CapsuleLockedStateProps) {
       <CapsuleHero capsule={capsule} emoji="🔒" />
       <InlineMessage
         icon="lock-closed"
-        message="This capsule is still waiting for its day. Its note and photo stay sealed until unlock."
+        message="This capsule is still waiting for its day. What's inside stays sealed until then."
         tone="neutral"
       />
     </View>

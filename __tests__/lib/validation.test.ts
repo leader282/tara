@@ -44,7 +44,7 @@ describe("zod validation schemas", () => {
     const parsed = completeRitualSchema.parse({
       coupleRitualId: RITUAL_ID,
       textResponse: "   ",
-      mediaAssetId: null,
+      mediaAssetIds: [],
     });
 
     expect(parsed.textResponse).toBeNull();
@@ -52,7 +52,7 @@ describe("zod validation schemas", () => {
       completeRitualSchema.parse({
         coupleRitualId: RITUAL_ID,
         textResponse: "a".repeat(1001),
-        mediaAssetId: null,
+        mediaAssetIds: [],
       }),
     ).toThrow();
   });
@@ -61,7 +61,7 @@ describe("zod validation schemas", () => {
     const validInput = createCapsuleSchema.parse({
       title: "For your next visit",
       note: "A warm memory for later.",
-      mediaAssetId: null,
+      mediaAssetIds: [],
       unlockDate: "2026-12-01",
       unlockTime: "09:00",
       emotionalContext: "Long-distance encouragement",
@@ -72,12 +72,12 @@ describe("zod validation schemas", () => {
       createCapsuleSchema.parse({
         title: "Missing content",
         note: "   ",
-        mediaAssetId: null,
+        mediaAssetIds: [],
         unlockDate: "2026-12-01",
         unlockTime: "09:00",
         emotionalContext: "",
       }),
-    ).toThrow("Add a note or private photo before saving this memory capsule.");
+    ).toThrow("Add a note, a photo, or a short video before saving this capsule.");
   });
 
   it("enforces UNPAIR and DELETE confirmations", () => {

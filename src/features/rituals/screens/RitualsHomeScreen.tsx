@@ -13,7 +13,6 @@ import { TodayRitualCard } from "@/features/rituals/components/TodayRitualCard";
 import { getRitualSavedToast } from "@/features/rituals/feedback";
 import { useCompleteRitual } from "@/features/rituals/hooks/useCompleteRitual";
 import { useRitualHistory } from "@/features/rituals/hooks/useRitualHistory";
-import { useRitualRealtime } from "@/features/rituals/hooks/useRitualRealtime";
 import { useTodayRitual } from "@/features/rituals/hooks/useTodayRitual";
 import { queryKeys } from "@/lib/query/queryKeys";
 import { colors } from "@/theme/tokens";
@@ -34,8 +33,6 @@ export function RitualsHomeScreen() {
   const todayRitual = useTodayRitual(coupleId, currentUserId);
   const ritualHistory = useRitualHistory(coupleId);
   const completeRitualMutation = useCompleteRitual(coupleId);
-
-  useRitualRealtime(coupleId, coupleHome.state.status === "paired");
 
   const handleRetryCoupleHome = () => {
     if (!user?.id) {
@@ -73,17 +70,17 @@ export function RitualsHomeScreen() {
   const handleSubmitResponse = async ({
     coupleRitualId,
     textResponse,
-    mediaAssetId,
+    mediaAssetIds,
   }: {
     coupleRitualId: string;
     textResponse?: string | null;
-    mediaAssetId?: string | null;
+    mediaAssetIds?: string[];
   }) => {
     try {
       const result = await completeRitualMutation.mutateAsync({
         coupleRitualId,
         textResponse,
-        mediaAssetId,
+        mediaAssetIds,
       });
       toast.show(getRitualSavedToast(result.is_revealed, partnerDisplayName));
     } catch {

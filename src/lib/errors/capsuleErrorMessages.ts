@@ -8,6 +8,7 @@ export type CapsuleErrorCode =
   | "note_missing"
   | "note_too_long"
   | "media_invalid"
+  | "too_many_media"
   | "unlock_date_in_past"
   | "capsule_locked"
   | "capsule_not_found"
@@ -19,9 +20,10 @@ const capsuleErrorMessages: Record<CapsuleErrorCode, string> = {
   no_active_couple: "Your couple space is not active yet.",
   not_paired_yet: "Memory capsules unlock after both partners have joined.",
   title_missing: "Add a short title for this memory capsule.",
-  note_missing: "Add a note or private photo before saving this memory capsule.",
+  note_missing: "Add a note, a photo, or a short video before saving this capsule.",
   note_too_long: "Keep your note under 5000 characters.",
-  media_invalid: "This photo can't be used for this capsule. Please upload it again.",
+  media_invalid: "One of your photos or videos can't be used. Please remove it and add it again.",
+  too_many_media: "You can add up to 5 photos or videos.",
   unlock_date_in_past: "Choose an unlock date and time in the future.",
   capsule_locked: "This memory capsule is still locked.",
   capsule_not_found: "We couldn't find that memory capsule.",
@@ -77,6 +79,22 @@ function getCapsuleErrorCodeFromPostgrest(error: PostgrestError): CapsuleErrorCo
     return "not_paired_yet";
   }
 
+  if (includesAny(searchableText, ["up to 5 photos or videos"])) {
+    return "too_many_media";
+  }
+
+  if (
+    includesAny(searchableText, [
+      "memory capsule media asset not found",
+      "memory capsule media must be uploaded by you",
+      "memory capsule media does not belong to this couple",
+      "memory capsule media is already attached elsewhere",
+      "can only be added once",
+    ])
+  ) {
+    return "media_invalid";
+  }
+
   if (includesAny(searchableText, ["memory capsule not found", "p0002", "not found"])) {
     return "capsule_not_found";
   }
@@ -113,16 +131,6 @@ function getCapsuleErrorCodeFromPostgrest(error: PostgrestError): CapsuleErrorCo
     ])
   ) {
     return "note_missing";
-  }
-
-  if (
-    includesAny(searchableText, [
-      "memory capsule media asset not found",
-      "memory capsule media must be uploaded by you",
-      "memory capsule media does not belong to this couple",
-    ])
-  ) {
-    return "media_invalid";
   }
 
   if (
@@ -171,8 +179,8 @@ function getCapsuleErrorCodeFromZod(error: ZodError): CapsuleErrorCode {
     return "note_missing";
   }
 
-  if (path === "mediaassetid") {
-    return "media_invalid";
+  if (path === "mediaassetids") {
+    return message.includes("up to") ? "too_many_media" : "media_invalid";
   }
 
   if (path === "unlockdate" || path === "unlocktime") {

@@ -7,9 +7,19 @@ export const RITUAL_CATEGORIES = [
   "playful",
 ] as const;
 
+export const RITUAL_CATEGORY_LABELS: Record<(typeof RITUAL_CATEGORIES)[number], string> = {
+  daily_checkin: "Check-in",
+  gratitude: "Gratitude",
+  parallel_moment: "Together, apart",
+  memory: "Memory",
+  grounding: "Grounding",
+  playful: "Playful",
+};
+
 export const RITUAL_INPUT_TYPES = ["text", "text_or_photo", "photo"] as const;
 
-export const DEFAULT_RITUAL_HISTORY_LIMIT = 30;
+// History shows the rituals before today. The daily prune-couple-history job deletes older ones.
+export const DEFAULT_RITUAL_HISTORY_LIMIT = 5;
 
 const ritualCategorySet = new Set<string>(RITUAL_CATEGORIES);
 const ritualInputTypeSet = new Set<string>(RITUAL_INPUT_TYPES);

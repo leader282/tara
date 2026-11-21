@@ -6,6 +6,8 @@ export type MediaErrorCode =
   | "picker_canceled"
   | "unsupported_file_type"
   | "image_too_large"
+  | "video_too_large"
+  | "video_too_long"
   | "processing_failed"
   | "upload_failed"
   | "storage_policy_denied"
@@ -13,15 +15,17 @@ export type MediaErrorCode =
   | "unknown";
 
 const mediaErrorMessages: Record<MediaErrorCode, string> = {
-  permission_denied: "Media access is blocked. Please check permissions and try again.",
-  picker_canceled: "Image selection was canceled.",
-  unsupported_file_type: "Please choose a JPEG, PNG, or WebP image.",
-  image_too_large: "That image is too large. Please choose one under 5 MB after processing.",
-  processing_failed: "We couldn't prepare that image for upload.",
-  upload_failed: "We couldn't upload that image right now. Please try again.",
-  storage_policy_denied: "Upload permission was denied by storage privacy rules.",
+  permission_denied: "Tara needs access to your camera or photos. You can allow it in your phone's settings.",
+  picker_canceled: "Nothing was selected.",
+  unsupported_file_type: "Please choose a photo or a short video.",
+  image_too_large: "That photo is too large. Please choose a smaller one.",
+  video_too_large: "That video is too large. Please choose a shorter one.",
+  video_too_long: "Videos can be up to 5 seconds long.",
+  processing_failed: "We couldn't prepare that photo. Please try another one.",
+  upload_failed: "We couldn't upload that right now. Please try again.",
+  storage_policy_denied: "We couldn't save this to your couple space. Please try again.",
   network_error: "Connection looks unstable. Please try uploading again.",
-  unknown: "Something went wrong while handling media.",
+  unknown: "Something went wrong with that photo or video.",
 };
 
 export class MediaActionError extends Error {
@@ -72,6 +76,14 @@ function getErrorCodeFromPostgrest(error: PostgrestError): MediaErrorCode {
     return "permission_denied";
   }
 
+  if (includesAny(searchableText, ["5 seconds or shorter"])) {
+    return "video_too_long";
+  }
+
+  if (includesAny(searchableText, ["video size"])) {
+    return "video_too_large";
+  }
+
   if (
     includesAny(searchableText, [
       "mime type",
@@ -118,15 +130,19 @@ function getErrorCodeFromZod(error: ZodError): MediaErrorCode {
 
   const path = String(issue.path[0] ?? "").toLowerCase();
 
-  if (path === "mimetype") {
+  if (path === "mimetype" || path === "kind") {
     return "unsupported_file_type";
   }
 
-  if (path === "sizebytes") {
+  if (path === "sizebytes" || path === "filesize") {
     return "image_too_large";
   }
 
-  if (path === "width" || path === "height" || path === "localuri") {
+  if (path === "durationms") {
+    return "video_too_long";
+  }
+
+  if (path === "width" || path === "height" || path === "uri") {
     return "processing_failed";
   }
 

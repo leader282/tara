@@ -8,7 +8,6 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useCoupleHome } from "@/features/couple/hooks/useCoupleHome";
 import { TimelineList } from "@/features/timeline/components/TimelineList";
 import { useTimeline } from "@/features/timeline/hooks/useTimeline";
-import { useTimelineRealtime } from "@/features/timeline/hooks/useTimelineRealtime";
 import type { TimelineDisplayItem, TimelineNavigationTarget } from "@/features/timeline/types";
 import { queryKeys } from "@/lib/query/queryKeys";
 import { spacing } from "@/theme/tokens";
@@ -53,7 +52,7 @@ function TimelineHeader() {
         Your private timeline
       </AppText>
       <AppText color="textSecondary" variant="bodyMuted">
-        Small moments you&apos;ve saved together.
+        Small moments you&apos;ve shared in the last 7 days.
       </AppText>
     </View>
   );
@@ -68,8 +67,6 @@ export function TimelineScreen() {
   const pairedData = coupleHome.state.status === "paired" ? coupleHome.state.data : null;
   const coupleId = pairedData?.couple.id ?? null;
   const timeline = useTimeline(coupleId);
-
-  useTimelineRealtime(coupleId, coupleHome.state.status === "paired");
 
   const handleRetryCoupleHome = () => {
     if (!user?.id) {

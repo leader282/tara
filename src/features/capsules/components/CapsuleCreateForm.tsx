@@ -13,8 +13,7 @@ import {
   TextField,
   TimeField,
 } from "@/components/ui";
-import { MediaAttachmentField } from "@/features/media/components/MediaAttachmentField";
-import type { MediaAsset } from "@/features/media/types";
+import { MediaGalleryField } from "@/features/media/components/MediaGalleryField";
 import {
   CAPSULE_MAX_EMOTIONAL_CONTEXT_LENGTH,
   CAPSULE_MAX_NOTE_LENGTH,
@@ -23,7 +22,7 @@ import {
 } from "@/features/capsules/constants";
 import { createCapsuleSchema } from "@/features/capsules/schemas";
 import type { CreateCapsuleInput } from "@/features/capsules/types";
-import { formatTimeKey, toDateKey } from "@/lib/dates/calendar";
+import { toDateKey } from "@/lib/dates/calendar";
 import { spacing } from "@/theme/tokens";
 
 type CapsuleCreateFormValues = z.input<typeof createCapsuleSchema>;
@@ -45,7 +44,7 @@ export function CapsuleCreateForm({
   onSubmit,
   submitError = null,
 }: CapsuleCreateFormProps) {
-  const [attachedMediaAsset, setAttachedMediaAsset] = useState<MediaAsset | null>(null);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
 
   const { control, formState, handleSubmit, setValue } = useForm<
     CapsuleCreateFormValues,
@@ -55,7 +54,7 @@ export function CapsuleCreateForm({
     defaultValues: {
       title: "",
       note: "",
-      mediaAssetId: null,
+      mediaAssetIds: [],
       unlockDate: getTomorrowDateKey(),
       unlockTime: DEFAULT_CAPSULE_UNLOCK_TIME,
       emotionalContext: "",
@@ -119,23 +118,22 @@ export function CapsuleCreateForm({
             )}
           />
 
-          <MediaAttachmentField
+          <MediaGalleryField
             disabled={isSubmitting}
-            helperText="Optional. Add a private photo to open together later."
-            label="Photo"
-            onChange={(nextMediaAsset) => {
-              setAttachedMediaAsset(nextMediaAsset);
-              setValue("mediaAssetId", nextMediaAsset?.id ?? null, {
+            helperText="Up to 5 photos or 5-second videos to open together later."
+            label="Photos and videos (optional)"
+            onChange={(mediaAssetIds) => {
+              setValue("mediaAssetIds", mediaAssetIds, {
                 shouldDirty: true,
                 shouldValidate: true,
               });
             }}
+            onUploadingChange={setIsUploadingMedia}
             purpose="memory_capsule_content"
-            value={attachedMediaAsset}
           />
 
-          {formState.errors.mediaAssetId?.message ? (
-            <InlineMessage message={formState.errors.mediaAssetId.message} tone="danger" />
+          {formState.errors.mediaAssetIds?.message ? (
+            <InlineMessage message={formState.errors.mediaAssetIds.message} tone="danger" />
           ) : null}
         </View>
       </Card>
@@ -168,12 +166,10 @@ export function CapsuleCreateForm({
             render={({ field, fieldState }) => (
               <TimeField
                 accessibilityLabel="Unlock time"
-                clearable
                 defaultTime={DEFAULT_CAPSULE_UNLOCK_TIME}
                 disabled={isSubmitting}
                 errorMessage={fieldState.error?.message}
-                helperText={`Leave empty to open at ${formatTimeKey(DEFAULT_CAPSULE_UNLOCK_TIME)}.`}
-                label="Unlock time (optional)"
+                label="Unlock time"
                 onChange={field.onChange}
                 sheetTitle="Choose an unlock time"
                 value={field.value ?? ""}
@@ -209,11 +205,11 @@ export function CapsuleCreateForm({
 
       <View style={styles.actions}>
         <Button
-          disabled={!formState.isValid || isSubmitting}
+          disabled={!formState.isValid || isSubmitting || isUploadingMedia}
           icon="lock-closed"
           loading={isSubmitting}
           onPress={handleSave}
-          title="Save capsule"
+          title={isUploadingMedia ? "Uploading..." : "Save capsule"}
         />
         {onCancel ? (
           <Button disabled={isSubmitting} onPress={onCancel} title="Cancel" variant="ghost" />

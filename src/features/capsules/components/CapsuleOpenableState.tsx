@@ -22,7 +22,7 @@ export function CapsuleOpenableState({
     <View style={styles.container}>
       <CapsuleHero capsule={capsule} emoji="🎁" />
       <AppText align="center" color="textSecondary" variant="bodyMuted">
-        This capsule is ready when you are. Open it to reveal its note and photo.
+        This capsule is ready when you are. Open it to see what&apos;s inside.
       </AppText>
       <Button
         disabled={isOpening}

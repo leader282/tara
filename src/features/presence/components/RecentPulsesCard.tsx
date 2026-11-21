@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Card, Divider, EmptyState, InlineMessage, SectionHeader, Skeleton } from "@/components/ui";
+import { AppText, Card, Divider, InlineMessage, SectionHeader, Skeleton } from "@/components/ui";
 import { PRESENCE_PULSE_OPTIONS, RECENT_PULSE_WINDOW_MS } from "@/features/presence/constants";
 import { PulseTypeIcon } from "@/features/presence/components/PulseTypeIcon";
 import type { RecentPresencePulse } from "@/features/presence/types";
@@ -79,11 +79,12 @@ export function RecentPulsesCard({
   const visiblePulses = pulses
     .filter((pulse) => now - new Date(pulse.created_at).getTime() < RECENT_PULSE_WINDOW_MS)
     .slice(0, maxVisible);
+  const isEmpty = !isLoading && visiblePulses.length === 0 && !errorMessage;
 
   return (
     <Card>
       <View style={styles.container}>
-        <SectionHeader description="Small signals from the last hour." title="Recent pulses" />
+        <SectionHeader description={isEmpty ? undefined : "From the last hour."} title="Recent pulses" />
 
         {isLoading ? (
           <View style={styles.list}>
@@ -99,13 +100,10 @@ export function RecentPulsesCard({
           </View>
         ) : null}
 
-        {!isLoading && visiblePulses.length === 0 && !errorMessage ? (
-          <EmptyState
-            compact
-            description="Send a small signal when you want to feel close."
-            icon="heart-outline"
-            title="No pulses in the last hour"
-          />
+        {isEmpty ? (
+          <AppText color="textSecondary" variant="bodyMuted">
+            No pulses in the last hour.
+          </AppText>
         ) : null}
 
         {!isLoading && visiblePulses.length > 0 ? (

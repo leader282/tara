@@ -16,7 +16,7 @@ type TodayRitualCardProps = {
   onSubmitResponse?: (params: {
     coupleRitualId: string;
     textResponse?: string | null;
-    mediaAssetId?: string | null;
+    mediaAssetIds?: string[];
   }) => Promise<void> | void;
   onRetry?: () => void;
 };
@@ -68,7 +68,7 @@ export function TodayRitualCard({
           <RitualResponseForm
             inputType={ritual.template.input_type}
             isSubmitting={isSubmitting}
-            onSubmit={async ({ textResponse, mediaAssetId }) => {
+            onSubmit={async ({ textResponse, mediaAssetIds }) => {
               if (!onSubmitResponse) {
                 return;
               }
@@ -76,7 +76,7 @@ export function TodayRitualCard({
               await onSubmitResponse({
                 coupleRitualId: ritual.coupleRitual.id,
                 textResponse,
-                mediaAssetId,
+                mediaAssetIds,
               });
             }}
             submitError={submitError}

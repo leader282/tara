@@ -44,6 +44,6 @@ describe("RecentPulsesCard", () => {
       />,
     );
 
-    expect(screen.getByText("No pulses in the last hour")).toBeTruthy();
+    expect(screen.getByText("No pulses in the last hour.")).toBeTruthy();
   });
 });

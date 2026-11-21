@@ -23,18 +23,25 @@ export function UnpairConfirmationCard({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const isConfirmationMatched = confirmation.trim() === LEAVE_COUPLE_CONFIRMATION;
 
+  if (!isPaired && !successMessage) {
+    return (
+      <SettingsDangerZone icon="heart-dislike-outline" title="Unpair from couple">
+        <InlineMessage message="You're not paired with anyone right now." tone="info" />
+      </SettingsDangerZone>
+    );
+  }
+
   return (
     <SettingsDangerZone
-      description="Unpairing archives your shared couple space and removes active access for both partners."
+      description="Unpairing archives your shared couple space for both of you."
       icon="heart-dislike-outline"
       title="Unpair from couple"
     >
       <ConsequenceList
         items={[
-          "Shared couple space will be archived.",
-          "Both partners lose active access in MVP.",
-          "Historical records are not immediately deleted.",
-          "Export and deletion workflows are separate.",
+          "Neither of you can open it afterwards.",
+          "Your shared history isn't deleted right away.",
+          "Exporting or deleting your data are separate steps.",
         ]}
       />
 

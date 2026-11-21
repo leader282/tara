@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -10,16 +10,12 @@ import {
   type ViewStyle,
 } from "react-native";
 
-import { AppText, Button, Icon } from "@/components/ui";
-import { useMediaAsset } from "@/features/media/hooks/useMediaAsset";
+import { AppText, Button, Icon, type IconName } from "@/components/ui";
 import { useSignedMediaUrl } from "@/features/media/hooks/useSignedMediaUrl";
-import type { MediaAsset } from "@/features/media/types";
 import { colors, spacing } from "@/theme/tokens";
 
 type PrivateImageProps = {
-  mediaAsset?: Pick<MediaAsset, "storage_path"> | null;
-  mediaAssetId?: string | null;
-  storagePath?: string | null;
+  storagePath: string | null;
   accessibilityLabel?: string;
   resizeMode?: ImageResizeMode;
   imageStyle?: StyleProp<ImageStyle>;
@@ -32,9 +28,16 @@ type PlaceholderProps = {
   message: string;
   isLoading?: boolean;
   onRetry?: () => void;
+  icon?: IconName;
 };
 
-function ImagePlaceholder({ containerStyle, message, isLoading = false, onRetry }: PlaceholderProps) {
+export function MediaPlaceholder({
+  containerStyle,
+  message,
+  isLoading = false,
+  onRetry,
+  icon = "image-outline",
+}: PlaceholderProps) {
   return (
     <View
       accessibilityLabel={message}
@@ -44,7 +47,7 @@ function ImagePlaceholder({ containerStyle, message, isLoading = false, onRetry 
       {isLoading ? (
         <ActivityIndicator color={colors.primary} size="small" />
       ) : (
-        <Icon color="textTertiary" name="image-outline" size={26} />
+        <Icon color="textTertiary" name={icon} size={26} />
       )}
       <AppText align="center" color="textSecondary" variant="caption">
         {message}
@@ -57,8 +60,6 @@ function ImagePlaceholder({ containerStyle, message, isLoading = false, onRetry 
 }
 
 export function PrivateImage({
-  mediaAsset,
-  mediaAssetId,
   storagePath,
   accessibilityLabel = "Private photo",
   resizeMode = "cover",
@@ -66,36 +67,14 @@ export function PrivateImage({
   containerStyle,
   loadingLabel = "Loading private photo...",
 }: PrivateImageProps) {
-  const hasPathFromProps = Boolean(storagePath ?? mediaAsset?.storage_path);
-  const mediaAssetQuery = useMediaAsset(hasPathFromProps ? null : mediaAssetId);
-  const resolvedStoragePath = useMemo(
-    () => storagePath ?? mediaAsset?.storage_path ?? mediaAssetQuery.mediaAsset?.storage_path ?? null,
-    [mediaAsset?.storage_path, mediaAssetQuery.mediaAsset?.storage_path, storagePath]
-  );
-  const signedUrlQuery = useSignedMediaUrl(resolvedStoragePath);
+  const signedUrlQuery = useSignedMediaUrl(storagePath);
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
   const signedUrl = signedUrlQuery.data?.signedUrl ?? null;
   const failedToRenderImage = Boolean(signedUrl && failedUrl === signedUrl);
 
-  if (!hasPathFromProps && mediaAssetId && mediaAssetQuery.isLoading) {
-    return <ImagePlaceholder containerStyle={containerStyle} isLoading message={loadingLabel} />;
-  }
-
-  if (!hasPathFromProps && mediaAssetId && mediaAssetQuery.isError) {
+  if (!storagePath) {
     return (
-      <ImagePlaceholder
-        containerStyle={containerStyle}
-        message={mediaAssetQuery.friendlyError ?? "We could not load this private photo."}
-        onRetry={() => {
-          void mediaAssetQuery.refetch();
-        }}
-      />
-    );
-  }
-
-  if (!resolvedStoragePath) {
-    return (
-      <ImagePlaceholder
+      <MediaPlaceholder
         containerStyle={containerStyle}
         message="This private photo is unavailable right now."
       />
@@ -103,12 +82,12 @@ export function PrivateImage({
   }
 
   if (signedUrlQuery.isLoading && !signedUrlQuery.data) {
-    return <ImagePlaceholder containerStyle={containerStyle} isLoading message={loadingLabel} />;
+    return <MediaPlaceholder containerStyle={containerStyle} isLoading message={loadingLabel} />;
   }
 
   if (signedUrlQuery.isError || !signedUrlQuery.data || failedToRenderImage) {
     return (
-      <ImagePlaceholder
+      <MediaPlaceholder
         containerStyle={containerStyle}
         message={signedUrlQuery.friendlyError ?? "We could not load this private photo."}
         onRetry={() => {

@@ -108,16 +108,16 @@ export function DeleteAccountRequestCard({
 
   return (
     <SettingsDangerZone
-      description="This creates a server-side deletion request. Final deletion completes only after backend processing."
+      description="Ask Tara to permanently delete your account."
       icon="trash-outline"
       title="Delete account"
     >
       <ConsequenceList
         items={[
-          "Deletion request is scheduled, not immediate.",
-          "Push tokens will be disabled.",
-          "Active couple space will be archived.",
-          "Final deletion requires server-side completion.",
+          "Your account is deleted after a waiting period, not right away.",
+          "You can cancel until then.",
+          "This phone stops getting Tara notifications.",
+          "Your couple space is archived.",
         ]}
       />
 
@@ -153,7 +153,7 @@ export function DeleteAccountRequestCard({
           setSuccessMessage(null);
           setReason(value);
         }}
-        placeholder="Optional context to help support review this request."
+        placeholder="Anything you'd like us to know?"
         showCount
         style={styles.reasonInput}
         value={reason}

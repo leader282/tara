@@ -172,7 +172,7 @@ export function CoupleSettingsScreen() {
     <Screen
       onBack={goBack}
       scroll
-      subtitle="Manage shared settings without changing couple status or membership."
+      subtitle="Settings you share with your partner."
       title="Couple settings"
     >
       <Card>
@@ -186,7 +186,7 @@ export function CoupleSettingsScreen() {
                 accessibilityLabel="Anniversary date"
                 clearable
                 errorMessage={fieldState.error?.message}
-                label="Anniversary date (optional)"
+                label="Date (optional)"
                 maxDate={toDateKey(new Date())}
                 onChange={field.onChange}
                 placeholder="When did your story begin?"

@@ -7,9 +7,9 @@ type RitualStatusBadgeProps = {
 function getStatusPresentation(status: string): { label: string; tone: BadgeTone; icon: IconName } {
   switch (status) {
     case "completed":
-      return { label: "Completed", tone: "success", icon: "checkmark-circle" };
+      return { label: "Revealed", tone: "success", icon: "checkmark-circle" };
     case "scheduled":
-      return { label: "Scheduled", tone: "neutral", icon: "time-outline" };
+      return { label: "Not revealed", tone: "neutral", icon: "time-outline" };
     case "skipped":
       return { label: "Skipped", tone: "danger", icon: "close-circle" };
     default:

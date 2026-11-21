@@ -31,7 +31,7 @@ export function RitualHistoryList({
   return (
     <View style={styles.container}>
       <SectionHeader
-        description="Small shared memories, one day at a time."
+        description="Your 5 most recent rituals. Older ones are deleted."
         title="Ritual history"
       />
 
@@ -50,9 +50,9 @@ export function RitualHistoryList({
         <Card>
           <EmptyState
             compact
-            description="Your rituals will gather here as small shared memories."
+            description="Rituals from earlier days will show up here."
             icon="journal-outline"
-            title="No rituals yet"
+            title="No past rituals yet"
           />
         </Card>
       ) : null}

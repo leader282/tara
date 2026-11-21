@@ -19,7 +19,7 @@ export function PrivacyCenterScreen() {
         icon="eye-off-outline"
         points={[
           "No public profiles, no followers, and no discovery feed.",
-          "No exact GPS tracking in the MVP.",
+          "Tara never tracks your location.",
           "No last-seen or read receipts by default.",
           "Only your partner can access shared couple-space content.",
         ]}
@@ -29,9 +29,9 @@ export function PrivacyCenterScreen() {
       <PrivacyExplanationCard
         icon="lock-closed-outline"
         points={[
-          "Ritual responses reveal only after both partners complete.",
-          "Memory capsule contents unlock only after the unlock time.",
-          "Media remains private and context-aware inside your couple space.",
+          "Ritual answers appear only after you've both answered.",
+          "Capsules stay sealed until the time you chose.",
+          "Photos and videos stay private to your couple space.",
           "Notifications say what your partner shared, never your notes, answers, or photos.",
         ]}
         title="How shared content is protected"
@@ -40,9 +40,9 @@ export function PrivacyCenterScreen() {
       <PrivacyExplanationCard
         icon="options-outline"
         points={[
-          "AI does not read private memories in the MVP.",
-          "Data export and account deletion controls are available in account safety.",
-          "Deletion requests are processed server-side and may be scheduled.",
+          "No AI reads your private memories.",
+          "Tara keeps your 5 most recent rituals and the last 7 days of your timeline, and deletes older ones.",
+          "You can export your data or delete your account in Account and safety. Deletion takes a little time to finish.",
         ]}
         title="Your privacy controls"
       />

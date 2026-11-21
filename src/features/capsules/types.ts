@@ -9,6 +9,7 @@ import type {
   CAPSULE_STATUSES,
 } from "@/features/capsules/constants";
 import { createCapsuleSchema, openCapsuleSchema } from "@/features/capsules/schemas";
+import type { AttachedMedia } from "@/features/media/types";
 import type { Database, Tables } from "@/lib/supabase/database.types";
 
 export type MemoryCapsule = Tables<"memory_capsules">;
@@ -30,6 +31,7 @@ export type CapsuleListItem = {
 export type CapsuleDetail = {
   capsule: MemoryCapsule;
   content: MemoryCapsuleContent | null;
+  media: AttachedMedia[];
   status: Exclude<CapsuleDetailStatus, "error">;
   unlockState: CapsuleUnlockState;
   isCreatedByMe: boolean;

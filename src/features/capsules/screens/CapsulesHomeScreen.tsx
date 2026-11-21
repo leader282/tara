@@ -17,7 +17,6 @@ import {
 } from "@/components/ui";
 import { CapsuleEmptyState } from "@/features/capsules/components/CapsuleEmptyState";
 import { CapsuleList } from "@/features/capsules/components/CapsuleList";
-import { useCapsuleRealtime } from "@/features/capsules/hooks/useCapsuleRealtime";
 import { useCapsules } from "@/features/capsules/hooks/useCapsules";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useCoupleHome } from "@/features/couple/hooks/useCoupleHome";
@@ -36,8 +35,7 @@ export function CapsulesHomeScreen() {
   const currentUserId = user?.id ?? null;
 
   const capsules = useCapsules(coupleId, currentUserId);
-
-  useCapsuleRealtime(coupleId, null, coupleHome.state.status === "paired");
+  const hasCapsules = !capsules.isLoading && !capsules.error && capsules.capsules.length > 0;
 
   const handleRetryCoupleHome = () => {
     if (!user?.id) {
@@ -156,22 +154,24 @@ export function CapsulesHomeScreen() {
         />
       }
       scroll
-      subtitle="Save something for a future day."
+      subtitle="Save something now and open it together on a future day."
       title="Memory capsules"
     >
-      <Card>
-        <View style={styles.createCard}>
-          <View style={styles.createHeader}>
-            <View style={styles.createIcon}>
-              <Icon color="primaryStrong" name="gift" size={22} />
+      {hasCapsules ? (
+        <Card>
+          <View style={styles.createCard}>
+            <View style={styles.createHeader}>
+              <View style={styles.createIcon}>
+                <Icon color="primaryStrong" name="gift" size={22} />
+              </View>
+              <AppText color="textSecondary" style={styles.createCopy} variant="bodyMuted">
+                Your partner sees that a capsule is waiting, but not what&apos;s inside.
+              </AppText>
             </View>
-            <AppText color="textSecondary" style={styles.createCopy} variant="bodyMuted">
-              Your partner can see that a capsule exists, and the note opens later.
-            </AppText>
+            <Button icon="add" onPress={handleOpenCreate} title="Create capsule" />
           </View>
-          <Button icon="add" onPress={handleOpenCreate} title="Create capsule" />
-        </View>
-      </Card>
+        </Card>
+      ) : null}
 
       {capsules.isLoading ? (
         <View style={styles.skeletonList}>
@@ -190,11 +190,11 @@ export function CapsulesHomeScreen() {
         </Card>
       ) : null}
 
-      {!capsules.isLoading && !capsules.error && capsules.capsules.length === 0 ? (
+      {!capsules.isLoading && !capsules.error && !hasCapsules ? (
         <CapsuleEmptyState onCreatePress={handleOpenCreate} />
       ) : null}
 
-      {!capsules.isLoading && !capsules.error && capsules.capsules.length > 0 ? (
+      {hasCapsules ? (
         <CapsuleList capsules={capsules.capsules} onCapsulePress={handleOpenCapsule} />
       ) : null}
     </Screen>

@@ -2,6 +2,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 
 import {
   DEFAULT_TIMELINE_PAGE_SIZE,
+  TIMELINE_RETENTION_DAYS,
 } from "@/features/timeline/constants";
 import { getTimelineTypeDisplay, isTimelineItemType, parseTimelinePayload } from "@/features/timeline/mappers";
 import {
@@ -174,11 +175,13 @@ export async function getTimelinePage(params: TimelineQueryParams): Promise<Time
 
     const from = pageParam;
     const to = pageParam + pageSize - 1;
+    const oldestShown = new Date(Date.now() - TIMELINE_RETENTION_DAYS * 24 * 60 * 60 * 1000);
 
     const { data, error } = await supabase
       .from("timeline_items")
       .select(TIMELINE_SELECT)
       .eq("couple_id", coupleId)
+      .gte("created_at", oldestShown.toISOString())
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
       .range(from, to);

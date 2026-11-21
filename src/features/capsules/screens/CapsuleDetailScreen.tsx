@@ -9,7 +9,6 @@ import { CapsuleOpenableState } from "@/features/capsules/components/CapsuleOpen
 import { CapsuleOpenedContent } from "@/features/capsules/components/CapsuleOpenedContent";
 import { CapsulePreviewCard } from "@/features/capsules/components/CapsulePreviewCard";
 import { useCapsuleDetail } from "@/features/capsules/hooks/useCapsuleDetail";
-import { useCapsuleRealtime } from "@/features/capsules/hooks/useCapsuleRealtime";
 import { useOpenCapsule } from "@/features/capsules/hooks/useOpenCapsule";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useCoupleHome } from "@/features/couple/hooks/useCoupleHome";
@@ -31,8 +30,6 @@ export function CapsuleDetailScreen() {
 
   const capsuleDetail = useCapsuleDetail(routeCapsuleId ?? null, currentUserId);
   const openCapsuleMutation = useOpenCapsule(coupleId);
-
-  useCapsuleRealtime(coupleId, routeCapsuleId ?? null, coupleHome.state.status === "paired");
 
   const handleRetryCoupleHome = () => {
     if (!user?.id) {
@@ -176,6 +173,7 @@ export function CapsuleDetailScreen() {
           capsule={capsule}
           content={detail.content}
           isRefreshing={capsuleDetail.isFetching}
+          media={detail.media}
           onRetry={handleRetryCapsuleDetail}
         />
       ) : null}
@@ -193,7 +191,7 @@ export function CapsuleDetailScreen() {
         <CapsulePreviewCard
           capsule={capsule}
           isRefreshing={capsuleDetail.isFetching}
-          mediaAssetId={detail.content?.media_asset_id}
+          media={detail.media}
           note={detail.content?.note}
           onRetry={handleRetryCapsuleDetail}
         />

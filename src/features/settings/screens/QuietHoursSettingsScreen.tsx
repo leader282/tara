@@ -160,7 +160,7 @@ export function QuietHoursSettingsScreen() {
 
       <InlineMessage
         icon="moon-outline"
-        message="When notifications are enabled, quiet hours delay non-urgent push scheduling."
+        message="During quiet hours, gentle notifications wait until you're awake."
         tone="neutral"
       />
 

@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import { AppText, Icon } from "@/components/ui";
 import { RitualStatusBadge } from "@/features/rituals/components/RitualStatusBadge";
+import { RITUAL_CATEGORY_LABELS } from "@/features/rituals/constants";
 import type { RitualHistoryItem as RitualHistoryEntry } from "@/features/rituals/types";
 import { formatDateOnly } from "@/lib/dates/format";
 import { colors, radii, spacing } from "@/theme/tokens";
@@ -11,16 +12,9 @@ type RitualHistoryItemProps = {
   onPress: (ritualId: string) => void;
 };
 
-function formatCategoryLabel(category: string): string {
-  return category
-    .split("_")
-    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-    .join(" ");
-}
-
 export function RitualHistoryItem({ item, onPress }: RitualHistoryItemProps) {
   const title = item.template?.title ?? "Daily ritual";
-  const categoryLabel = item.template ? formatCategoryLabel(item.template.category) : "Ritual";
+  const categoryLabel = item.template ? RITUAL_CATEGORY_LABELS[item.template.category] : "Ritual";
   const scheduledDateLabel =
     formatDateOnly(item.coupleRitual.scheduled_for) ?? item.coupleRitual.scheduled_for;
   const isCompleted = item.coupleRitual.status === "completed";

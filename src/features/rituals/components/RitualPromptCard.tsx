@@ -1,7 +1,8 @@
 import { StyleSheet, View } from "react-native";
 
 import { AppText, Badge, Icon, type IconName } from "@/components/ui";
-import { RitualStatusBadge } from "@/features/rituals/components/RitualStatusBadge";
+import { RITUAL_CATEGORY_LABELS } from "@/features/rituals/constants";
+import { toCanonicalRitualDay } from "@/features/rituals/schemas";
 import type { CoupleRitual, RitualTemplate } from "@/features/rituals/types";
 import { formatDateOnly } from "@/lib/dates/format";
 import { colors, gradients, radii, shadows, spacing } from "@/theme/tokens";
@@ -12,41 +13,33 @@ type RitualPromptCardProps = {
   heading?: string;
 };
 
-function formatCategoryLabel(category: string): string {
-  return category
-    .split("_")
-    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-    .join(" ");
-}
-
 function getInputTypePresentation(inputType: string): { label: string; icon: IconName } {
   if (inputType === "text_or_photo") {
-    return { label: "Words or a photo", icon: "images-outline" };
+    return { label: "Words, photos, or a video", icon: "images-outline" };
   }
 
   if (inputType === "photo") {
-    return { label: "A photo", icon: "camera-outline" };
+    return { label: "Photos or a video", icon: "camera-outline" };
   }
 
   return { label: "A few words", icon: "create-outline" };
 }
 
+// The answers below show where the ritual stands, so the card only carries the prompt.
 export function RitualPromptCard({
   coupleRitual,
   template,
   heading = "Today's ritual",
 }: RitualPromptCardProps) {
-  const scheduledDateLabel = formatDateOnly(coupleRitual.scheduled_for);
+  const isToday = coupleRitual.scheduled_for === toCanonicalRitualDay();
+  const scheduledDateLabel = isToday ? null : formatDateOnly(coupleRitual.scheduled_for);
   const inputType = getInputTypePresentation(template.input_type);
 
   return (
     <View style={styles.card}>
-      <View style={styles.header}>
-        <AppText color="primaryStrong" style={styles.heading} variant="overline">
-          {heading}
-        </AppText>
-        <RitualStatusBadge status={coupleRitual.status} />
-      </View>
+      <AppText color="primaryStrong" variant="overline">
+        {heading}
+      </AppText>
 
       <View style={styles.content}>
         <AppText variant="headline">{template.title}</AppText>
@@ -70,7 +63,7 @@ export function RitualPromptCard({
       </View>
 
       <View style={styles.meta}>
-        <Badge label={formatCategoryLabel(template.category)} tone="primary" />
+        <Badge label={RITUAL_CATEGORY_LABELS[template.category]} tone="primary" />
         <Badge icon={inputType.icon} label={inputType.label} />
         {scheduledDateLabel ? <Badge icon="calendar-outline" label={scheduledDateLabel} /> : null}
       </View>
@@ -88,15 +81,6 @@ const styles = StyleSheet.create({
     gap: spacing.lg,
     padding: 20,
     ...shadows.card,
-  },
-  header: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: spacing.md,
-    justifyContent: "space-between",
-  },
-  heading: {
-    flex: 1,
   },
   content: {
     gap: spacing.xs,

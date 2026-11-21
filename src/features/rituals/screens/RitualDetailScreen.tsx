@@ -15,7 +15,6 @@ import { RitualRevealedResult } from "@/features/rituals/components/RitualReveal
 import { getRitualSavedToast } from "@/features/rituals/feedback";
 import { useCompleteRitual } from "@/features/rituals/hooks/useCompleteRitual";
 import { useRitualDetail } from "@/features/rituals/hooks/useRitualDetail";
-import { useRitualRealtime } from "@/features/rituals/hooks/useRitualRealtime";
 import { queryKeys } from "@/lib/query/queryKeys";
 import { spacing } from "@/theme/tokens";
 
@@ -36,8 +35,6 @@ export function RitualDetailScreen() {
 
   const ritualDetail = useRitualDetail(routeRitualId ?? null, currentUserId);
   const completeRitualMutation = useCompleteRitual(coupleId);
-
-  useRitualRealtime(coupleId, coupleHome.state.status === "paired");
 
   const handleRetryCoupleHome = () => {
     if (!user?.id) {
@@ -61,10 +58,10 @@ export function RitualDetailScreen() {
 
   const handleSubmitResponse = async ({
     textResponse,
-    mediaAssetId,
+    mediaAssetIds,
   }: {
     textResponse?: string | null;
-    mediaAssetId?: string | null;
+    mediaAssetIds?: string[];
   }) => {
     if (!routeRitualId) {
       return;
@@ -74,7 +71,7 @@ export function RitualDetailScreen() {
       const result = await completeRitualMutation.mutateAsync({
         coupleRitualId: routeRitualId,
         textResponse,
-        mediaAssetId,
+        mediaAssetIds,
       });
       toast.show(getRitualSavedToast(result.is_revealed, partnerDisplayName));
     } catch {

@@ -2,14 +2,15 @@ import { StyleSheet, View } from "react-native";
 
 import { AppText, Button, Card, InlineMessage } from "@/components/ui";
 import { CapsuleHero } from "@/features/capsules/components/CapsuleHero";
-import { PrivateImage } from "@/features/media/components/PrivateImage";
+import { MediaGallery } from "@/features/media/components/MediaGallery";
+import type { AttachedMedia } from "@/features/media/types";
 import type { MemoryCapsule } from "@/features/capsules/types";
-import { radii, spacing } from "@/theme/tokens";
+import { spacing } from "@/theme/tokens";
 
 type CapsulePreviewCardProps = {
   capsule: MemoryCapsule;
   note: string | null | undefined;
-  mediaAssetId?: string | null;
+  media: AttachedMedia[];
   isRefreshing?: boolean;
   onRetry?: () => void;
 };
@@ -17,12 +18,12 @@ type CapsulePreviewCardProps = {
 export function CapsulePreviewCard({
   capsule,
   note,
-  mediaAssetId = null,
+  media,
   isRefreshing = false,
   onRetry,
 }: CapsulePreviewCardProps) {
   const normalizedNote = note?.trim();
-  const hasPreviewContent = Boolean(normalizedNote || mediaAssetId);
+  const hasPreviewContent = Boolean(normalizedNote || media.length > 0);
 
   return (
     <View style={styles.container}>
@@ -30,7 +31,7 @@ export function CapsulePreviewCard({
 
       <InlineMessage
         icon="eye-outline"
-        message="You can preview your note. Your partner sees only capsule metadata until it unlocks."
+        message="You can see what's inside now. Your partner can see it's waiting, but not what's inside, until it unlocks."
         tone="info"
       />
 
@@ -38,21 +39,15 @@ export function CapsulePreviewCard({
         {hasPreviewContent ? (
           <View style={styles.preview}>
             <AppText color="textSecondary" variant="overline">
-              Your content preview
+              What&apos;s inside
             </AppText>
             {normalizedNote ? <AppText variant="body">{normalizedNote}</AppText> : null}
-            {mediaAssetId ? (
-              <PrivateImage
-                accessibilityLabel="Your capsule photo"
-                containerStyle={styles.media}
-                mediaAssetId={mediaAssetId}
-              />
-            ) : null}
+            <MediaGallery label="Your capsule" media={media} />
           </View>
         ) : (
           <View style={styles.preview}>
             <AppText color="textSecondary" variant="bodyMuted">
-              We could not load your preview content right now.
+              We could not load what&apos;s inside right now.
             </AppText>
             {onRetry ? (
               <Button
@@ -78,11 +73,5 @@ const styles = StyleSheet.create({
   },
   preview: {
     gap: spacing.md,
-  },
-  media: {
-    aspectRatio: 4 / 3,
-    borderRadius: radii.md,
-    overflow: "hidden",
-    width: "100%",
   },
 });

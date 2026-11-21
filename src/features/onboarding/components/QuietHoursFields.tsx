@@ -29,7 +29,6 @@ export function QuietHoursFields({
       <View style={styles.switchRow}>
         <SwitchRow
           accessibilityLabel="Enable quiet hours"
-          description="Tara should respect your rest."
           icon="moon-outline"
           iconTone="info"
           onValueChange={onChangeEnabled}

@@ -9,7 +9,7 @@ export function CapsuleEmptyState({ onCreatePress }: CapsuleEmptyStateProps) {
     <Card>
       <EmptyState
         actionLabel="Create your first capsule"
-        description="Save a note now and open it together on a future day."
+        description="Add a note, photos, or a short video. Your partner sees it's waiting, but not what's inside, until it opens."
         emoji="🎁"
         onActionPress={onCreatePress}
         title="No memory capsules yet"

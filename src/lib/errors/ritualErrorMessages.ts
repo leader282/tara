@@ -9,6 +9,7 @@ export type RitualErrorCode =
   | "photo_required"
   | "media_not_allowed"
   | "media_invalid"
+  | "too_many_media"
   | "text_response_too_long"
   | "photo_not_supported_yet"
   | "network_error"
@@ -19,10 +20,11 @@ const ritualErrorMessages: Record<RitualErrorCode, string> = {
   not_paired_yet: "Today's ritual unlocks after both partners have joined the couple space.",
   ritual_already_completed: "Today's ritual is already complete.",
   text_response_missing: "Add a short response before completing this ritual.",
-  text_or_photo_required: "Add a response or private photo before completing this ritual.",
-  photo_required: "Add a private photo before completing this ritual.",
-  media_not_allowed: "This ritual accepts text responses only.",
-  media_invalid: "This photo can't be used for this ritual. Please upload a new one.",
+  text_or_photo_required: "Add an answer, a photo, or a short video before saving.",
+  photo_required: "Add a photo or a short video before saving.",
+  media_not_allowed: "This ritual takes a written answer only.",
+  media_invalid: "One of your photos or videos can't be used. Please remove it and add it again.",
+  too_many_media: "You can add up to 5 photos or videos.",
   text_response_too_long: "Keep your response under 1000 characters.",
   photo_not_supported_yet: "This ritual type isn't available yet.",
   network_error: "Connection looks unstable right now. Please try again in a moment.",
@@ -105,11 +107,17 @@ function getRitualErrorCodeFromPostgrest(error: PostgrestError): RitualErrorCode
     return "media_not_allowed";
   }
 
+  if (includesAny(searchableText, ["up to 5 photos or videos"])) {
+    return "too_many_media";
+  }
+
   if (
     includesAny(searchableText, [
       "ritual media asset not found",
       "ritual media must be uploaded by you",
       "ritual media does not belong to this couple",
+      "ritual media is already attached elsewhere",
+      "can only be added once",
     ])
   ) {
     return "media_invalid";

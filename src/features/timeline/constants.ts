@@ -10,8 +10,8 @@ export const TIMELINE_ITEM_TYPES = [
 export const DEFAULT_TIMELINE_PAGE_SIZE = 20;
 export const MAX_TIMELINE_PAGE_SIZE = 50;
 
-// Timeline table is not in the realtime publication yet.
-export const TIMELINE_REALTIME_PUBLICATION_ENABLED = false;
+// Older moments are deleted by the daily prune-couple-history job.
+export const TIMELINE_RETENTION_DAYS = 7;
 
 export const TIMELINE_TYPE_DISPLAY = {
   presence_sent: {

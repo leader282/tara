@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { mediaAssetIdsSchema } from "@/features/media/schemas";
 import {
   normalizeRitualCategory,
   normalizeRitualInputType,
@@ -71,12 +72,7 @@ export const completeRitualSchema = z.object({
       message: "Keep your response under 1000 characters.",
     }
   ),
-  mediaAssetId: z
-    .string()
-    .uuid("A valid media asset id is required.")
-    .nullable()
-    .optional()
-    .transform((value) => value ?? null),
+  mediaAssetIds: mediaAssetIdsSchema.optional().transform((value) => value ?? []),
 });
 
 export const ritualCoupleIdSchema = z.string().uuid("A valid couple id is required.");

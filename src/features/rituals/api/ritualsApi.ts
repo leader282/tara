@@ -1,5 +1,6 @@
 import type { PostgrestError } from "@supabase/supabase-js";
 
+import { getRitualCompletionMedia } from "@/features/media/api/mediaApi";
 import { DEFAULT_RITUAL_HISTORY_LIMIT } from "@/features/rituals/constants";
 import {
   completeRitualResultRowSchema,
@@ -108,7 +109,13 @@ async function getRitualCompletions(coupleRitualId: string): Promise<RitualCompl
 
   throwIfRitualError(error);
 
-  return ritualCompletionsSchema.parse(data ?? []);
+  const completions = ritualCompletionsSchema.parse(data ?? []);
+  const media = await getRitualCompletionMedia(completions.map((completion) => completion.id));
+
+  return completions.map((completion) => ({
+    ...completion,
+    media: media.filter((item) => item.ritual_completion_id === completion.id),
+  }));
 }
 
 function buildRitualRevealState(
@@ -236,7 +243,7 @@ export async function completeRitual(input: CompleteRitualInput): Promise<Comple
     const { data, error } = await supabase.rpc("complete_ritual", {
       p_couple_ritual_id: parsedInput.coupleRitualId,
       p_text_response: parsedInput.textResponse ?? undefined,
-      p_media_asset_id: parsedInput.mediaAssetId ?? undefined,
+      p_media_asset_ids: parsedInput.mediaAssetIds,
     });
 
     throwIfRitualError(error);
@@ -264,6 +271,7 @@ export async function getRitualHistory(
       .from("couple_rituals")
       .select(COUPLE_RITUAL_WITH_TEMPLATE_SELECT)
       .eq("couple_id", parsedCoupleId)
+      .lt("scheduled_for", toCanonicalRitualDay())
       .order("scheduled_for", { ascending: false })
       .limit(parsedLimit);
 

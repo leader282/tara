@@ -18,11 +18,7 @@ export function ConfirmationField({
   onChangeText,
   disabled = false,
 }: ConfirmationFieldProps) {
-  const trimmedValue = value.trim();
-  const isMatched = trimmedValue === confirmationValue;
-  const helperText = isMatched
-    ? "Confirmation matches."
-    : `Type ${confirmationValue} to enable this action.`;
+  const isMatched = value.trim() === confirmationValue;
 
   return (
     <View style={styles.container}>
@@ -38,12 +34,14 @@ export function ConfirmationField({
         placeholder={confirmationValue}
         value={value}
       />
-      <View style={styles.helperRow}>
-        {isMatched ? <Icon color="success" name="checkmark-circle" size={14} /> : null}
-        <AppText color={isMatched ? "success" : "textSecondary"} variant="caption">
-          {helperText}
-        </AppText>
-      </View>
+      {isMatched ? (
+        <View style={styles.helperRow}>
+          <Icon color="success" name="checkmark-circle" size={14} />
+          <AppText color="success" variant="caption">
+            Confirmation matches.
+          </AppText>
+        </View>
+      ) : null}
     </View>
   );
 }

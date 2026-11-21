@@ -6,6 +6,7 @@ import {
   CAPSULE_MAX_TITLE_LENGTH,
   CAPSULE_UNLOCK_TYPES,
 } from "@/features/capsules/constants";
+import { mediaAssetIdsSchema } from "@/features/media/schemas";
 
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const HH_MM_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
@@ -70,13 +71,6 @@ const capsuleNoteSchema = optionalTrimmedStringSchema.refine(
   }
 );
 
-const mediaAssetIdSchema = z
-  .string()
-  .uuid("A valid media asset id is required.")
-  .nullable()
-  .optional()
-  .transform((value) => value ?? null);
-
 export const capsuleIdSchema = z.string().uuid("A valid capsule id is required.");
 export const capsuleCoupleIdSchema = z.string().uuid("A valid couple id is required.");
 export const capsuleCurrentUserIdSchema = z.string().uuid("A valid user id is required.");
@@ -89,7 +83,7 @@ export const createCapsuleSchema = z
       .min(1, "Add a short title for this memory capsule.")
       .max(CAPSULE_MAX_TITLE_LENGTH, `Keep the title under ${CAPSULE_MAX_TITLE_LENGTH} characters.`),
     note: capsuleNoteSchema,
-    mediaAssetId: mediaAssetIdSchema,
+    mediaAssetIds: mediaAssetIdsSchema.optional().transform((value) => value ?? []),
     unlockDate: unlockDateSchema,
     unlockTime: unlockTimeSchema,
     emotionalContext: optionalTrimmedStringSchema.refine(
@@ -100,13 +94,13 @@ export const createCapsuleSchema = z
     ),
   })
   .superRefine((value, context) => {
-    if (value.note !== null || value.mediaAssetId !== null) {
+    if (value.note !== null || value.mediaAssetIds.length > 0) {
       return;
     }
 
     context.addIssue({
       code: "custom",
-      message: "Add a note or private photo before saving this memory capsule.",
+      message: "Add a note, a photo, or a short video before saving this capsule.",
       path: ["note"],
     });
   });

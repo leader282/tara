@@ -146,7 +146,7 @@ export function CreateCapsuleScreen() {
     <Screen
       {...screenProps}
       scroll
-      subtitle="Save a note, photo, or both now and open it together later. Your partner can see that a capsule exists, but its content stays private until it unlocks."
+      subtitle="Save something now to open together later. Your partner sees it's waiting, but not what's inside."
       title="Create memory capsule"
     >
       <CapsuleCreateForm

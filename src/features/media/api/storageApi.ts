@@ -1,4 +1,5 @@
 import type { PostgrestError } from "@supabase/supabase-js";
+import * as FileSystem from "expo-file-system/legacy";
 
 import {
   MEDIA_BUCKET,
@@ -14,6 +15,7 @@ import {
   reserveMediaAssetRowsSchema,
   signedMediaUrlInputSchema,
   signedMediaUrlSchema,
+  uploadMediaFileInputSchema,
   uploadMediaObjectInputSchema,
 } from "@/features/media/schemas";
 import type {
@@ -24,9 +26,10 @@ import type {
   ReserveMediaAssetInput,
   ReservedMediaAsset,
   SignedMediaUrlResult,
+  UploadMediaFileInput,
   UploadMediaObjectInput,
 } from "@/features/media/types";
-import { MediaActionError, toMediaActionError } from "@/lib/errors/mediaErrorMessages";
+import { MediaActionError, toMediaActionError, type MediaErrorCode } from "@/lib/errors/mediaErrorMessages";
 import { supabase } from "@/lib/supabase/client";
 
 function throwIfSupabaseError(error: PostgrestError | unknown | null): void {
@@ -45,6 +48,7 @@ export async function reserveMediaAsset(input: ReserveMediaAssetInput): Promise<
       p_width: parsedInput.width,
       p_height: parsedInput.height,
       p_purpose: parsedInput.purpose,
+      p_duration_ms: parsedInput.durationMs ?? undefined,
     });
 
     throwIfSupabaseError(error);
@@ -122,6 +126,56 @@ export async function uploadMediaObject(input: UploadMediaObjectInput): Promise<
       });
 
     throwIfSupabaseError(error);
+  } catch (error) {
+    throw toMediaActionError(error);
+  }
+}
+
+function toUploadErrorCode(status: number, body: string): MediaErrorCode {
+  const normalizedBody = body.toLowerCase();
+  if (status === 413 || normalizedBody.includes("maximum allowed size")) {
+    return "video_too_large";
+  }
+
+  if (status === 415 || normalizedBody.includes("mime type")) {
+    return "unsupported_file_type";
+  }
+
+  if (status === 401 || status === 403 || normalizedBody.includes("row-level security")) {
+    return "storage_policy_denied";
+  }
+
+  return "upload_failed";
+}
+
+// Streams the file from disk, so large videos never have to be read into memory. Creating the
+// signed upload URL runs the same storage upload policy as a direct upload.
+export async function uploadMediaFile(input: UploadMediaFileInput): Promise<void> {
+  try {
+    const parsedInput = uploadMediaFileInputSchema.parse(input);
+    const { data, error } = await supabase.storage
+      .from(MEDIA_BUCKET)
+      .createSignedUploadUrl(parsedInput.storagePath);
+
+    throwIfSupabaseError(error);
+
+    if (!data?.signedUrl) {
+      throw new MediaActionError("upload_failed");
+    }
+
+    const response = await FileSystem.uploadAsync(data.signedUrl, parsedInput.fileUri, {
+      httpMethod: "PUT",
+      uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+      headers: {
+        "Content-Type": parsedInput.contentType,
+        "cache-control": `max-age=${MEDIA_UPLOAD_CACHE_CONTROL_SECONDS}`,
+        "x-upsert": "false",
+      },
+    });
+
+    if (response.status < 200 || response.status >= 300) {
+      throw new MediaActionError(toUploadErrorCode(response.status, response.body ?? ""));
+    }
   } catch (error) {
     throw toMediaActionError(error);
   }

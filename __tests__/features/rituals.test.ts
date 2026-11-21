@@ -2,13 +2,14 @@ import React from "react";
 import { describe, expect, it, jest } from "@jest/globals";
 import { render, screen } from "@testing-library/react-native";
 
-jest.mock("@/features/media/components/PrivateImage", () => {
+jest.mock("@/features/media/components/MediaGallery", () => {
   // Keep reveal-state tests focused on ritual rendering, not media fetch internals.
   const ReactModule = require("react");
   const { Text } = require("react-native");
 
   return {
-    PrivateImage: () => ReactModule.createElement(Text, null, "Private image"),
+    MediaGallery: ({ media }: { media: unknown[] }) =>
+      media.length > 0 ? ReactModule.createElement(Text, null, "Private media") : null,
   };
 });
 
@@ -57,6 +58,7 @@ function createState(status: "completed_by_me_waiting" | "revealed"): TodayRitua
     media_asset_id: null,
     created_at: "2026-08-14T09:30:00.000Z",
     updated_at: "2026-08-14T09:30:00.000Z",
+    media: [],
   };
 
   const partnerCompletion = {
@@ -67,6 +69,7 @@ function createState(status: "completed_by_me_waiting" | "revealed"): TodayRitua
     media_asset_id: null,
     created_at: "2026-08-14T09:45:00.000Z",
     updated_at: "2026-08-14T09:45:00.000Z",
+    media: [],
   };
 
   return {

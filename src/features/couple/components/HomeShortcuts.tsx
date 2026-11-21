@@ -61,7 +61,7 @@ export function HomeShortcuts({ onOpenRituals, onCreateCapsule }: HomeShortcutsP
       />
       <ShortcutTile
         accessibilityLabel="Create a memory capsule"
-        description="Save a note for a future day"
+        description="Save something for a future day"
         icon="gift"
         iconBackground={colors.primarySoft}
         iconColor="primaryStrong"

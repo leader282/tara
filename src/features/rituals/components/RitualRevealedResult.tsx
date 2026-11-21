@@ -1,7 +1,7 @@
 import { StyleSheet, View } from "react-native";
 
 import { AppText, Avatar } from "@/components/ui";
-import { PrivateImage } from "@/features/media/components/PrivateImage";
+import { MediaGallery } from "@/features/media/components/MediaGallery";
 import type { RitualCompletion } from "@/features/rituals/types";
 import { formatDateTime } from "@/lib/dates/format";
 import { colors, radii, spacing } from "@/theme/tokens";
@@ -35,14 +35,15 @@ function AnswerBubble({
   name,
   completion,
   isMine,
-  photoLabel,
+  mediaLabel,
 }: {
   name: string;
   completion: RitualCompletion | null;
   isMine: boolean;
-  photoLabel: string;
+  mediaLabel: string;
 }) {
   const responseText = getResponseText(completion);
+  const media = completion?.media ?? [];
 
   return (
     <View style={styles.answer}>
@@ -54,14 +55,8 @@ function AnswerBubble({
       </View>
       <View style={[styles.bubble, isMine ? styles.bubbleMine : null]}>
         {responseText ? <AppText variant="body">{responseText}</AppText> : null}
-        {completion?.media_asset_id ? (
-          <PrivateImage
-            accessibilityLabel={photoLabel}
-            containerStyle={styles.mediaPreview}
-            mediaAssetId={completion.media_asset_id}
-          />
-        ) : null}
-        {!responseText && !completion?.media_asset_id ? (
+        <MediaGallery label={mediaLabel} media={media} />
+        {!responseText && media.length === 0 ? (
           <AppText color="textSecondary" variant="bodyMuted">
             No response shared.
           </AppText>
@@ -91,10 +86,10 @@ export function RitualRevealedResult({
       <AnswerBubble
         completion={partnerCompletion}
         isMine={false}
+        mediaLabel={`${partnerDisplayName} ritual`}
         name={partnerDisplayName}
-        photoLabel={`${partnerDisplayName} ritual photo`}
       />
-      <AnswerBubble completion={myCompletion} isMine name="You" photoLabel="Your ritual photo" />
+      <AnswerBubble completion={myCompletion} isMine mediaLabel="Your ritual" name="You" />
 
       {completedLabel ? (
         <AppText color="textTertiary" variant="caption">
@@ -135,11 +130,5 @@ const styles = StyleSheet.create({
   },
   bubbleMine: {
     backgroundColor: colors.primarySoft,
-  },
-  mediaPreview: {
-    aspectRatio: 4 / 3,
-    borderRadius: radii.md,
-    overflow: "hidden",
-    width: "100%",
   },
 });

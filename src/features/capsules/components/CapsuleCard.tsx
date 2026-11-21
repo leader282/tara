@@ -3,7 +3,7 @@ import { StyleSheet, View } from "react-native";
 import { AppText, Card, Icon } from "@/components/ui";
 import { CapsuleStatusBadge } from "@/features/capsules/components/CapsuleStatusBadge";
 import type { CapsuleListItem } from "@/features/capsules/types";
-import { formatCapsuleCountdown, formatUnlockDateTime } from "@/lib/dates/format";
+import { formatUnlockDateTime } from "@/lib/dates/format";
 import { colors, radii, spacing } from "@/theme/tokens";
 
 type CapsuleCardProps = {
@@ -22,9 +22,19 @@ function getCapsuleEmoji(status: CapsuleListItem["status"]): string {
   }
 }
 
+function getWhenLabel(item: CapsuleListItem): string {
+  if (item.isOpened) {
+    const openedLabel = formatUnlockDateTime(item.capsule.opened_at);
+    return openedLabel ? `Opened ${openedLabel}` : "Opened";
+  }
+
+  const unlockLabel = formatUnlockDateTime(item.capsule.unlock_at) ?? "soon";
+  return item.status === "openable" ? `Unlocked ${unlockLabel}` : `Unlocks ${unlockLabel}`;
+}
+
+// The list's section headers already say whether a capsule is ready, waiting, or opened, so the
+// card only marks the capsules you made.
 export function CapsuleCard({ item, onPress }: CapsuleCardProps) {
-  const unlockLabel = formatUnlockDateTime(item.capsule.unlock_at) ?? "Unlock date unavailable";
-  const countdownLabel = formatCapsuleCountdown(item.capsule.unlock_at, item.capsule.opened_at);
   const isReady = item.status === "openable";
 
   return (
@@ -43,7 +53,7 @@ export function CapsuleCard({ item, onPress }: CapsuleCardProps) {
             <AppText numberOfLines={1} style={styles.title} variant="label">
               {item.capsule.title}
             </AppText>
-            <CapsuleStatusBadge status={item.status} />
+            {item.status === "created_by_me" ? <CapsuleStatusBadge status={item.status} /> : null}
           </View>
           {item.capsule.emotional_context ? (
             <AppText color="textSecondary" numberOfLines={2} variant="bodyMuted">
@@ -53,7 +63,7 @@ export function CapsuleCard({ item, onPress }: CapsuleCardProps) {
           <View style={styles.metaRow}>
             <Icon color="textTertiary" name="time-outline" size={13} />
             <AppText color="textSecondary" numberOfLines={1} style={styles.meta} variant="caption">
-              {isReady || item.isOpened ? countdownLabel : `Unlocks ${unlockLabel}`}
+              {getWhenLabel(item)}
             </AppText>
           </View>
         </View>

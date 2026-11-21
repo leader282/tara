@@ -8,6 +8,17 @@ jest.mock("expo-font", () => ({
   isLoaded: () => true,
 }));
 
+jest.mock("expo-video", () => ({
+  VideoView: () => null,
+  useVideoPlayer: () => ({}),
+}));
+
+jest.mock("expo-camera", () => ({
+  CameraView: () => null,
+  useCameraPermissions: () => [null, jest.fn()],
+  useMicrophonePermissions: () => [null, jest.fn()],
+}));
+
 afterEach(() => {
   cleanup();
 });

@@ -14,19 +14,11 @@ export function useCreateCapsule(coupleId: string | null | undefined) {
 
   const mutation = useMutation({
     mutationFn: (input: CreateCapsuleInput) => createMemoryCapsule(input),
-    onSuccess: async (capsule, input) => {
+    onSuccess: async (capsule) => {
       const invalidations: Promise<unknown>[] = [
         queryClient.invalidateQueries({ queryKey: queryKeys.capsules.all }),
         queryClient.invalidateQueries({ queryKey: queryKeys.capsules.detailList(capsule.id) }),
       ];
-
-      if (input.mediaAssetId) {
-        invalidations.push(
-          queryClient.invalidateQueries({
-            queryKey: queryKeys.media.asset(input.mediaAssetId),
-          })
-        );
-      }
 
       if (coupleId) {
         invalidations.push(

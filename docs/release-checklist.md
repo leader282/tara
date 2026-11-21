@@ -3,6 +3,31 @@
 This checklist is for QA/release hardening only.  
 Phase 14F does **not** include public store submission.
 
+## 1.2.0 internal build
+
+Adds up to five photos or 5-second videos per ritual answer or capsule (in-app camera, front lens
+first), the first-use notification prompt, live updates for everything partners share, history
+retention, and the copy and layout cleanup. It adds the camera, microphone, and video native
+modules, so it needs a new build; 1.1.0 can't take it over the air.
+
+- [ ] `supabase migration list --linked` includes `20261121170000_realtime_shared_tables`,
+      `20261121170100_media_galleries_and_video`, and `20261121170200_history_retention`.
+- [ ] `prune-couple-history` is deployed (`supabase functions deploy prune-couple-history`), its
+      `prune-couple-history` cron job exists (`select jobname, schedule from cron.job`), and a manual
+      run with the cron secret returns `ok: true`.
+- [ ] The journey passes on a fresh release build. Emulator video recording crashes the Android
+      emulator on macOS, so record a 5-second clip on a real phone instead.
+- [ ] Version is `1.2.0` (Android `versionCode` 3, iOS `buildNumber` 3).
+- [ ] `eas build --profile preview --platform android`, then install over 1.1.0 on both phones.
+
+On two physical phones signed in as a couple:
+
+- [ ] A fresh install asks for notification permission once after onboarding, never again after "No".
+- [ ] The camera opens on the front lens, takes several photos in a row, and stops a video at 5 seconds.
+- [ ] A library video longer than 5 seconds is refused with an explanation.
+- [ ] An answer with several photos and a video reveals and plays on the other phone.
+- [ ] A pulse, a ritual answer, a new capsule, and a profile edit show up on the other phone without a refresh.
+
 ## 1.1.0 internal build
 
 Ships the redesigned UI, the fixes found in two-device E2E testing, live couple updates, and the

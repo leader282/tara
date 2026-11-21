@@ -96,7 +96,7 @@ export function DataExportRequestCard({
         </View>
 
         <AppText color="textSecondary" variant="bodyMuted">
-          This starts an export request placeholder. File generation is not instant in this phase.
+          Ask for a copy of everything you&apos;ve shared in Tara. Preparing it takes a while.
         </AppText>
 
         {statusLines.length > 0 ? (

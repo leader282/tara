@@ -1,11 +1,9 @@
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Badge, type BadgeTone, Button, Card, Icon, InlineMessage } from "@/components/ui";
-import type { NotificationPermissionState } from "@/features/notifications/types";
+import { AppText, Button, Card, Icon, InlineMessage } from "@/components/ui";
 import { colors, radii, spacing } from "@/theme/tokens";
 
 type NotificationPermissionCardProps = {
-  status: NotificationPermissionState;
   isGranted: boolean;
   canAskAgain: boolean;
   isEnabling: boolean;
@@ -15,21 +13,7 @@ type NotificationPermissionCardProps = {
   successMessage?: string | null;
 };
 
-function toStatusPresentation(status: NotificationPermissionState): { label: string; tone: BadgeTone } {
-  switch (status) {
-    case "granted":
-      return { label: "Enabled", tone: "success" };
-    case "provisional":
-      return { label: "Enabled quietly", tone: "success" };
-    case "denied":
-      return { label: "Off", tone: "danger" };
-    default:
-      return { label: "Not set", tone: "neutral" };
-  }
-}
-
 export function NotificationPermissionCard({
-  status,
   isGranted,
   canAskAgain,
   isEnabling,
@@ -38,7 +22,6 @@ export function NotificationPermissionCard({
   errorMessage = null,
   successMessage = null,
 }: NotificationPermissionCardProps) {
-  const statusPresentation = toStatusPresentation(status);
   const showEnableButton = !isGranted && canAskAgain;
   const showSettingsHint = !isGranted && !canAskAgain;
 
@@ -54,8 +37,7 @@ export function NotificationPermissionCard({
             />
           </View>
           <View style={styles.copy}>
-            <AppText variant="subtitle">Notifications are optional</AppText>
-            <Badge label={`Status: ${statusPresentation.label}`} tone={statusPresentation.tone} />
+            <AppText variant="subtitle">Notifications on this phone</AppText>
           </View>
         </View>
 
@@ -81,14 +63,13 @@ export function NotificationPermissionCard({
         ) : null}
 
         {showSettingsHint ? (
-          <InlineMessage
-            message="You can turn this on later in your device settings."
-            tone="neutral"
-          />
-        ) : null}
-
-        {!isEnabling && !showEnableButton ? (
-          <Button icon="refresh" onPress={onRefreshStatus} size="md" title="Refresh status" variant="ghost" />
+          <>
+            <InlineMessage
+              message="Notifications are off. You can turn them on in your phone's settings."
+              tone="neutral"
+            />
+            <Button icon="refresh" onPress={onRefreshStatus} size="md" title="I turned them on" variant="ghost" />
+          </>
         ) : null}
 
         {errorMessage ? <InlineMessage message={errorMessage} tone="danger" /> : null}

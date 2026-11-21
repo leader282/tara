@@ -5,9 +5,7 @@ import { StyleSheet, View } from "react-native";
 import { z } from "zod";
 
 import { AppText, Button, Icon, InlineMessage, TextField } from "@/components/ui";
-import { MediaAttachmentField } from "@/features/media/components/MediaAttachmentField";
-import type { MediaAsset } from "@/features/media/types";
-import { RitualInputTypeNotice } from "@/features/rituals/components/RitualInputTypeNotice";
+import { MediaGalleryField } from "@/features/media/components/MediaGalleryField";
 import type { CompleteRitualInput, RitualInputType } from "@/features/rituals/types";
 import { spacing } from "@/theme/tokens";
 
@@ -18,7 +16,7 @@ const ritualResponseBaseSchema = z.object({
     .refine((value) => value === undefined || value.trim().length <= 1000, {
       message: "Keep your response under 1000 characters.",
     }),
-  mediaAssetId: z.string().uuid().nullable().optional(),
+  mediaAssetIds: z.array(z.string().uuid()),
 });
 
 type RitualResponseFormValues = z.input<typeof ritualResponseBaseSchema>;
@@ -28,7 +26,7 @@ type RitualResponseFormProps = {
   isSubmitting?: boolean;
   submitError?: string | null;
   onSubmit: (
-    payload: Pick<CompleteRitualInput, "textResponse" | "mediaAssetId">
+    payload: Pick<CompleteRitualInput, "textResponse" | "mediaAssetIds">
   ) => Promise<void> | void;
 };
 
@@ -38,7 +36,7 @@ function buildRitualResponseFormSchema(inputType: RitualInputType) {
   return ritualResponseBaseSchema.superRefine((value, context) => {
     const normalizedTextResponse = value.textResponse?.trim() ?? "";
     const hasTextResponse = normalizedTextResponse.length > 0;
-    const hasMedia = Boolean(value.mediaAssetId);
+    const hasMedia = value.mediaAssetIds.length > 0;
 
     if (inputType === "text" && !hasTextResponse) {
       context.addIssue({
@@ -52,8 +50,8 @@ function buildRitualResponseFormSchema(inputType: RitualInputType) {
     if (inputType === "photo" && !hasMedia) {
       context.addIssue({
         code: "custom",
-        message: "Add a private photo before completing this ritual.",
-        path: ["mediaAssetId"],
+        message: "Add a photo or a short video before saving.",
+        path: ["mediaAssetIds"],
       });
       return;
     }
@@ -61,7 +59,7 @@ function buildRitualResponseFormSchema(inputType: RitualInputType) {
     if (inputType === "text_or_photo" && !hasTextResponse && !hasMedia) {
       context.addIssue({
         code: "custom",
-        message: "Add a response or private photo before completing this ritual.",
+        message: "Add an answer, a photo, or a short video before saving.",
         path: ["textResponse"],
       });
     }
@@ -74,7 +72,7 @@ export function RitualResponseForm({
   submitError = null,
   onSubmit,
 }: RitualResponseFormProps) {
-  const [attachedMediaAsset, setAttachedMediaAsset] = useState<MediaAsset | null>(null);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   const supportsTextResponse = inputType !== "photo";
   const supportsMediaResponse = inputType !== "text";
   const ritualResponseFormSchema = buildRitualResponseFormSchema(inputType);
@@ -82,7 +80,7 @@ export function RitualResponseForm({
   const { control, handleSubmit, formState, setValue } = useForm<RitualResponseFormValues>({
     defaultValues: {
       textResponse: "",
-      mediaAssetId: null,
+      mediaAssetIds: [],
     },
     mode: "onChange",
     resolver: zodResolver(ritualResponseFormSchema),
@@ -92,14 +90,12 @@ export function RitualResponseForm({
     const normalizedTextResponse = values.textResponse?.trim() ?? "";
     await onSubmit({
       textResponse: normalizedTextResponse.length > 0 ? normalizedTextResponse : null,
-      mediaAssetId: values.mediaAssetId ?? null,
+      mediaAssetIds: values.mediaAssetIds,
     });
   });
 
   return (
     <View style={styles.container}>
-      {inputType !== "text" ? <RitualInputTypeNotice inputType={inputType} /> : null}
-
       {supportsTextResponse ? (
         <Controller
           control={control}
@@ -119,7 +115,7 @@ export function RitualResponseForm({
               onChangeText={field.onChange}
               placeholder={
                 inputType === "text_or_photo"
-                  ? "Write a short answer, or add a photo below."
+                  ? "Write a short answer, or add a photo or video below."
                   : "Write a short answer..."
               }
               showCount
@@ -131,29 +127,27 @@ export function RitualResponseForm({
       ) : null}
 
       {supportsMediaResponse ? (
-        <MediaAttachmentField
+        <MediaGalleryField
           disabled={isSubmitting}
           helperText={
             inputType === "photo"
-              ? "A private photo is required for this ritual."
-              : "Attach a private photo if you want to reply with media."
+              ? "Add at least one photo or 5-second video, up to 5."
+              : "Up to 5 photos or 5-second videos."
           }
-          label="Photo"
-          onChange={(nextMediaAsset) => {
-            setAttachedMediaAsset(nextMediaAsset);
-            setValue("mediaAssetId", nextMediaAsset?.id ?? null, {
+          onChange={(mediaAssetIds) => {
+            setValue("mediaAssetIds", mediaAssetIds, {
               shouldDirty: true,
               shouldValidate: true,
             });
           }}
+          onUploadingChange={setIsUploadingMedia}
           purpose="ritual_completion"
           required={inputType === "photo"}
-          value={attachedMediaAsset}
         />
       ) : null}
 
-      {formState.errors.mediaAssetId?.message ? (
-        <InlineMessage message={formState.errors.mediaAssetId.message} tone="danger" />
+      {formState.errors.mediaAssetIds?.message ? (
+        <InlineMessage message={formState.errors.mediaAssetIds.message} tone="danger" />
       ) : null}
 
       {submitError ? <InlineMessage message={submitError} tone="danger" /> : null}
@@ -166,11 +160,11 @@ export function RitualResponseForm({
       </View>
 
       <Button
-        disabled={!formState.isValid || isSubmitting}
+        disabled={!formState.isValid || isSubmitting || isUploadingMedia}
         icon="checkmark"
         loading={isSubmitting}
         onPress={handleSave}
-        title={inputType === "photo" ? "Save my photo" : "Save my answer"}
+        title={isUploadingMedia ? "Uploading..." : "Save my answer"}
       />
     </View>
   );

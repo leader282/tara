@@ -5,32 +5,20 @@ import {
   markMediaAssetFailed,
   markMediaAssetUploaded,
   reserveMediaAsset,
+  uploadMediaFile,
   uploadMediaObject,
 } from "@/features/media/api/storageApi";
-import { MEDIA_MAX_UPLOAD_BYTES } from "@/features/media/constants";
-import { uploadMediaInputSchema } from "@/features/media/schemas";
+import {
+  MEDIA_MAX_UPLOAD_BYTES,
+  MEDIA_MAX_VIDEO_DURATION_MS,
+  MEDIA_MAX_VIDEO_UPLOAD_BYTES,
+} from "@/features/media/constants";
+import { pickedMediaSchema } from "@/features/media/schemas";
 import { processImageForUpload } from "@/features/media/services/imageProcessing";
-import type {
-  MediaUploadInput,
-  MediaUploadProgressState,
-  MediaUploadResult,
-  ReservedMediaAsset,
-} from "@/features/media/types";
-import { getMediaErrorMessage, toMediaActionError } from "@/lib/errors/mediaErrorMessages";
+import type { MediaUploadInput, MediaUploadResult, ReservedMediaAsset } from "@/features/media/types";
+import { MediaActionError, toMediaActionError } from "@/lib/errors/mediaErrorMessages";
 
-type UploadPickedImageOptions = {
-  input: MediaUploadInput;
-  onProgress?: (state: MediaUploadProgressState) => void;
-};
-
-function emitProgress(
-  onProgress: UploadPickedImageOptions["onProgress"],
-  state: MediaUploadProgressState
-): void {
-  onProgress?.(state);
-}
-
-async function fileUriToArrayBuffer(
+async function readFileAsArrayBuffer(
   fileUri: string
 ): Promise<{ arrayBuffer: ArrayBuffer; sizeBytes: number }> {
   const base64 = await FileSystem.readAsStringAsync(fileUri, {
@@ -44,31 +32,66 @@ async function fileUriToArrayBuffer(
   };
 }
 
-export async function uploadPickedImage({
-  input,
-  onProgress,
-}: UploadPickedImageOptions): Promise<MediaUploadResult> {
+async function getFileSize(fileUri: string): Promise<number | null> {
+  const fileInfo = await FileSystem.getInfoAsync(fileUri);
+  if (!fileInfo.exists || fileInfo.isDirectory) {
+    return null;
+  }
+
+  return typeof fileInfo.size === "number" && fileInfo.size > 0 ? fileInfo.size : null;
+}
+
+// Uploads one picked photo or video into the couple's private storage. Photos are resized and
+// re-encoded as JPEG first, which also drops their location data.
+export async function uploadPickedMedia({ media, purpose }: MediaUploadInput): Promise<MediaUploadResult> {
   let reservedMediaAsset: ReservedMediaAsset | null = null;
 
   try {
-    const parsedInput = uploadMediaInputSchema.parse(input);
+    const pickedMedia = pickedMediaSchema.parse(media);
 
-    emitProgress(onProgress, {
-      step: "processing",
-      message: null,
-      errorCode: null,
-    });
+    if (pickedMedia.kind === "video") {
+      if (!pickedMedia.durationMs || pickedMedia.durationMs > MEDIA_MAX_VIDEO_DURATION_MS) {
+        throw new MediaActionError("video_too_long");
+      }
+
+      const sizeBytes = (await getFileSize(pickedMedia.uri)) ?? pickedMedia.fileSize;
+      if (!sizeBytes) {
+        throw new MediaActionError("upload_failed");
+      }
+
+      if (sizeBytes > MEDIA_MAX_VIDEO_UPLOAD_BYTES) {
+        throw new MediaActionError("video_too_large");
+      }
+
+      reservedMediaAsset = await reserveMediaAsset({
+        mimeType: pickedMedia.mimeType,
+        sizeBytes,
+        width: pickedMedia.width ?? undefined,
+        height: pickedMedia.height ?? undefined,
+        durationMs: pickedMedia.durationMs,
+        purpose,
+      });
+
+      await uploadMediaFile({
+        storagePath: reservedMediaAsset.storage_path,
+        fileUri: pickedMedia.uri,
+        contentType: pickedMedia.mimeType,
+      });
+
+      const mediaAsset = await markMediaAssetUploaded({
+        mediaAssetId: reservedMediaAsset.id,
+        sizeBytes,
+        width: pickedMedia.width ?? undefined,
+        height: pickedMedia.height ?? undefined,
+      });
+
+      return { reservedMediaAsset, mediaAsset };
+    }
 
     const processedImage = await processImageForUpload({
-      uri: parsedInput.localUri,
-      width: parsedInput.width,
-      height: parsedInput.height,
-    });
-
-    emitProgress(onProgress, {
-      step: "reserving",
-      message: null,
-      errorCode: null,
+      uri: pickedMedia.uri,
+      width: pickedMedia.width ?? undefined,
+      height: pickedMedia.height ?? undefined,
     });
 
     reservedMediaAsset = await reserveMediaAsset({
@@ -76,30 +99,18 @@ export async function uploadPickedImage({
       sizeBytes: processedImage.estimatedSizeBytes,
       width: processedImage.width,
       height: processedImage.height,
-      purpose: parsedInput.purpose,
+      purpose,
     });
 
-    emitProgress(onProgress, {
-      step: "uploading",
-      message: null,
-      errorCode: null,
-    });
-
-    const { arrayBuffer, sizeBytes } = await fileUriToArrayBuffer(processedImage.uri);
+    const { arrayBuffer, sizeBytes } = await readFileAsArrayBuffer(processedImage.uri);
     if (sizeBytes <= 0 || sizeBytes > MEDIA_MAX_UPLOAD_BYTES) {
-      throw new Error("Processed image exceeds upload size limits.");
+      throw new MediaActionError("image_too_large");
     }
 
     await uploadMediaObject({
       storagePath: reservedMediaAsset.storage_path,
       arrayBuffer,
       contentType: processedImage.mimeType,
-    });
-
-    emitProgress(onProgress, {
-      step: "finalizing",
-      message: null,
-      errorCode: null,
     });
 
     const mediaAsset = await markMediaAssetUploaded({
@@ -109,20 +120,7 @@ export async function uploadPickedImage({
       height: processedImage.height,
     });
 
-    emitProgress(onProgress, {
-      step: "success",
-      message: null,
-      errorCode: null,
-    });
-
-    return {
-      reservedMediaAsset,
-      mediaAsset,
-      processedImage: {
-        ...processedImage,
-        estimatedSizeBytes: sizeBytes,
-      },
-    };
+    return { reservedMediaAsset, mediaAsset };
   } catch (error) {
     if (reservedMediaAsset) {
       try {
@@ -132,14 +130,6 @@ export async function uploadPickedImage({
       }
     }
 
-    const mediaError = toMediaActionError(error);
-
-    emitProgress(onProgress, {
-      step: "error",
-      message: getMediaErrorMessage(mediaError.code),
-      errorCode: mediaError.code,
-    });
-
-    throw mediaError;
+    throw toMediaActionError(error);
   }
 }

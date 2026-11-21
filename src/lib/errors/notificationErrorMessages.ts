@@ -24,10 +24,8 @@ const notificationErrorMessages: Record<NotificationErrorCode, string> = {
     "Notifications are blocked in system settings for this app.",
   physical_device_required:
     "Push notifications require a physical device.",
-  project_id_missing:
-    "Push notifications are not configured yet. Missing Expo project id.",
-  token_unavailable:
-    "We couldn't get a push token for this device yet. Please try again.",
+  project_id_missing: "Notifications aren't available in this version of Tara yet.",
+  token_unavailable: "We couldn't set up notifications on this phone. Please try again.",
   registration_failed:
     "We couldn't register this device for notifications right now.",
   unregistration_failed:

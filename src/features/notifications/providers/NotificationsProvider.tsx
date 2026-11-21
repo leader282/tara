@@ -19,6 +19,7 @@ import { getNotificationPermissionStatus } from "@/features/notifications/servic
 import { getExpoProjectId, setupAndroidNotificationChannel } from "@/features/notifications/services/notificationToken";
 import { claimPulseAnnouncement } from "@/features/presence/services/pulseAnnouncements";
 import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useOnboardingGate } from "@/features/onboarding/hooks/useOnboardingGate";
 
 type NotificationSubscription = {
   remove: () => void;
@@ -55,7 +56,15 @@ export function NotificationsProvider({ children }: PropsWithChildren) {
   const pendingResponseRef = useRef<Notifications.NotificationResponse | null>(null);
   const canHandleNotificationResponses = !isInitializing && isAuthenticated;
   const canShowForegroundBannersRef = useRef(canHandleNotificationResponses);
-  useAutoRegisterPushToken(canHandleNotificationResponses ? user?.id : null);
+  const onboardingGate = useOnboardingGate();
+  const hasFinishedOnboarding =
+    canHandleNotificationResponses &&
+    !onboardingGate.isLoading &&
+    !onboardingGate.error &&
+    !onboardingGate.needsOnboarding;
+  useAutoRegisterPushToken(canHandleNotificationResponses ? user?.id : null, {
+    askIfNeverAsked: hasFinishedOnboarding,
+  });
 
   useEffect(() => {
     canShowForegroundBannersRef.current = canHandleNotificationResponses;

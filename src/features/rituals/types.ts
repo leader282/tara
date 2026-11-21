@@ -1,4 +1,5 @@
 import type { Tables, Database } from "@/lib/supabase/database.types";
+import type { AttachedMedia } from "@/features/media/types";
 import type {
   RITUAL_CATEGORIES,
   RITUAL_INPUT_TYPES,
@@ -13,7 +14,9 @@ export type RitualTemplate = Omit<Tables<"ritual_templates">, "category" | "inpu
 };
 
 export type CoupleRitual = Tables<"couple_rituals">;
-export type RitualCompletion = Tables<"ritual_completions">;
+export type RitualCompletion = Tables<"ritual_completions"> & {
+  media: AttachedMedia[];
+};
 
 export type RitualRevealState = {
   isRevealed: boolean;
@@ -39,7 +42,7 @@ export type RitualHistoryItem = {
 export type CompleteRitualInput = {
   coupleRitualId: string;
   textResponse?: string | null;
-  mediaAssetId?: string | null;
+  mediaAssetIds?: string[];
 };
 
 export type CompleteRitualResult =

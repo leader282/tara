@@ -2,14 +2,16 @@ import { StyleSheet, View } from "react-native";
 
 import { AppText, Button, Card, EmptyState } from "@/components/ui";
 import { CapsuleHero } from "@/features/capsules/components/CapsuleHero";
-import { PrivateImage } from "@/features/media/components/PrivateImage";
+import { MediaGallery } from "@/features/media/components/MediaGallery";
+import type { AttachedMedia } from "@/features/media/types";
 import type { MemoryCapsule, MemoryCapsuleContent } from "@/features/capsules/types";
 import { formatUnlockDateTime } from "@/lib/dates/format";
-import { radii, spacing } from "@/theme/tokens";
+import { spacing } from "@/theme/tokens";
 
 type CapsuleOpenedContentProps = {
   capsule: MemoryCapsule;
   content: MemoryCapsuleContent | null;
+  media: AttachedMedia[];
   isRefreshing?: boolean;
   onRetry?: () => void;
 };
@@ -17,13 +19,13 @@ type CapsuleOpenedContentProps = {
 export function CapsuleOpenedContent({
   capsule,
   content,
+  media,
   isRefreshing = false,
   onRetry,
 }: CapsuleOpenedContentProps) {
   const openedLabel = formatUnlockDateTime(capsule.opened_at) ?? "Just now";
   const normalizedNote = content?.note?.trim() ?? null;
-  const mediaAssetId = content?.media_asset_id ?? null;
-  const hasVisibleContent = Boolean(normalizedNote || mediaAssetId);
+  const hasVisibleContent = Boolean(normalizedNote || media.length > 0);
 
   return (
     <View style={styles.container}>
@@ -40,13 +42,7 @@ export function CapsuleOpenedContent({
                 {normalizedNote}
               </AppText>
             ) : null}
-            {mediaAssetId ? (
-              <PrivateImage
-                accessibilityLabel="Capsule photo"
-                containerStyle={styles.media}
-                mediaAssetId={mediaAssetId}
-              />
-            ) : null}
+            <MediaGallery label="Capsule" media={media} />
             <AppText color="textTertiary" variant="caption">
               Opened {openedLabel}
             </AppText>
@@ -87,11 +83,5 @@ const styles = StyleSheet.create({
   note: {
     fontSize: 17,
     lineHeight: 27,
-  },
-  media: {
-    aspectRatio: 4 / 3,
-    borderRadius: radii.md,
-    overflow: "hidden",
-    width: "100%",
   },
 });

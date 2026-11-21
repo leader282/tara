@@ -22,15 +22,9 @@ import {
   CapsuleActionError,
   toCapsuleActionError,
 } from "@/lib/errors/capsuleErrorMessages";
+import { getCapsuleMedia } from "@/features/media/api/mediaApi";
 import { parseDateTimeFromFields } from "@/lib/dates/format";
 import { supabase } from "@/lib/supabase/client";
-
-type SubscribeToCapsuleMetadataParams = {
-  coupleId: string;
-  onInsert?: (capsule: MemoryCapsule) => void;
-  onUpdate?: (capsule: MemoryCapsule) => void;
-  onError?: (error: CapsuleActionError) => void;
-};
 
 const MEMORY_CAPSULE_SELECT = `
   id,
@@ -53,9 +47,6 @@ const MEMORY_CAPSULE_CONTENT_SELECT = `
   created_at,
   updated_at
 `;
-
-const REALTIME_SUBSCRIPTION_ERROR_MESSAGE =
-  "Live capsule updates are temporarily unavailable. We'll refresh again soon.";
 
 function toDate(value: string | null | undefined): Date | null {
   if (!value) {
@@ -117,17 +108,7 @@ function toCapsuleListItem(capsule: MemoryCapsule, currentUserId: string): Capsu
     };
   }
 
-  if (isCreatedByMe) {
-    return {
-      capsule,
-      status: "created_by_me",
-      unlockState,
-      isCreatedByMe,
-      isOpened: false,
-      canOpen,
-    };
-  }
-
+  // Either partner can open a capsule once its day arrives, including the one who made it.
   if (canOpen) {
     return {
       capsule,
@@ -136,6 +117,17 @@ function toCapsuleListItem(capsule: MemoryCapsule, currentUserId: string): Capsu
       isCreatedByMe,
       isOpened: false,
       canOpen: true,
+    };
+  }
+
+  if (isCreatedByMe) {
+    return {
+      capsule,
+      status: "created_by_me",
+      unlockState,
+      isCreatedByMe,
+      isOpened: false,
+      canOpen: false,
     };
   }
 
@@ -198,7 +190,7 @@ export async function createMemoryCapsule(input: CreateCapsuleInput): Promise<Me
       p_note: parsedInput.note ?? undefined,
       p_unlock_at: unlockAtIso,
       p_emotional_context: parsedInput.emotionalContext ?? undefined,
-      p_media_asset_id: parsedInput.mediaAssetId ?? undefined,
+      p_media_asset_ids: parsedInput.mediaAssetIds,
     });
 
     throwIfCapsuleError(error);
@@ -269,10 +261,12 @@ export async function getCapsuleDetail(
     throwIfCapsuleError(contentError);
 
     const content = contentData ? memoryCapsuleContentRowSchema.parse(contentData) : null;
+    const media = content ? await getCapsuleMedia(parsedCapsuleId) : [];
 
     return {
       capsule,
       content,
+      media,
       status: toCapsuleDetailStatus(capsule, parsedCurrentUserId),
       unlockState: getUnlockState(capsule),
       isCreatedByMe: capsule.creator_id === parsedCurrentUserId,
@@ -302,72 +296,4 @@ export async function openMemoryCapsule(capsuleId: string): Promise<MemoryCapsul
   } catch (error) {
     throw toCapsuleActionError(error);
   }
-}
-
-export function subscribeToCapsuleMetadata({
-  coupleId,
-  onInsert,
-  onUpdate,
-  onError,
-}: SubscribeToCapsuleMetadataParams): () => void {
-  const parsedCoupleIdResult = capsuleCoupleIdSchema.safeParse(coupleId);
-  if (!parsedCoupleIdResult.success) {
-    onError?.(new CapsuleActionError("unknown", REALTIME_SUBSCRIPTION_ERROR_MESSAGE));
-    return () => {};
-  }
-
-  const parsedCoupleId = parsedCoupleIdResult.data;
-  const channel = supabase
-    .channel(`capsule-metadata-${parsedCoupleId}-${Date.now()}`)
-    .on(
-      "postgres_changes",
-      {
-        event: "INSERT",
-        schema: "public",
-        table: "memory_capsules",
-        filter: `couple_id=eq.${parsedCoupleId}`,
-      },
-      (payload) => {
-        const parsedCapsule = memoryCapsuleRowSchema.safeParse(payload.new);
-        if (!parsedCapsule.success) {
-          return;
-        }
-
-        if (parsedCapsule.data.couple_id !== parsedCoupleId) {
-          return;
-        }
-
-        onInsert?.(parsedCapsule.data);
-      }
-    )
-    .on(
-      "postgres_changes",
-      {
-        event: "UPDATE",
-        schema: "public",
-        table: "memory_capsules",
-        filter: `couple_id=eq.${parsedCoupleId}`,
-      },
-      (payload) => {
-        const parsedCapsule = memoryCapsuleRowSchema.safeParse(payload.new);
-        if (!parsedCapsule.success) {
-          return;
-        }
-
-        if (parsedCapsule.data.couple_id !== parsedCoupleId) {
-          return;
-        }
-
-        onUpdate?.(parsedCapsule.data);
-      }
-    )
-    .subscribe((status) => {
-      if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-        onError?.(new CapsuleActionError("network_error", REALTIME_SUBSCRIPTION_ERROR_MESSAGE));
-      }
-    });
-
-  return () => {
-    void supabase.removeChannel(channel);
-  };
 }

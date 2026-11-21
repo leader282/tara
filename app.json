@@ -2,7 +2,7 @@
   "expo": {
     "name": "Tara",
     "slug": "tara",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "scheme": "tara",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
@@ -23,6 +23,21 @@
       "expo-localization",
       "expo-notifications",
       [
+        "expo-camera",
+        {
+          "cameraPermission": "Tara uses your camera so you can share photos and short videos with your partner.",
+          "microphonePermission": "Tara uses your microphone to record sound in the short videos you share with your partner.",
+          "recordAudioAndroid": true
+        }
+      ],
+      [
+        "expo-video",
+        {
+          "supportsBackgroundPlayback": false,
+          "supportsPictureInPicture": false
+        }
+      ],
+      [
         "@sentry/react-native/expo",
         {
           "url": "https://sentry.io/",
@@ -35,7 +50,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.leader282.tara",
-      "buildNumber": "2",
+      "buildNumber": "3",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -43,7 +58,7 @@
     "android": {
       "predictiveBackGestureEnabled": false,
       "package": "com.leader282.tara",
-      "versionCode": 2,
+      "versionCode": 3,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundImage": "./assets/adaptive-icon-background.png",

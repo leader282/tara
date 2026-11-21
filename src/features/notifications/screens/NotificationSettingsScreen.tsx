@@ -106,7 +106,6 @@ export function NotificationSettingsScreen() {
         isGranted={permissionState.isGranted}
         onEnable={handleEnableNotifications}
         onRefreshStatus={permissionState.refreshPermissionStatus}
-        status={permissionState.status}
         successMessage={
           registerPushToken.isSuccess
             ? "Gentle notifications are enabled and this device is registered."
@@ -118,9 +117,6 @@ export function NotificationSettingsScreen() {
         <View style={styles.sectionHeader}>
           <AppText color="textSecondary" variant="overline">
             Reminders you want
-          </AppText>
-          <AppText color="textSecondary" variant="caption">
-            You can adjust this anytime.
           </AppText>
         </View>
         <ListGroup>

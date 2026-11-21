@@ -5,17 +5,18 @@ import { render, screen } from "@testing-library/react-native";
 import { ConfirmationField } from "@/features/settings/components/ConfirmationField";
 
 describe("settings feature logic", () => {
-  it("shows guidance when confirmation text does not match", () => {
+  it("shows no confirmation until the text matches", () => {
     render(
       React.createElement(ConfirmationField, {
         confirmationValue: "UNPAIR",
-        label: "Type confirmation",
+        label: "Type UNPAIR to continue",
         onChangeText: jest.fn(),
         value: "UNPAI",
       }),
     );
 
-    expect(screen.getByText("Type UNPAIR to enable this action.")).toBeTruthy();
+    expect(screen.getByText("Type UNPAIR to continue")).toBeTruthy();
+    expect(screen.queryByText("Confirmation matches.")).toBeNull();
   });
 
   it("shows matched confirmation state after trimming input", () => {
