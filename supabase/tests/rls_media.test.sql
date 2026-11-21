@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(7);
+select plan(10);
 
 insert into auth.users (id)
 values
@@ -111,6 +111,20 @@ values
     'memory_capsule_content',
     'uploaded',
     now()
+  ),
+  (
+    '50000000-0000-4000-8000-000000000506',
+    '10000000-0000-4000-8000-000000000501',
+    '00000000-0000-4000-8000-000000000501',
+    '10000000-0000-4000-8000-000000000501/00000000-0000-4000-8000-000000000501/50000000-0000-4000-8000-000000000506.jpg',
+    'image',
+    'image/jpeg',
+    1000,
+    100,
+    100,
+    'memory_capsule_content',
+    'pending',
+    null
   );
 
 insert into public.ritual_completions (id, couple_ritual_id, user_id, text_response, media_asset_id)
@@ -225,6 +239,51 @@ select ok(
     false
   ) = false,
   'media: storage path helper is not truthy for malformed paths'
+);
+
+select throws_ok(
+  $$
+    insert into storage.objects (bucket_id, name, owner_id)
+    values (
+      'couple-media',
+      '10000000-0000-4000-8000-000000000501/00000000-0000-4000-8000-000000000501/50000000-0000-4000-8000-000000000506.jpg',
+      '00000000-0000-4000-8000-000000000502'
+    )
+  $$,
+  '42501',
+  null,
+  'media: partner cannot upload into the owner''s pending reservation'
+);
+
+reset role;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000501', true);
+select set_config('request.jwt.claim.role', 'authenticated', true);
+
+select throws_ok(
+  $$
+    insert into storage.objects (bucket_id, name, owner_id)
+    values (
+      'couple-media',
+      '10000000-0000-4000-8000-000000000501/00000000-0000-4000-8000-000000000501/50000000-0000-4000-8000-000000000599.jpg',
+      '00000000-0000-4000-8000-000000000501'
+    )
+  $$,
+  '42501',
+  null,
+  'media: owner cannot upload to a path without a pending reservation'
+);
+
+select lives_ok(
+  $$
+    insert into storage.objects (bucket_id, name, owner_id)
+    values (
+      'couple-media',
+      '10000000-0000-4000-8000-000000000501/00000000-0000-4000-8000-000000000501/50000000-0000-4000-8000-000000000506.jpg',
+      '00000000-0000-4000-8000-000000000501'
+    )
+  $$,
+  'media: owner can upload into their pending reservation'
 );
 
 reset role;
