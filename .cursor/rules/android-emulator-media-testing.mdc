@@ -1,0 +1,36 @@
+---
+description: Testing the camera, photos, and videos on Android emulators
+alwaysApply: true
+---
+
+# Android emulator media testing
+
+## Don't record video on an emulator
+
+Recording a video with the in-app camera (`CameraCaptureModal`, which calls expo-camera's
+`recordAsync`) crashes the Android emulator itself on this Mac (qemu exits with code 139) the
+moment recording starts. It happens with and without microphone permission. It is an emulator
+bug, not an app bug, so don't retry it or debug the app for it. Video recording can only be
+tested on a real phone.
+
+## Test the video path through the library instead
+
+Picking a video from the library, uploading it, and playing it back all work on emulators:
+
+```sh
+ffmpeg -f lavfi -i "testsrc=duration=3:size=720x1280:rate=30" -pix_fmt yuv420p clip.mp4
+ffmpeg -f lavfi -i "testsrc=duration=8:size=720x1280:rate=30" -pix_fmt yuv420p long-clip.mp4
+adb -s <device> push clip.mp4 /sdcard/Movies/clip.mp4
+adb -s <device> shell content call --uri content://media/external/file \
+  --method scan_file --arg /sdcard/Movies/clip.mp4
+```
+
+Then tap Library in a ritual answer or capsule and pick the clip. The 8-second clip should be
+refused with "That video is longer than 5 seconds, so it wasn't added."
+
+## Emulator photos are black
+
+Photos taken with the emulator's camera come out black with a yellow timestamp. That's how the
+emulated camera captures stills; the upload and display pipeline is working.
+
+See `.maestro/README.md` (Native Coverage Still Manual) for what else needs a real device.
