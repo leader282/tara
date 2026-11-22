@@ -111,7 +111,12 @@ describe("couple live updates", () => {
 
     triggerChange("couple_members");
 
-    expect(refreshedKeys(invalidateQueries)).toEqual(["couple", `settings/couple/${COUPLE_ID}`, "timeline"]);
+    expect(refreshedKeys(invalidateQueries)).toEqual([
+      "couple",
+      `settings/couple/${COUPLE_ID}`,
+      "capsules",
+      "timeline",
+    ]);
   });
 
   it("refreshes rituals and the timeline when the partner answers", () => {

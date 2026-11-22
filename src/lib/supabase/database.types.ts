@@ -1039,6 +1039,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      delete_memory_capsule: { Args: { p_capsule_id: string }; Returns: string }
       enqueue_due_capsule_unlock_notifications: { Args: never; Returns: number }
       enqueue_due_ritual_reminders: { Args: never; Returns: number }
       ensure_daily_ritual: {

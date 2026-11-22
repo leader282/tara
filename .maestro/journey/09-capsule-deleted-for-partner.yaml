@@ -1,0 +1,18 @@
+appId: com.leader282.tara
+name: "Journey: partner watches a deleted capsule disappear live"
+tags:
+  - journey
+  - capsules
+  - realtime
+---
+- runFlow: ../shared/resume-to-tabs.yaml
+# The runner starts the other phone once this "Ready to watch" step completes.
+- tapOn:
+    id: "tab-capsules"
+- extendedWaitUntil:
+    visible: ${"Open memory capsule " + J_CAPSULE_TITLE}
+    timeout: 20000
+    label: "Ready to watch for the deletion"
+- extendedWaitUntil:
+    notVisible: ${"Open memory capsule " + J_CAPSULE_TITLE}
+    timeout: 120000

@@ -1,17 +1,21 @@
+import { Alert } from "react-native";
+
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { useToast } from "@/components/feedback/ToastProvider";
 import { useGoBack } from "@/components/navigation/useGoBack";
-import { EmptyState, ErrorState, LoadingState, Screen } from "@/components/ui";
+import { Button, EmptyState, ErrorState, InlineMessage, LoadingState, Screen } from "@/components/ui";
 import { CapsuleLockedState } from "@/features/capsules/components/CapsuleLockedState";
 import { CapsuleOpenableState } from "@/features/capsules/components/CapsuleOpenableState";
 import { CapsuleOpenedContent } from "@/features/capsules/components/CapsuleOpenedContent";
 import { CapsulePreviewCard } from "@/features/capsules/components/CapsulePreviewCard";
 import { useCapsuleDetail } from "@/features/capsules/hooks/useCapsuleDetail";
+import { useDeleteCapsule } from "@/features/capsules/hooks/useDeleteCapsule";
 import { useOpenCapsule } from "@/features/capsules/hooks/useOpenCapsule";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useCoupleHome } from "@/features/couple/hooks/useCoupleHome";
+import { CapsuleActionError } from "@/lib/errors/capsuleErrorMessages";
 import { queryKeys } from "@/lib/query/queryKeys";
 
 export function CapsuleDetailScreen() {
@@ -30,6 +34,7 @@ export function CapsuleDetailScreen() {
 
   const capsuleDetail = useCapsuleDetail(routeCapsuleId ?? null, currentUserId);
   const openCapsuleMutation = useOpenCapsule(coupleId);
+  const deleteCapsuleMutation = useDeleteCapsule(coupleId);
 
   const handleRetryCoupleHome = () => {
     if (!user?.id) {
@@ -70,6 +75,32 @@ export function CapsuleDetailScreen() {
     } catch {
       // Friendly API errors are exposed by the mutation hook.
     }
+  };
+
+  const handleDeleteCapsule = () => {
+    if (!routeCapsuleId) {
+      return;
+    }
+
+    Alert.alert(
+      "Delete this capsule?",
+      "It will be gone for both of you, along with everything inside it. This can't be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => {
+            deleteCapsuleMutation.mutate(routeCapsuleId, {
+              onSuccess: () => {
+                toast.show({ tone: "success", title: "Capsule deleted" });
+                goBack();
+              },
+            });
+          },
+        },
+      ]
+    );
   };
 
   const screenProps = {
@@ -149,6 +180,20 @@ export function CapsuleDetailScreen() {
     );
   }
 
+  if (capsuleDetail.error instanceof CapsuleActionError && capsuleDetail.error.code === "capsule_not_found") {
+    return (
+      <Screen centered {...screenProps}>
+        <EmptyState
+          actionLabel="Back to capsules"
+          description="It was deleted, so there's nothing here anymore."
+          icon="trash-outline"
+          onActionPress={goBack}
+          title="This capsule was deleted"
+        />
+      </Screen>
+    );
+  }
+
   if (capsuleDetail.error || !capsuleDetail.detail) {
     return (
       <Screen centered {...screenProps}>
@@ -199,6 +244,22 @@ export function CapsuleDetailScreen() {
 
       {!isOpened && !isReadyToOpen && !detail.isCreatedByMe ? (
         <CapsuleLockedState capsule={capsule} />
+      ) : null}
+
+      {detail.isCreatedByMe ? (
+        <>
+          {deleteCapsuleMutation.friendlyError ? (
+            <InlineMessage message={deleteCapsuleMutation.friendlyError} tone="danger" />
+          ) : null}
+          <Button
+            disabled={deleteCapsuleMutation.isPending}
+            icon="trash-outline"
+            loading={deleteCapsuleMutation.isPending}
+            onPress={handleDeleteCapsule}
+            title="Delete capsule"
+            variant="dangerSoft"
+          />
+        </>
       ) : null}
     </Screen>
   );

@@ -27,6 +27,7 @@ On two physical phones signed in as a couple:
 - [ ] A library video longer than 5 seconds is refused with an explanation.
 - [ ] An answer with several photos and a video reveals and plays on the other phone.
 - [ ] A pulse, a ritual answer, a new capsule, and a profile edit show up on the other phone without a refresh.
+- [ ] Deleting a capsule you made removes it, and its timeline moments, from the other phone without a refresh.
 
 ## 1.1.0 internal build
 

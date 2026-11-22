@@ -481,7 +481,7 @@ async function main() {
         }),
     },
     {
-      label: "A sees the reveal live and opens it from history",
+      label: "A sees the reveal live and opens it from the timeline",
       run: () =>
         runMaestro(a.device, "07-ritual-revealed-live.yaml", {
           ...shared,
@@ -535,7 +535,7 @@ async function main() {
         }),
     },
     {
-      label: "B creates a photo capsule from the gallery",
+      label: "B creates a photo capsule with the in-app camera",
       run: () => runMaestro(b.device, "09-photo-capsule-create.yaml", { ...shared, J_CAPSULE_TITLE: photoCapsuleTitle }),
     },
     {
@@ -548,6 +548,20 @@ async function main() {
           J_CAPSULE_EXPECTED_CONTENT: "Capsule photo",
         });
       },
+    },
+    {
+      label: "B deletes the photo capsule; A sees it disappear live",
+      run: () =>
+        watchWhileActing(
+          (onReady) =>
+            runMaestro(
+              a.device,
+              "09-capsule-deleted-for-partner.yaml",
+              { ...shared, J_CAPSULE_TITLE: photoCapsuleTitle },
+              { onReady }
+            ),
+          () => runMaestro(b.device, "09-capsule-delete.yaml", { ...shared, J_CAPSULE_TITLE: photoCapsuleTitle })
+        ),
     },
     {
       label: "A's timeline lists every kind of moment",

@@ -12,6 +12,7 @@ export type CapsuleErrorCode =
   | "unlock_date_in_past"
   | "capsule_locked"
   | "capsule_not_found"
+  | "delete_not_allowed"
   | "permission_denied"
   | "network_error"
   | "unknown";
@@ -27,6 +28,7 @@ const capsuleErrorMessages: Record<CapsuleErrorCode, string> = {
   unlock_date_in_past: "Choose an unlock date and time in the future.",
   capsule_locked: "This memory capsule is still locked.",
   capsule_not_found: "We couldn't find that memory capsule.",
+  delete_not_allowed: "Only the one who made this capsule can delete it.",
   permission_denied: "You don't have access to that memory capsule.",
   network_error: "Connection looks unstable. Please try again in a moment.",
   unknown: "We couldn't complete that memory capsule action right now.",
@@ -81,6 +83,10 @@ function getCapsuleErrorCodeFromPostgrest(error: PostgrestError): CapsuleErrorCo
 
   if (includesAny(searchableText, ["up to 5 photos or videos"])) {
     return "too_many_media";
+  }
+
+  if (includesAny(searchableText, ["who made this capsule can delete it"])) {
+    return "delete_not_allowed";
   }
 
   if (

@@ -277,6 +277,19 @@ export async function getCapsuleDetail(
   }
 }
 
+export async function deleteMemoryCapsule(capsuleId: string): Promise<void> {
+  try {
+    const parsedCapsuleId = capsuleIdSchema.parse(capsuleId);
+    const { error } = await supabase.rpc("delete_memory_capsule", {
+      p_capsule_id: parsedCapsuleId,
+    });
+
+    throwIfCapsuleError(error);
+  } catch (error) {
+    throw toCapsuleActionError(error);
+  }
+}
+
 export async function openMemoryCapsule(capsuleId: string): Promise<MemoryCapsule> {
   try {
     const parsedInput = openCapsuleSchema.parse({ capsuleId });

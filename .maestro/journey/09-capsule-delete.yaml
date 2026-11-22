@@ -1,0 +1,31 @@
+appId: com.leader282.tara
+name: "Journey: delete a capsule you made"
+tags:
+  - journey
+  - capsules
+---
+- runFlow: ../shared/resume-to-tabs.yaml
+- tapOn:
+    id: "tab-capsules"
+- extendedWaitUntil:
+    visible: ${"Open memory capsule " + J_CAPSULE_TITLE}
+    timeout: 20000
+- tapOn: ${"Open memory capsule " + J_CAPSULE_TITLE}
+- extendedWaitUntil:
+    visible: "Capsule detail"
+    timeout: 15000
+- scrollUntilVisible:
+    element: "Delete capsule"
+    direction: DOWN
+    timeout: 15000
+- tapOn: "Delete capsule"
+- extendedWaitUntil:
+    visible: "Delete this capsule?"
+    timeout: 10000
+- tapOn: "^(Delete|DELETE)$"
+- extendedWaitUntil:
+    visible: "Memory capsules"
+    timeout: 15000
+- extendedWaitUntil:
+    notVisible: ${"Open memory capsule " + J_CAPSULE_TITLE}
+    timeout: 15000

@@ -33,8 +33,14 @@ export function useCoupleLiveUpdates(coupleId: string | null | undefined): void 
       }
     };
 
+    // Deleting a capsule also touches the couple row, since deleted rows can't reach the partner.
     const refreshCouple = () =>
-      refresh(queryKeys.couple.all, queryKeys.settings.couple(coupleId), queryKeys.timeline.all);
+      refresh(
+        queryKeys.couple.all,
+        queryKeys.settings.couple(coupleId),
+        queryKeys.capsules.all,
+        queryKeys.timeline.all
+      );
     const refreshRituals = () => refresh(queryKeys.rituals.all, queryKeys.timeline.all);
     const refreshCapsules = () =>
       refresh(queryKeys.capsules.all, queryKeys.timeline.all, queryKeys.couple.home(userId));
