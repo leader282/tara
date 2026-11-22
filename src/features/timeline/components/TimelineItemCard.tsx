@@ -67,16 +67,9 @@ export function TimelineItemCard({
         style={styles.card}
       >
         <View style={styles.header}>
-          <View style={styles.headerText}>
-            <AppText style={styles.title} variant="label">
-              {item.title}
-            </AppText>
-            {item.subtitle ? (
-              <AppText color="textSecondary" variant="bodyMuted">
-                {item.subtitle}
-              </AppText>
-            ) : null}
-          </View>
+          <AppText style={styles.title} variant="label">
+            {item.title}
+          </AppText>
           {canPress ? <Icon color="textTertiary" name="chevron-forward" size={16} /> : null}
         </View>
         <View style={styles.detail}>{renderTimelineDetail(item)}</View>
@@ -124,11 +117,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.sm,
   },
-  headerText: {
-    flex: 1,
-    gap: 2,
-  },
   title: {
+    flex: 1,
     fontSize: 15,
     lineHeight: 20,
   },

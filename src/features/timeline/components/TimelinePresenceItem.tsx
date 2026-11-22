@@ -39,10 +39,7 @@ export function TimelinePresenceItem({ item }: TimelinePresenceItemProps) {
 
   return (
     <View style={styles.container}>
-      <TimelineMetaLine
-        icon="heart-outline"
-        label={pulseLabel ? `Pulse: ${pulseLabel}.` : "A gentle pulse was shared."}
-      />
+      <TimelineMetaLine icon="heart-outline" label={pulseLabel ?? "A gentle pulse"} />
       {hasOptionalMessage ? (
         <TimelineMetaLine icon="chatbubble-outline" label="Included a short note." />
       ) : null}

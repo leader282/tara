@@ -23,12 +23,9 @@ export function TimelineCountdownItem({ item }: TimelineCountdownItemProps) {
     <View style={styles.container}>
       <TimelineMetaLine
         icon="calendar-outline"
-        label={meetupLabel ? `Next meetup: ${meetupLabel}.` : "Your reunion countdown was updated."}
+        label={meetupLabel ? `Next meetup: ${meetupLabel}.` : "The meetup was cleared."}
       />
-      <TimelineMetaLine
-        icon="location-outline"
-        label={hasLocation ? "Location details were updated." : "No location set for this update."}
-      />
+      {hasLocation ? <TimelineMetaLine icon="location-outline" label="Includes a place." /> : null}
     </View>
   );
 }

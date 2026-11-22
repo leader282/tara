@@ -31,6 +31,7 @@ export const ritualCompletedPayloadSchema = z.object({
   couple_ritual_id: z.string().uuid().optional(),
   ritual_template_id: z.string().uuid().optional(),
   scheduled_for: z.string().regex(DATE_ONLY_PATTERN, "Expected YYYY-MM-DD format.").optional(),
+  category: z.string().optional(),
 });
 
 export const capsuleCreatedPayloadSchema = z.object({

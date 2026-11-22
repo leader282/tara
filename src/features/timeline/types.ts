@@ -45,7 +45,6 @@ export type TimelineDisplayItem = {
   coupleId: string;
   actorId: string | null;
   title: string;
-  subtitle: string | null;
   createdAt: string;
   createdAtLabel: string;
   type: TimelineDisplayItemType;

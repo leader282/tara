@@ -26,25 +26,14 @@ export function TimelineCapsuleItem({ item }: TimelineCapsuleItemProps) {
           label={unlockLabel ? `Unlocks ${unlockLabel}.` : "Saved to open later."}
         />
         {hasNote ? <TimelineMetaLine icon="document-text-outline" label="Includes a private note." /> : null}
-        {hasMedia ? <TimelineMetaLine icon="image-outline" label="Includes media." /> : null}
+        {hasMedia ? <TimelineMetaLine icon="image-outline" label="Includes photos or videos." /> : null}
       </View>
     );
   }
 
-  const openedLabel = formatTimelineDateTime(item.payload.value.opened_at);
+  // The card's own time is when it was opened.
   const unlockLabel = formatTimelineDateTime(item.payload.value.unlock_at);
-
-  return (
-    <View style={styles.container}>
-      <TimelineMetaLine
-        icon="mail-open-outline"
-        label={openedLabel ? `Opened ${openedLabel}.` : "A capsule was opened."}
-      />
-      {unlockLabel ? (
-        <TimelineMetaLine icon="time-outline" label={`Unlock time was ${unlockLabel}.`} />
-      ) : null}
-    </View>
-  );
+  return unlockLabel ? <TimelineMetaLine icon="time-outline" label={`Was set to open ${unlockLabel}.`} /> : null;
 }
 
 const styles = StyleSheet.create({

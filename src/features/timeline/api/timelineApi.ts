@@ -15,11 +15,10 @@ import type {
   TimelineDisplayItemType,
   TimelineNavigationTarget,
   TimelinePage,
-  TimelinePayload,
   TimelineQueryParams,
   TimelineItemRow,
 } from "@/features/timeline/types";
-import { formatDateOnly, formatTimelineDateTime } from "@/lib/dates/format";
+import { formatTimelineDateTime } from "@/lib/dates/format";
 import { TimelineActionError, getTimelineErrorMessage, toTimelineActionError } from "@/lib/errors/timelineErrorMessages";
 import { supabase } from "@/lib/supabase/client";
 
@@ -79,83 +78,28 @@ export function getTimelineNavigationTarget(item: Pick<TimelineDisplayItem, "typ
   return null;
 }
 
-function formatEnumLabel(value: string): string {
-  return value
-    .trim()
-    .split(/[_\s-]+/)
-    .filter((segment) => segment.length > 0)
-    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-    .join(" ");
-}
-
-function getSafeTimelineText(
-  type: TimelineDisplayItemType,
-  payload: TimelinePayload
-): Pick<TimelineDisplayItem, "title" | "subtitle"> {
-  switch (type) {
-    case "presence_sent": {
-      const pulseType = payload.type === "presence_sent" ? payload.value.pulse_type : null;
-      return {
-        title: "Presence pulse shared",
-        subtitle: pulseType ? `Pulse: ${formatEnumLabel(pulseType)}.` : "A gentle pulse was shared.",
-      };
-    }
-    case "ritual_completed": {
-      const scheduledFor = payload.type === "ritual_completed" ? payload.value.scheduled_for : null;
-      const scheduledForLabel = formatDateOnly(scheduledFor);
-      return {
-        title: "Ritual completed",
-        subtitle: scheduledForLabel ? `Completed for ${scheduledForLabel}.` : "A shared ritual was completed.",
-      };
-    }
-    case "capsule_created": {
-      const unlockAt = payload.type === "capsule_created" ? payload.value.unlock_at : null;
-      const unlockLabel = formatTimelineDateTime(unlockAt);
-      return {
-        title: "Memory capsule created",
-        subtitle: unlockLabel ? `Unlocks ${unlockLabel}.` : "Saved to open later.",
-      };
-    }
-    case "capsule_opened": {
-      const openedAt = payload.type === "capsule_opened" ? payload.value.opened_at : null;
-      const openedLabel = formatTimelineDateTime(openedAt);
-      return {
-        title: "Memory capsule opened",
-        subtitle: openedLabel ? `Opened ${openedLabel}.` : "A capsule was opened.",
-      };
-    }
-    case "countdown_updated":
-      return {
-        title: "Reunion countdown updated",
-        subtitle: "Meetup details were updated.",
-      };
-    case "parallel_moment_completed":
-      return {
-        title: "Parallel moment completed",
-        subtitle: "A shared moment was saved.",
-      };
-    case "unknown":
-    default:
-      return {
-        title: "Shared moment",
-        subtitle: "Saved safely for both of you.",
-      };
-  }
-}
+// Each card's details line says the rest, so titles stay short and never repeat it.
+const TIMELINE_TITLES: Record<TimelineDisplayItemType, string> = {
+  presence_sent: "Pulse shared",
+  ritual_completed: "Ritual completed",
+  capsule_created: "Memory capsule created",
+  capsule_opened: "Memory capsule opened",
+  countdown_updated: "Reunion plans updated",
+  parallel_moment_completed: "Parallel moment completed",
+  unknown: "Shared moment",
+};
 
 export function mapTimelineRow(row: TimelineItemRow): TimelineDisplayItem {
   const type = isTimelineItemType(row.type) ? row.type : "unknown";
   const payload = parseTimelinePayload(row.type, row.payload);
   const navigationTarget = getTimelineNavigationTarget({ type, payload });
   const typeDisplay = getTimelineTypeDisplay(type);
-  const safeTimelineText = getSafeTimelineText(type, payload);
 
   return {
     id: row.id,
     coupleId: row.couple_id,
     actorId: row.actor_id,
-    title: safeTimelineText.title,
-    subtitle: safeTimelineText.subtitle,
+    title: TIMELINE_TITLES[type],
     createdAt: row.created_at,
     createdAtLabel: formatTimelineDateTime(row.created_at) ?? "Recent",
     type,
