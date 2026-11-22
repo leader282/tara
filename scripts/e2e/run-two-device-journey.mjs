@@ -481,7 +481,7 @@ async function main() {
         }),
     },
     {
-      label: "A sees the reveal live and opens it from the timeline",
+      label: "A sees the reveal and its timeline moment arrive live",
       run: () =>
         runMaestro(a.device, "07-ritual-revealed-live.yaml", {
           ...shared,

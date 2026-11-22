@@ -20,7 +20,8 @@ type TimelineListProps = {
   header?: ReactElement;
   onRefresh: () => void;
   onLoadMore: () => void;
-  onItemPress: (item: TimelineDisplayItem) => void;
+  // "You" or the partner's name for a moment's sender.
+  getActorName?: (actorId: string | null) => string | null;
 };
 
 function getDayKey(isoString: string): string {
@@ -63,7 +64,7 @@ export function TimelineList({
   header,
   onRefresh,
   onLoadMore,
-  onItemPress,
+  getActorName,
 }: TimelineListProps) {
   const insets = useSafeAreaInsets();
 
@@ -125,10 +126,10 @@ export function TimelineList({
               </AppText>
             ) : null}
             <TimelineItemCard
+              actorName={getActorName?.(item.actorId) ?? null}
               isFirst={isFirstOfDay}
               isLast={isLastOfDay}
               item={item}
-              onPress={onItemPress}
             />
           </View>
         );

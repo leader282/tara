@@ -41,8 +41,14 @@ export function Card({
   ];
 
   if (!onPress) {
+    // A labelled card that can't be tapped is read out as one item.
     return (
-      <View style={cardStyle} testID={testID}>
+      <View
+        accessibilityLabel={accessibilityLabel}
+        accessible={accessibilityLabel ? true : undefined}
+        style={cardStyle}
+        testID={testID}
+      >
         {children}
       </View>
     );

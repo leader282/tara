@@ -13,7 +13,6 @@ import {
 import type {
   TimelineDisplayItem,
   TimelineDisplayItemType,
-  TimelineNavigationTarget,
   TimelinePage,
   TimelineQueryParams,
   TimelineItemRow,
@@ -39,43 +38,35 @@ function throwIfTimelineError(error: PostgrestError | null): void {
   throw new TimelineActionError("unknown", getTimelineErrorMessage(error));
 }
 
-export function getTimelineNavigationTarget(item: Pick<TimelineDisplayItem, "type" | "payload">): TimelineNavigationTarget {
-  if (item.type === "presence_sent") {
-    return { pathname: "/(couple)" };
+// Timeline rows only record that a pulse had a note; the note itself stays on the pulse, which
+// only the couple can read. Missing notes just leave the card without one.
+async function getPulseMessages(rows: TimelineItemRow[]): Promise<Map<string, string>> {
+  const presenceEventIds = rows.flatMap((row) => {
+    const payload = parseTimelinePayload(row.type, row.payload);
+    return payload.type === "presence_sent" && payload.value.presence_event_id
+      ? [payload.value.presence_event_id]
+      : [];
+  });
+
+  if (presenceEventIds.length === 0) {
+    return new Map();
   }
 
-  if (item.type === "ritual_completed") {
-    const ritualId = item.payload.type === "ritual_completed" ? item.payload.value.couple_ritual_id : undefined;
-    if (!ritualId) {
-      return null;
-    }
+  const { data, error } = await supabase
+    .from("presence_events")
+    .select("id, optional_message")
+    .in("id", presenceEventIds);
 
-    return {
-      pathname: "/(couple)/rituals/[ritualId]",
-      params: { ritualId },
-    };
+  if (error) {
+    return new Map();
   }
 
-  if (item.type === "capsule_created" || item.type === "capsule_opened") {
-    const capsuleId =
-      item.payload.type === "capsule_created" || item.payload.type === "capsule_opened"
-        ? item.payload.value.capsule_id
-        : undefined;
-    if (!capsuleId) {
-      return null;
-    }
-
-    return {
-      pathname: "/(couple)/capsules/[capsuleId]",
-      params: { capsuleId },
-    };
-  }
-
-  if (item.type === "countdown_updated") {
-    return { pathname: "/(couple)/edit-meetup" };
-  }
-
-  return null;
+  return new Map(
+    (data ?? []).flatMap((event) => {
+      const message = event.optional_message?.trim();
+      return message ? [[event.id, message] as const] : [];
+    })
+  );
 }
 
 // Each card's details line says the rest, so titles stay short and never repeat it.
@@ -89,11 +80,14 @@ const TIMELINE_TITLES: Record<TimelineDisplayItemType, string> = {
   unknown: "Shared moment",
 };
 
-export function mapTimelineRow(row: TimelineItemRow): TimelineDisplayItem {
+export function mapTimelineRow(
+  row: TimelineItemRow,
+  pulseMessages: ReadonlyMap<string, string> = new Map()
+): TimelineDisplayItem {
   const type = isTimelineItemType(row.type) ? row.type : "unknown";
   const payload = parseTimelinePayload(row.type, row.payload);
-  const navigationTarget = getTimelineNavigationTarget({ type, payload });
   const typeDisplay = getTimelineTypeDisplay(type);
+  const presenceEventId = payload.type === "presence_sent" ? payload.value.presence_event_id : undefined;
 
   return {
     id: row.id,
@@ -107,7 +101,7 @@ export function mapTimelineRow(row: TimelineItemRow): TimelineDisplayItem {
     typeLabel: typeDisplay.label,
     iconText: typeDisplay.iconText,
     payload,
-    navigationTarget,
+    message: presenceEventId ? (pulseMessages.get(presenceEventId) ?? null) : null,
   };
 }
 
@@ -133,7 +127,8 @@ export async function getTimelinePage(params: TimelineQueryParams): Promise<Time
     throwIfTimelineError(error);
 
     const rows = (data ?? []) as TimelineItemRow[];
-    const items = rows.map((row) => mapTimelineRow(row));
+    const pulseMessages = await getPulseMessages(rows);
+    const items = rows.map((row) => mapTimelineRow(row, pulseMessages));
     const hasMore = rows.length === pageSize;
     const nextPageParam = hasMore ? from + rows.length : null;
 

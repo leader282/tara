@@ -1,5 +1,5 @@
 appId: com.leader282.tara
-name: "Journey: first partner sees the reveal live and opens it from the timeline"
+name: "Journey: first partner sees the reveal and its timeline moment arrive live"
 tags:
   - journey
   - rituals
@@ -25,7 +25,7 @@ tags:
     direction: DOWN
     timeout: 10000
 
-# The reveal's timeline moment also arrives live, and links to the ritual.
+# The reveal's timeline moment arrives live too.
 - tapOn:
     id: "tab-timeline"
 - extendedWaitUntil:
@@ -34,17 +34,3 @@ tags:
 - extendedWaitUntil:
     visible: "Ritual completed: .*"
     timeout: 30000
-- tapOn: "Ritual completed: .*"
-- extendedWaitUntil:
-    visible: "Ritual detail"
-    timeout: 15000
-- assertVisible: "Shared prompt"
-- scrollUntilVisible:
-    element: ${J_PARTNER_RITUAL_ANSWER}
-    direction: DOWN
-    timeout: 10000
-- assertVisible: ${J_RITUAL_ANSWER}
-- tapOn: "Back to rituals"
-- extendedWaitUntil:
-    visible: "Your private timeline"
-    timeout: 10000

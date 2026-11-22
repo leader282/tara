@@ -8,6 +8,8 @@ import { mapTimelineRow } from "@/features/timeline/api/timelineApi";
 import { TimelineItemCard } from "@/features/timeline/components/TimelineItemCard";
 import type { TimelineItemRow } from "@/features/timeline/types";
 
+const PRESENCE_EVENT_ID = "44444444-4444-4444-8444-444444444444";
+
 function row(type: string, payload: Record<string, unknown>, createdAt = "2026-11-22T08:10:00.000Z") {
   return {
     id: "11111111-1111-4111-8111-111111111111",
@@ -19,17 +21,40 @@ function row(type: string, payload: Record<string, unknown>, createdAt = "2026-1
   } as TimelineItemRow;
 }
 
-function renderCard(item: TimelineItemRow) {
-  return render(<TimelineItemCard item={mapTimelineRow(item)} />);
+function renderCard(item: TimelineItemRow, options: { messages?: Map<string, string>; actorName?: string } = {}) {
+  return render(
+    <TimelineItemCard actorName={options.actorName ?? null} item={mapTimelineRow(item, options.messages)} />
+  );
 }
 
 describe("timeline cards", () => {
-  it("names a pulse once", () => {
-    renderCard(row("presence_sent", { pulse_type: "miss_you", has_optional_message: true }));
+  it("shows a pulse's note and who sent it", () => {
+    renderCard(
+      row("presence_sent", { presence_event_id: PRESENCE_EVENT_ID, pulse_type: "miss_you", has_optional_message: true }),
+      { messages: new Map([[PRESENCE_EVENT_ID, "Sleep well, love"]]), actorName: "Asha" }
+    );
+
+    expect(screen.getByText("Asha sent a pulse")).toBeTruthy();
+    expect(screen.getAllByText(/miss you/i)).toHaveLength(1);
+    expect(screen.getByText("Sleep well, love")).toBeTruthy();
+    expect(screen.queryByText("Included a short note.")).toBeNull();
+  });
+
+  it("falls back to saying there was a note when it can't be loaded", () => {
+    renderCard(row("presence_sent", { presence_event_id: PRESENCE_EVENT_ID, pulse_type: "hug", has_optional_message: true }));
 
     expect(screen.getByText("Pulse shared")).toBeTruthy();
-    expect(screen.getAllByText(/miss you/i)).toHaveLength(1);
     expect(screen.getByText("Included a short note.")).toBeTruthy();
+  });
+
+  it("is read-only but still reads out everything it shows", () => {
+    renderCard(
+      row("presence_sent", { presence_event_id: PRESENCE_EVENT_ID, pulse_type: "miss_you", has_optional_message: true }),
+      { messages: new Map([[PRESENCE_EVENT_ID, "Sleep well, love"]]), actorName: "You" }
+    );
+
+    expect(screen.queryByRole("button")).toBeNull();
+    expect(screen.getByLabelText(/^Presence pulse: You sent a pulse\. Miss you\. Sleep well, love\. /)).toBeTruthy();
   });
 
   it("shows a ritual's category instead of repeating the day it happened", () => {

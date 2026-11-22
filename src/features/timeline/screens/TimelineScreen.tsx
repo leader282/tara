@@ -8,42 +8,8 @@ import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useCoupleHome } from "@/features/couple/hooks/useCoupleHome";
 import { TimelineList } from "@/features/timeline/components/TimelineList";
 import { useTimeline } from "@/features/timeline/hooks/useTimeline";
-import type { TimelineDisplayItem, TimelineNavigationTarget } from "@/features/timeline/types";
 import { queryKeys } from "@/lib/query/queryKeys";
 import { spacing } from "@/theme/tokens";
-
-function navigateToTimelineTarget(
-  target: TimelineNavigationTarget,
-  navigate: ReturnType<typeof useRouter>["push"],
-  replace: ReturnType<typeof useRouter>["replace"]
-): void {
-  if (!target) {
-    return;
-  }
-
-  switch (target.pathname) {
-    case "/(couple)":
-      replace(target.pathname);
-      return;
-    case "/(couple)/edit-meetup":
-      navigate(target.pathname);
-      return;
-    case "/(couple)/rituals/[ritualId]":
-      navigate({
-        pathname: target.pathname,
-        params: target.params,
-      });
-      return;
-    case "/(couple)/capsules/[capsuleId]":
-      navigate({
-        pathname: target.pathname,
-        params: target.params,
-      });
-      return;
-    default:
-      return;
-  }
-}
 
 function TimelineHeader() {
   return (
@@ -90,8 +56,12 @@ export function TimelineScreen() {
     void timeline.fetchNextPage();
   };
 
-  const handleTimelineItemPress = (item: TimelineDisplayItem) => {
-    navigateToTimelineTarget(item.navigationTarget, router.push, router.replace);
+  const getActorName = (actorId: string | null) => {
+    if (!actorId || !pairedData) {
+      return null;
+    }
+
+    return actorId === user?.id ? "You" : pairedData.partnerProfile.display_name;
   };
 
   if (coupleHome.isLoading || coupleHome.state.status === "loading") {
@@ -181,8 +151,8 @@ export function TimelineScreen() {
         header={<TimelineHeader />}
         isFetchingNextPage={timeline.isFetchingNextPage}
         isRefreshing={timeline.isRefreshing}
+        getActorName={getActorName}
         items={timeline.items}
-        onItemPress={handleTimelineItemPress}
         onLoadMore={handleLoadMoreTimeline}
         onRefresh={handleRefreshTimeline}
       />

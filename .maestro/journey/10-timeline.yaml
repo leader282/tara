@@ -36,9 +36,5 @@ tags:
     element: "Presence pulse: .*"
     direction: DOWN
     timeout: 20000
-# Each moment links back to where it happened.
-- tapOn: "Presence pulse: .*"
-- extendedWaitUntil:
-    visible:
-      id: "couple-home"
-    timeout: 15000
+# Cards are read-only; pulses say who sent them.
+- assertVisible: ".*sent a pulse.*"

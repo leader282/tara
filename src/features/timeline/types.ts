@@ -33,13 +33,6 @@ export type TimelinePayload =
 
 export type TimelineCursor = number;
 
-export type TimelineNavigationTarget =
-  | { pathname: "/(couple)/rituals/[ritualId]"; params: { ritualId: string } }
-  | { pathname: "/(couple)/capsules/[capsuleId]"; params: { capsuleId: string } }
-  | { pathname: "/(couple)/edit-meetup" }
-  | { pathname: "/(couple)" }
-  | null;
-
 export type TimelineDisplayItem = {
   id: string;
   coupleId: string;
@@ -52,7 +45,8 @@ export type TimelineDisplayItem = {
   typeLabel: string;
   iconText: string;
   payload: TimelinePayload;
-  navigationTarget: TimelineNavigationTarget;
+  // The note sent with a pulse, if any.
+  message: string | null;
 };
 
 export type TimelinePage = {

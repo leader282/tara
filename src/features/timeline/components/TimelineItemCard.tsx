@@ -1,49 +1,29 @@
 import { StyleSheet, View } from "react-native";
 
-import { AppText, Card, Icon } from "@/components/ui";
-import { TimelineCapsuleItem } from "@/features/timeline/components/TimelineCapsuleItem";
-import { TimelineCountdownItem } from "@/features/timeline/components/TimelineCountdownItem";
-import { TimelinePresenceItem } from "@/features/timeline/components/TimelinePresenceItem";
-import { TimelineRitualItem } from "@/features/timeline/components/TimelineRitualItem";
+import { AppText, Card } from "@/components/ui";
+import { TimelineMetaLine } from "@/features/timeline/components/TimelineMetaLine";
 import { TimelineTypeIcon } from "@/features/timeline/components/TimelineTypeIcon";
-import { TimelineUnknownItem } from "@/features/timeline/components/TimelineUnknownItem";
+import {
+  getTimelineAccessibilityLabel,
+  getTimelineDetailLines,
+  getTimelineTitle,
+} from "@/features/timeline/details";
 import type { TimelineDisplayItem } from "@/features/timeline/types";
-import { colors, spacing } from "@/theme/tokens";
+import { colors, radii, spacing } from "@/theme/tokens";
 
 const ICON_CENTER_OFFSET = spacing.md + 21;
 
 type TimelineItemCardProps = {
   item: TimelineDisplayItem;
+  // "You" or the partner's name, for moments one of you sent.
+  actorName?: string | null;
   isFirst?: boolean;
   isLast?: boolean;
-  onPress?: (item: TimelineDisplayItem) => void;
 };
 
-function renderTimelineDetail(item: TimelineDisplayItem) {
-  switch (item.type) {
-    case "presence_sent":
-      return <TimelinePresenceItem item={item} />;
-    case "ritual_completed":
-      return <TimelineRitualItem item={item} />;
-    case "capsule_created":
-    case "capsule_opened":
-      return <TimelineCapsuleItem item={item} />;
-    case "countdown_updated":
-      return <TimelineCountdownItem item={item} />;
-    case "parallel_moment_completed":
-    case "unknown":
-    default:
-      return <TimelineUnknownItem />;
-  }
-}
-
-export function TimelineItemCard({
-  item,
-  isFirst = false,
-  isLast = false,
-  onPress,
-}: TimelineItemCardProps) {
-  const canPress = Boolean(item.navigationTarget && onPress);
+export function TimelineItemCard({ item, actorName = null, isFirst = false, isLast = false }: TimelineItemCardProps) {
+  const title = getTimelineTitle(item, actorName);
+  const lines = getTimelineDetailLines(item);
   const lineStyle =
     isFirst && isLast
       ? null
@@ -60,19 +40,25 @@ export function TimelineItemCard({
         <TimelineTypeIcon item={item} />
       </View>
       <Card
-        accessibilityHint={canPress ? "Opens moment details" : undefined}
-        accessibilityLabel={`${item.typeLabel}: ${item.title}`}
-        onPress={canPress && onPress ? () => onPress(item) : undefined}
+        accessibilityLabel={getTimelineAccessibilityLabel(item, title, lines)}
         padding="md"
         style={styles.card}
       >
-        <View style={styles.header}>
-          <AppText style={styles.title} variant="label">
-            {item.title}
-          </AppText>
-          {canPress ? <Icon color="textTertiary" name="chevron-forward" size={16} /> : null}
-        </View>
-        <View style={styles.detail}>{renderTimelineDetail(item)}</View>
+        <AppText style={styles.title} variant="label">
+          {title}
+        </AppText>
+        {lines.length > 0 ? (
+          <View style={styles.detail}>
+            {lines.map((line) => (
+              <TimelineMetaLine icon={line.icon} key={line.label} label={line.label} />
+            ))}
+          </View>
+        ) : null}
+        {item.message ? (
+          <View style={styles.message}>
+            <AppText variant="bodyMuted">{item.message}</AppText>
+          </View>
+        ) : null}
         <AppText color="textTertiary" variant="caption">
           {item.createdAtLabel}
         </AppText>
@@ -112,17 +98,19 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: spacing.sm,
   },
-  header: {
-    alignItems: "flex-start",
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
   title: {
-    flex: 1,
     fontSize: 15,
     lineHeight: 20,
   },
   detail: {
     gap: spacing.xs,
+  },
+  message: {
+    alignSelf: "flex-start",
+    backgroundColor: colors.surfaceMuted,
+    borderRadius: radii.md,
+    borderTopLeftRadius: radii.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
 });
